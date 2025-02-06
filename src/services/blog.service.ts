@@ -1,178 +1,181 @@
-import logger from "@/configs/logger.config";
-import { ErrorCode } from "@/constants/error-code";
-import { CreateBlogDto, UpdateBlogDto } from "@/dto/blog.dto";
-import { CouldNotFindBlogException } from "@/exceptions";
+import logger from '@/configs/logger.config';
+import { ErrorCode } from '@/constants/error-code';
+import { CreateBlogDto, UpdateBlogDto } from '@/dto/blog.dto';
+import { CouldNotFindBlogException } from '@/exceptions';
 import {
-  BadRequestException,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from "@/exceptions/http-exception";
-import BlogModel, { Blog } from "@/models/blog.model";
-import { Types } from "mongoose";
+	BadRequestException,
+	InternalServerErrorException,
+	UnauthorizedException
+} from '@/exceptions/http-exception';
+import BlogModel, { Blog } from '@/models/blog.model';
+import { Types } from 'mongoose';
 
 export class BlogService {
-  constructor() {}
+	constructor() {}
 
-  //TODO: implement pagination
-  async getBlogs() {
-    try {
-      const blogs = await BlogModel.find();
-      return blogs;
-    } catch (error) {
-      logger.error(error, "Error getting blogs");
-      throw new InternalServerErrorException(
-        "Error getting blogs from database",
-        ErrorCode.DATABASE_ERROR
-      );
-    }
-  }
+	//TODO: implement pagination
+	async getBlogs() {
+		try {
+			const blogs = await BlogModel.find();
+			return blogs;
+		} catch (error) {
+			logger.error(error, 'Error getting blogs');
+			throw new InternalServerErrorException(
+				'Error getting blogs from database',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
 
-  async getLastEditedBlog(userId: string): Promise<Blog | null> {
-    try {
-      const blog = await BlogModel.findOne({
-        userId: new Types.ObjectId(userId),
-      }).sort({ updatedAt: -1 });
+	async getLastEditedBlog(userId: string): Promise<Blog | null> {
+		try {
+			const blog = await BlogModel.findOne({
+				userId: new Types.ObjectId(userId)
+			}).sort({ updatedAt: -1 });
 
-      if (!blog) {
-        throw new CouldNotFindBlogException();
-      }
-      return blog;
-    } catch (error) {
-      logger.error(error, "Error getting last edited blog");
-      throw new InternalServerErrorException(
-        "Error getting last edited blog",
-        ErrorCode.DATABASE_ERROR
-      );
-    }
-  }
+			if (!blog) {
+				throw new CouldNotFindBlogException();
+			}
+			return blog;
+		} catch (error) {
+			logger.error(error, 'Error getting last edited blog');
+			throw new InternalServerErrorException(
+				'Error getting last edited blog',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
 
-  async getBlogById(id: string): Promise<Blog | null> {
-    try {
-      if (!Types.ObjectId.isValid(id)) {
-        throw new BadRequestException(
-          "Invalid blog id",
-          ErrorCode.INVALID_BLOG_ID
-        );
-      }
-      const blog = await BlogModel.findById(id);
-      if (!blog) {
-        throw new CouldNotFindBlogException();
-      }
-      return blog;
-    } catch (error) {
-      if (error instanceof BadRequestException) throw error;
-      logger.error(error, "Error getting blog by id");
-      throw new InternalServerErrorException(
-        "Error getting blog from database",
-        ErrorCode.DATABASE_ERROR
-      );
-    }
-  }
+	async getBlogById(id: string): Promise<Blog | null> {
+		try {
+			if (!Types.ObjectId.isValid(id)) {
+				throw new BadRequestException(
+					'Invalid blog id',
+					ErrorCode.INVALID_BLOG_ID
+				);
+			}
+			const blog = await BlogModel.findById(id);
+			if (!blog) {
+				throw new CouldNotFindBlogException();
+			}
+			return blog;
+		} catch (error) {
+			if (error instanceof BadRequestException) throw error;
+			logger.error(error, 'Error getting blog by id');
+			throw new InternalServerErrorException(
+				'Error getting blog from database',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
 
-  async createBlog(data: CreateBlogDto): Promise<Blog> {
-    try {
-      const blog = new BlogModel({
-        title: data.title,
-        content: data.content,
-        image: data.image,
-        userId: new Types.ObjectId(data.userId),
-        published: false,
-      });
+	async createBlog(data: CreateBlogDto): Promise<Blog> {
+		try {
+			const blog = new BlogModel({
+				title: data.title,
+				content: data.content,
+				image: data.image,
+				userId: new Types.ObjectId(data.userId),
+				published: false
+			});
 
-      logger.info("Creating blog data", blog);
+			logger.info('Creating blog data', blog);
 
-      const newBlog = await blog.save();
+			const newBlog = await blog.save();
 
-      return newBlog;
-    } catch (error) {
-      logger.error(error, "Error creating blog");
-      throw new InternalServerErrorException(
-        "Error creating blog",
-        ErrorCode.DATABASE_ERROR,
-        error
-      );
-    }
-  }
+			return newBlog;
+		} catch (error) {
+			logger.error(error, 'Error creating blog');
+			throw new InternalServerErrorException(
+				'Error creating blog',
+				ErrorCode.DATABASE_ERROR,
+				error
+			);
+		}
+	}
 
-  async updateBlog(data: UpdateBlogDto, role: string[]): Promise<Blog> {
-    try {
-      const blog = await BlogModel.findById(data._id);
-      if (!blog) {
-        throw new CouldNotFindBlogException();
-      }
+	async updateBlog(data: UpdateBlogDto, role: string[]): Promise<Blog> {
+		try {
+			const blog = await BlogModel.findById(data._id);
+			if (!blog) {
+				throw new CouldNotFindBlogException();
+			}
 
-      if (data.userId !== blog.userId.toString() && !role.includes("admin")) {
-        throw new UnauthorizedException(
-          "You are not authorized to update this blog."
-        );
-      }
+			if (
+				data.userId !== blog.userId.toString() &&
+				!role.includes('admin')
+			) {
+				throw new UnauthorizedException(
+					'You are not authorized to update this blog.'
+				);
+			}
 
-      const updatedBlog = await BlogModel.findByIdAndUpdate(
-        data._id,
-        {
-          title: data.title,
-          content: data.content,
-          image: data.image,
-          published: data.published,
-        },
-        { new: true }
-      );
+			const updatedBlog = await BlogModel.findByIdAndUpdate(
+				data._id,
+				{
+					title: data.title,
+					content: data.content,
+					image: data.image,
+					published: data.published
+				},
+				{ new: true }
+			);
 
-      if (!updatedBlog) {
-        throw new BadRequestException(
-          "Invalid blog data",
-          ErrorCode.INVALID_BLOG_DATA
-        );
-      }
+			if (!updatedBlog) {
+				throw new BadRequestException(
+					'Invalid blog data',
+					ErrorCode.INVALID_BLOG_DATA
+				);
+			}
 
-      return updatedBlog;
-    } catch (error) {
-      if (
-        error instanceof BadRequestException ||
-        error instanceof UnauthorizedException ||
-        error instanceof CouldNotFindBlogException
-      ) {
-        throw error;
-      }
-      logger.error(error, "Error updating blog");
-      throw new InternalServerErrorException(
-        "Error updating blog",
-        ErrorCode.DATABASE_ERROR
-      );
-    }
-  }
+			return updatedBlog;
+		} catch (error) {
+			if (
+				error instanceof BadRequestException ||
+				error instanceof UnauthorizedException ||
+				error instanceof CouldNotFindBlogException
+			) {
+				throw error;
+			}
+			logger.error(error, 'Error updating blog');
+			throw new InternalServerErrorException(
+				'Error updating blog',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
 
-  //user or admin
-  async deleteBlog(
-    blogId: string,
-    userId: string,
-    role: string[]
-  ): Promise<void> {
-    try {
-      const blog = await BlogModel.findById(blogId);
-      if (!blog) {
-        throw new CouldNotFindBlogException();
-      }
+	//user or admin
+	async deleteBlog(
+		blogId: string,
+		userId: string,
+		role: string[]
+	): Promise<void> {
+		try {
+			const blog = await BlogModel.findById(blogId);
+			if (!blog) {
+				throw new CouldNotFindBlogException();
+			}
 
-      if (userId !== blog.userId.toString() && !role.includes("admin")) {
-        throw new UnauthorizedException(
-          "You are not authorized to delete this blog."
-        );
-      }
+			if (userId !== blog.userId.toString() && !role.includes('admin')) {
+				throw new UnauthorizedException(
+					'You are not authorized to delete this blog.'
+				);
+			}
 
-      await blog.deleteOne();
-    } catch (error) {
-      if (
-        error instanceof BadRequestException ||
-        error instanceof UnauthorizedException
-      ) {
-        throw error;
-      }
-      logger.error(error, "Error deleting blog");
-      throw new InternalServerErrorException(
-        "Error deleting blog",
-        ErrorCode.DATABASE_ERROR
-      );
-    }
-  }
+			await blog.deleteOne();
+		} catch (error) {
+			if (
+				error instanceof BadRequestException ||
+				error instanceof UnauthorizedException
+			) {
+				throw error;
+			}
+			logger.error(error, 'Error deleting blog');
+			throw new InternalServerErrorException(
+				'Error deleting blog',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
 }
