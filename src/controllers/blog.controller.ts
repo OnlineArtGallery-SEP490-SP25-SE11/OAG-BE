@@ -5,25 +5,34 @@ import {
 	UpdateBlogSchema
 } from '@/dto/blog.dto';
 import { BaseHttpResponse } from '@/lib/base-http-response';
-import { BlogService } from '@/services/blog.service';
 import { ForbiddenException } from '@/exceptions/http-exception';
 import { NextFunction, Request, Response } from 'express';
+import { Types } from 'mongoose';
+import { IBlogController } from '@/interfaces/controller.interface';
+import { BlogService } from '@/services/blog.service';
+import { inject, injectable } from 'inversify';
+import { TYPES } from '@/constants/types';
 
-export class BlogController {
-	constructor(private readonly _blogService: BlogService) {
+@injectable()
+export class BlogController implements IBlogController {
+	constructor(
+		@inject(TYPES.BlogService) private readonly _blogService: BlogService
+	) {
+
 		this.getBlogs = this.getBlogs.bind(this);
 		this.getBlogById = this.getBlogById.bind(this);
 		this.createBlog = this.createBlog.bind(this);
 		this.updateBlog = this.updateBlog.bind(this);
 		this.deleteBlog = this.deleteBlog.bind(this);
 		this.getLastEditedBlog = this.getLastEditedBlog.bind(this);
+		this.getPublishedBlogs = this.getPublishedBlogs.bind(this);
 	}
 
-	async getBlogs(
+	getBlogs = async (
 		req: Request,
 		res: Response,
 		next: NextFunction
-	): Promise<any> {
+	): Promise<any> => {
 		try {
 			const blogs = await this._blogService.getBlogs();
 			const response = BaseHttpResponse.success(
@@ -37,11 +46,11 @@ export class BlogController {
 		}
 	}
 
-	async getBlogById(
+	getBlogById = async (
 		req: Request,
 		res: Response,
 		next: NextFunction
-	): Promise<any> {
+	): Promise<any> => {
 		try {
 			const blog = await this._blogService.getBlogById(req.params.id);
 			const response = BaseHttpResponse.success(
@@ -55,11 +64,11 @@ export class BlogController {
 		}
 	}
 
-	async getLastEditedBlog(
+	getLastEditedBlog = async (
 		req: Request,
 		res: Response,
 		next: NextFunction
-	): Promise<any> {
+	): Promise<any> => {
 		try {
 			const userId = req.userId;
 			const blog = await this._blogService.getLastEditedBlog(userId!);
@@ -74,17 +83,17 @@ export class BlogController {
 		}
 	}
 
-	async createBlog(
+	createBlog = async (
 		req: Request,
 		res: Response,
 		next: NextFunction
-	): Promise<any> {
+	): Promise<any> => {
 		try {
 			const userId = req.userId;
 			if (!userId) {
 				throw new ForbiddenException('Forbidden');
 			}
-			req.body.userId = userId;
+			req.body.author = userId;
 			const validationResult = CreateBlogPayload.safeParse(req.body);
 			if (!validationResult.success) {
 				const errors = validationResult.error.errors.map((error) => ({
@@ -102,7 +111,7 @@ export class BlogController {
 						)
 					);
 			}
-			const blogData = { ...validationResult.data, userId };
+			const blogData = { ...validationResult.data, author: userId };
 			const blog = await this._blogService.createBlog(blogData);
 			const response = BaseHttpResponse.success(
 				blog,
@@ -115,17 +124,17 @@ export class BlogController {
 		}
 	}
 
-	async updateBlog(
+	updateBlog = async (
 		req: Request,
 		res: Response,
 		next: NextFunction
-	): Promise<any> {
+	): Promise<any> => {
 		try {
 			const userId = req.userId;
 			if (!userId) {
 				throw new ForbiddenException('Forbidden');
 			}
-			req.body.userId = userId;
+			req.body.author = userId;
 			const role = req.userRole!;
 			const blogId = req.params.id;
 			req.body._id = blogId;
@@ -160,7 +169,7 @@ export class BlogController {
 		}
 	}
 
-	async deleteBlog(req: Request, res: Response, next: NextFunction) {
+	deleteBlog = async (req: Request, res: Response, next: NextFunction) => {
 		const userId = req.userId;
 		if (!userId) {
 			throw new ForbiddenException('Forbidden');
@@ -176,4 +185,65 @@ export class BlogController {
 			next(error);
 		}
 	}
+
+	getPublishedBlogs = async (
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> => {
+		try {
+			const limit = parseInt(req.query.limit as string) || 10;
+			const after = req.query.after as string;
+			const query = req.query.query as string;
+
+			const baseQuery: any = { published: true };
+			if (query) {
+				baseQuery.$or = [
+					{ title: { $regex: query, $options: 'i' } }
+					// { content: { $regex: query, $options: 'i' } }
+				];
+			}
+			if (after) {
+				const [timestamp, id] = after.split('_');
+				baseQuery.$or = [
+					{ createdAt: { $lt: new Date(parseInt(timestamp)) } },
+					{
+						$and: [
+							{ createdAt: new Date(parseInt(timestamp)) },
+							{ _id: { $lt: new Types.ObjectId(id) } }
+						]
+					}
+				];
+			}
+			const blogs = await this._blogService.getPublishedBlogs(
+				baseQuery,
+				limit + 1
+			);
+			const total = await this._blogService.getTotalPublishedBlogs(
+				baseQuery
+			);
+			const hasNextPage = blogs.length > limit;
+
+			//remove extra
+			const edges = blogs.slice(0, limit).map((blog) => ({
+				cursor: `${blog.updatedAt.getTime()}_${blog._id.toString()}`,
+				node: blog
+			}));
+
+			const pageInfo = {
+				hasNextPage,
+				endCursor:
+					edges.length > 0 ? edges[edges.length - 1].cursor : null
+			};
+			const response = BaseHttpResponse.success(
+				{ edges, total, pageInfo },
+				200,
+				'Get published blogs success'
+			);
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	}
+
 }
