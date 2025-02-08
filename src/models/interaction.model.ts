@@ -5,32 +5,32 @@ import { Blog } from "./blog.model";
 import { Types } from "mongoose";
 
 @index({ post: 1, type: 1, createdAt: -1 })
-@pre<Interaction>("save", async function (next) {
-  if (this.type === InteractionType.HEART) {
-    await Blog.incrementHeartCount(this.blogId.toString());
-  }
-  next();
+@pre<Interaction>('save', async function (next) {
+	if (this.type === InteractionType.HEART) {
+		await Blog.incrementHeartCount(this.blogId.toString());
+	}
+	next();
 })
-@pre<Interaction>("deleteOne", async function (next) {
-  if (this.type === InteractionType.HEART) {
-    await Blog.decrementHeartCount(this.blogId.toString());
-  }
-  next();
+@pre<Interaction>('deleteOne', async function (next) {
+	if (this.type === InteractionType.HEART) {
+		await Blog.decrementHeartCount(this.blogId.toString());
+	}
+	next();
 })
 export class Interaction {
-  @prop({
-    required: true,
-    type: String,
-    enum: InteractionType,
-    index: true,
-  })
-  type!: InteractionType;
+	@prop({
+		required: true,
+		type: String,
+		enum: InteractionType,
+		index: true
+	})
+	type!: InteractionType;
 
-  @prop({ required: true, ref: () => User, index: true })
-  userId!: Ref<User>;
+	@prop({ required: true, ref: () => User, index: true })
+	userId!: Ref<User>;
 
-  @prop({ required: true, ref: () => Blog, index: true })
-  blogId!: Ref<Blog>;
+	@prop({ required: true, ref: () => Blog, index: true })
+	blogId!: Ref<Blog>;
 }
 
 export type InteractionDocument = Interaction & {

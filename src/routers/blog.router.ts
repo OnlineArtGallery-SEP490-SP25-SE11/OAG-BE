@@ -10,13 +10,13 @@ const blogController = container.get<BlogController>(TYPES.BlogController);
 router.get("/", blogController.getBlogs);
 router.get("/published", blogController.getPublishedBlogs);
 router.get(
-  "/last-edited",
-  roleRequire(["user"]),
-  blogController.getLastEditedBlog
+	'/last-edited',
+	roleRequire(['user']),
+	blogController.getLastEditedBlog
 );
-router.get("/:id", blogController.getBlogById);
-router.post("/", roleRequire([Role.USER, Role.ADMIN]), (req, res, next) => {
-  blogController.createBlog(req, res, next);
+router.get('/:id', blogController.getBlogById);
+router.post('/', roleRequire([Role.USER, Role.ADMIN]), (req, res, next) => {
+	blogController.createBlog(req, res, next);
 });
 router.put("/:id", roleRequire(["user", "admin"]), blogController.updateBlog);
 router.delete("/:id", blogController.deleteBlog);

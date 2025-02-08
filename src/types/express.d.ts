@@ -1,8 +1,8 @@
-import "express";
+import 'express';
 
-declare module "express" {
-  interface Request {
-    userId?: string;
-    userRole?: string[];
-  }
+declare module 'express' {
+	interface Request {
+		userId?: string;
+		userRole?: string[];
+	}
 }
