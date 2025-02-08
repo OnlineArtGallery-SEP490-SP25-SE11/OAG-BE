@@ -11,8 +11,7 @@ class FileController {
 			if (!req.file || Object.keys(req.file).length === 0) {
 				res.status(400).send('No files were uploaded.');
 			}
-			const { refId, refType } = req.body;
-
+			const { refId, refType, width, height } = req.body;
 			const multerFile = {
 				buffer: req.file?.buffer,
 				originalname: req.file?.originalname,
@@ -21,7 +20,9 @@ class FileController {
 			const uploadedFile = await FileService.upload(
 				multerFile,
 				refId,
-				refType
+				refType,
+				Number(width),
+				Number(height)
 			);
 			res.status(201).json(uploadedFile);
 		} catch (error) {

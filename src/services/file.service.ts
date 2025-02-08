@@ -7,7 +7,9 @@ class FileService {
 	public async upload(
 		file: Express.Multer.File,
 		refId: string,
-		refType: string
+		refType: string,
+		width?: number,
+		height?: number
 	): Promise<InstanceType<typeof File>> {
 		try {
 			// const fileExtension = path.extname(file.originalname).toLowerCase();
@@ -36,7 +38,9 @@ class FileService {
 				publicId: results.public_id,
 				url: results.secure_url,
 				...(refId && { refId }),
-				...(refType && { refType })
+				...(refType && { refType }),
+				...(width && { width }),
+				...(height && { height })
 			});
 			return await _file.save();
 		} catch (error) {

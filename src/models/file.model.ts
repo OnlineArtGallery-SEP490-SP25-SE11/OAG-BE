@@ -35,6 +35,16 @@ class File {
 		type: () => String
 	})
 	public refType?: string;
+
+	@prop({
+		type: () => Number
+	})
+	public width?: number;
+
+	@prop({
+		type: () => Number
+	})
+	public height?: number;
 }
 
 export default getModelForClass(File, {
