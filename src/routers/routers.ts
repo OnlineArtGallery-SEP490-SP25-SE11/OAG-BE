@@ -10,5 +10,5 @@ export default [
 	{ path: '/api/notification', router: notificationRouter },
 	{ path: '/api/blog', router: blogRouter },
 	{ path: '/api/upload', router: fileRouter },
-  { path: "/api/interaction", router: interactionRouter }
+	{ path: '/api/interaction', router: interactionRouter }
 ];

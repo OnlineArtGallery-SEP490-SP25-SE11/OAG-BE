@@ -127,6 +127,7 @@ export class User {
 		}
 	})
 	role!: RoleType[];
+	static findByIdAndUpdate: any;
 }
 
 export default getModelForClass(User, { schemaOptions: { timestamps: true } });
