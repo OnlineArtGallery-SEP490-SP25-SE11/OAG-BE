@@ -1,5 +1,12 @@
 // import { errorHandler } from "@/configs/error.config";
 import routers from '@/routers/routers';
+import connectDatabase from '@/configs/database.config';
+import logger, { pinoHttpOptions } from '@/configs/logger.config';
+import SocketConfig from '@/configs/socket.config';
+import { HttpException } from '@/exceptions/http-exception';
+import { BaseHttpResponse } from '@/lib/base-http-response';
+import routers from '@/routers/routers';
+import NotificationService from '@/services/notification.service.ts';
 import env from '@/utils/validateEnv.util';
 import Cookieparser from 'cookie-parser';
 import cors from 'cors';
@@ -12,6 +19,8 @@ import logger from '@/configs/logger.config';
 import NotificationService from '@/services/notification.service.ts';
 import { HttpException } from '@/exceptions/http-exception';
 import { BaseHttpResponse } from '@/lib/base-http-response';
+import { createServer, Server as HttpServer } from 'http';
+
 class AppConfig {
 	private readonly app: Express;
 	private readonly httpServer: HttpServer;
@@ -47,7 +56,7 @@ class AppConfig {
 				res: Response,
 				next: NextFunction
 			) => {
-				console.error('catch error handler', err);
+				logger.error(err.message);
 				const statusCode = err.statusCode || 500;
 				const message = err.message || 'Internal Server Error';
 				const errorCode = err.errorCode || null;
@@ -60,6 +69,7 @@ class AppConfig {
 						details
 					)
 				);
+				next(err);
 			}
 		);
 	}
