@@ -9,7 +9,6 @@ import {
 import { Types } from 'mongoose';
 import EventModel, {Event } from '@/models/event.model';
 import { CreateEventDto, UpdateEventDto } from '@/dto/event.dto';
-import e from 'express';
 export class EventService {
 	constructor() {}
 	async getEvents() {
