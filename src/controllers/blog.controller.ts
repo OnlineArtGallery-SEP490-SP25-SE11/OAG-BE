@@ -18,7 +18,6 @@ export class BlogController implements IBlogController {
 	constructor(
 		@inject(TYPES.BlogService) private readonly _blogService: BlogService
 	) {
-
 		this.getBlogs = this.getBlogs.bind(this);
 		this.getBlogById = this.getBlogById.bind(this);
 		this.createBlog = this.createBlog.bind(this);
@@ -44,7 +43,7 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 
 	getBlogById = async (
 		req: Request,
@@ -62,7 +61,7 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 
 	getLastEditedBlog = async (
 		req: Request,
@@ -81,7 +80,7 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 
 	createBlog = async (
 		req: Request,
@@ -122,7 +121,7 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 
 	updateBlog = async (
 		req: Request,
@@ -167,7 +166,7 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 
 	deleteBlog = async (req: Request, res: Response, next: NextFunction) => {
 		const userId = req.userId;
@@ -184,7 +183,7 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 
 	getPublishedBlogs = async (
 		req: Request,
@@ -244,6 +243,5 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
-
+	};
 }

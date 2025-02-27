@@ -1,7 +1,10 @@
 import { injectable } from 'inversify';
 import { IInteractionService } from '@/interfaces/service.interface';
 import { InteractionType } from '@/constants/enum';
-import { InternalServerErrorException, BadRequestException } from '@/exceptions/http-exception';
+import {
+	InternalServerErrorException,
+	BadRequestException
+} from '@/exceptions/http-exception';
 import interactionModel from '@/models/interaction.model';
 import logger from '@/configs/logger.config';
 import { Types } from 'mongoose';

@@ -13,5 +13,16 @@ export enum ErrorCode {
 	DATABASE_ERROR = 'database_error',
 
 	//Validation
-	VALIDATION_ERROR = 'validation_error'
+	VALIDATION_ERROR = 'validation_error',
+
+	//Payment
+	PAYMENT_NOT_FOUND = 'PAYMENT_NOT_FOUND',
+	PAYMENT_CREATION_FAILED = 'payment_creation_failed',
+	PAYMENT_VERIFICATION_FAILED = 'PAYMENT_VERIFICATION_FAILED',
+	INVALID_PAYMENT_AMOUNT = 'invalid_payment_amount',
+	PAYMENT_ALREADY_PROCESSED = 'payment_already_processed',
+	PAYMENT_SERVICE_ERROR = 'payment_service_error',
+	INVALID_PAYMENT_ID = 'invalid_payment_id',
+	PAYMENT_VERIFICATION_ERROR = 'payment_verification_error',
+	PAYMENT_WEBHOOK_ERROR = 'payment_webhook_error',
 }

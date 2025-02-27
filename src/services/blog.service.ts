@@ -3,17 +3,16 @@ import { ErrorCode } from '@/constants/error-code';
 import { CreateBlogDto, UpdateBlogDto } from '@/dto/blog.dto';
 import { CouldNotFindBlogException } from '@/exceptions';
 import {
-  BadRequestException,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from "@/exceptions/http-exception";
-import BlogModel, { Blog, BlogDocument } from "@/models/blog.model";
-import { Types } from "mongoose";
-import { injectable } from "inversify";
+	BadRequestException,
+	InternalServerErrorException,
+	UnauthorizedException
+} from '@/exceptions/http-exception';
+import BlogModel, { Blog, BlogDocument } from '@/models/blog.model';
+import { Types } from 'mongoose';
+import { injectable } from 'inversify';
 @injectable()
 export class BlogService {
-  constructor(
-  ) {}
+	constructor() {}
 
 	//TODO: implement pagination
 	async getBlogs() {
@@ -29,11 +28,11 @@ export class BlogService {
 		}
 	}
 
-  async getLastEditedBlog(userId: string): Promise<Blog | null> {
-    try {
-      const blog = await BlogModel.findOne({
-        author: new Types.ObjectId(userId),
-      }).sort({ updatedAt: -1 });
+	async getLastEditedBlog(userId: string): Promise<Blog | null> {
+		try {
+			const blog = await BlogModel.findOne({
+				author: new Types.ObjectId(userId)
+			}).sort({ updatedAt: -1 });
 
 			if (!blog) {
 				throw new CouldNotFindBlogException();
@@ -71,15 +70,15 @@ export class BlogService {
 		}
 	}
 
-  async createBlog(data: CreateBlogDto): Promise<Blog> {
-    try {
-      const blog = new BlogModel({
-        title: data.title,
-        content: data.content,
-        image: data.image,
-        author: new Types.ObjectId(data.author),
-        published: false,
-      });
+	async createBlog(data: CreateBlogDto): Promise<Blog> {
+		try {
+			const blog = new BlogModel({
+				title: data.title,
+				content: data.content,
+				image: data.image,
+				author: new Types.ObjectId(data.author),
+				published: false
+			});
 
 			logger.info('Creating blog data', blog);
 
@@ -103,11 +102,14 @@ export class BlogService {
 				throw new CouldNotFindBlogException();
 			}
 
-      if (data.author !== blog.author.toString() && !role.includes("admin")) {
-        throw new UnauthorizedException(
-          "You are not authorized to update this blog."
-        );
-      }
+			if (
+				data.author !== blog.author.toString() &&
+				!role.includes('admin')
+			) {
+				throw new UnauthorizedException(
+					'You are not authorized to update this blog.'
+				);
+			}
 
 			const updatedBlog = await BlogModel.findByIdAndUpdate(
 				data._id,
@@ -156,54 +158,57 @@ export class BlogService {
 				throw new CouldNotFindBlogException();
 			}
 
-      if (userId !== blog.author.toString() && !role.includes("admin")) {
-        throw new UnauthorizedException(
-          "You are not authorized to delete this blog."
-        );
-      }
+			if (userId !== blog.author.toString() && !role.includes('admin')) {
+				throw new UnauthorizedException(
+					'You are not authorized to delete this blog.'
+				);
+			}
 
-      await blog.deleteOne();
-    } catch (error) {
-      if (
-        error instanceof BadRequestException ||
-        error instanceof UnauthorizedException
-      ) {
-        throw error;
-      }
-      logger.error(error, "Error deleting blog");
-      throw new InternalServerErrorException(
-        "Error deleting blog",
-        ErrorCode.DATABASE_ERROR
-      );
-    }
-  }
+			await blog.deleteOne();
+		} catch (error) {
+			if (
+				error instanceof BadRequestException ||
+				error instanceof UnauthorizedException
+			) {
+				throw error;
+			}
+			logger.error(error, 'Error deleting blog');
+			throw new InternalServerErrorException(
+				'Error deleting blog',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
 
-  async getPublishedBlogs(query: any, limit: number): Promise<BlogDocument[]> {
-   try {
-      const blogs = await BlogModel.find(query)
-        .limit(limit)
-        .sort({ createdAt: -1 })
-        .populate("author", "name email image");
-      return blogs as unknown as BlogDocument[];
-    } catch (error) {
-      logger.error(error, "Error getting published blogs");
-      throw new InternalServerErrorException(
-        "Error getting published blogs",
-        ErrorCode.DATABASE_ERROR
-      );
-    }
-  }
+	async getPublishedBlogs(
+		query: any,
+		limit: number
+	): Promise<BlogDocument[]> {
+		try {
+			const blogs = await BlogModel.find(query)
+				.limit(limit)
+				.sort({ createdAt: -1 })
+				.populate('author', 'name email image');
+			return blogs as unknown as BlogDocument[];
+		} catch (error) {
+			logger.error(error, 'Error getting published blogs');
+			throw new InternalServerErrorException(
+				'Error getting published blogs',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
 
-  async getTotalPublishedBlogs(query: any): Promise<number> {
-    try {
-      const total = await BlogModel.countDocuments(query);
-      return total;
-    } catch (error) {
-      logger.error(error, "Error getting total published blogs");
-      throw new InternalServerErrorException(
-        "Error getting total published blogs",
-        ErrorCode.DATABASE_ERROR
-      );
-    }
-  }
+	async getTotalPublishedBlogs(query: any): Promise<number> {
+		try {
+			const total = await BlogModel.countDocuments(query);
+			return total;
+		} catch (error) {
+			logger.error(error, 'Error getting total published blogs');
+			throw new InternalServerErrorException(
+				'Error getting total published blogs',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
 }
