@@ -14,6 +14,10 @@ const env = cleanEnv(process.env, {
 	TWILIO_AUTH_TOKEN: str(),
 	TWILIO_PHONE: str(),
 	UPSTASH_REDIS_REST_URL: str(),
-	UPSTASH_REDIS_REST_TOKEN: str()
+	UPSTASH_REDIS_REST_TOKEN: str(),
+	CLOUDINARY_CLOUD_NAME: str(),
+	CLOUDINARY_API_KEY: str(),
+	CLOUDINARY_API_SECRET: str(),
+	CLOUD_IMG_FOLDER: str()
 });
 export default env;

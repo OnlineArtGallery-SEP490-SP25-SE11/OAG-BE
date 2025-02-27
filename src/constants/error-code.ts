@@ -17,4 +17,5 @@ export enum ErrorCode {
 
 	//Event
 	INVALID_EVENT_ID = 'invalid_event_id',
+
 }

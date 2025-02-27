@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { BlogController } from '@/controllers/blog.controller';
 import roleRequire from '@/configs/middleware.config';
 import { Role } from '@/constants/enum';
-import { BlogService } from '@/services/blog.service';
+import { BlogService } from '@/services/blog.service'; 
 
 const router = Router();
 const blogService = new BlogService();
