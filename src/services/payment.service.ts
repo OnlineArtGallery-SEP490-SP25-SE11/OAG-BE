@@ -4,7 +4,7 @@ import { CreatePaymentDto, UpdatePaymentDto, VerifyPaymentDto } from '@/dto/paym
 import {
     BadRequestException,
     InternalServerErrorException,
-    UnauthorizedException
+
 } from '@/exceptions/http-exception';
 import PayOS from '@payos/node';
 import { injectable } from 'inversify';
