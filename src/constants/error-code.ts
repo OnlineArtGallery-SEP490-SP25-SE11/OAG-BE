@@ -3,6 +3,7 @@ export enum ErrorCode {
 	BLOG_NOT_FOUND = 'blog_not_found',
 	INVALID_BLOG_ID = 'invalid_blog_id',
 	INVALID_BLOG_DATA = 'invalid_blog_data',
+	INVALID_BLOG_STATUS = 'invalid_blog_status',
 
 	//HTTP
 	UNAUTHORIZED = 'unauthorized',
@@ -17,4 +18,5 @@ export enum ErrorCode {
 
 	//Event
 	INVALID_EVENT_ID = 'invalid_event_id',
+	SERVER_ERROR = 'server_error'
 }

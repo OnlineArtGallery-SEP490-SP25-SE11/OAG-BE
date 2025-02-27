@@ -13,7 +13,8 @@ export const CreateEventSchema = z.object({
     })),
     userId: z.string(),
     startDate: z.string().optional(),
-    endDate: z.string().optional()
+    endDate: z.string().optional(),
+    image: z.string().url().nonempty(),
 });
 
 export const UpdateEventSchema = z.object({
@@ -29,6 +30,8 @@ export const UpdateEventSchema = z.object({
         joinedAt: z.string()
     })).optional(),
     userId: z.string().optional(),
+    image: z.string().url().nonempty(),
+
 });
 
 export const CreateEventPayload = z.object({
@@ -44,6 +47,7 @@ export const CreateEventPayload = z.object({
         role: z.string(),
         joinedAt: z.string()
     })).optional(),
+    image: z.string().url().nonempty(),
 });
 export type CreateEventDto = z.infer<typeof CreateEventSchema>;
 export type UpdateEventDto = z.infer<typeof UpdateEventSchema>;

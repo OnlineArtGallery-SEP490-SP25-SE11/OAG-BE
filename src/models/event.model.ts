@@ -15,6 +15,9 @@ class Participant {
 @modelOptions({ schemaOptions: { timestamps: true } })
 export class Event{
     @prop({ required: true })
+	  image!: string;
+
+    @prop({ required: true })
     title!: string;
 
     @prop()

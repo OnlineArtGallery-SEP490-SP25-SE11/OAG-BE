@@ -59,7 +59,8 @@ export class EventService {
 				userId: new Types.ObjectId(data.userId),
 				startDate: data.startDate,
 				endDate: data.endDate,
-				participants: data.participants
+				participants: data.participants,
+				image: data.image
 			});
 			logger.info('Event created successfully', event);
 			const newEvent = await event.save();
@@ -95,7 +96,8 @@ export class EventService {
 					type: data.type,
 					status: data.status,
 					organizer: data.organizer,
-					userId: new Types.ObjectId(data.userId)
+					userId: new Types.ObjectId(data.userId),
+					image: data.image
 				},
 				{ new: true }
 			);
