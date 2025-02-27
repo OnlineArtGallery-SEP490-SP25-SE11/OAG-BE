@@ -236,7 +236,7 @@ export class BlogController implements IBlogController {
 			}
 
 			const blogId = req.params.id;
-			const { reason } = req.body;
+			const { reason } = req.validatedData;
 
 			// Directly pass blogId and reason
 			await this._blogService.reject(blogId, reason);

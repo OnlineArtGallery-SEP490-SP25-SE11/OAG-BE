@@ -24,7 +24,6 @@ export const UpdateBlogSchema = z.object({
 });
 
 export const RejectBlogSchema = z.object({
-  blogId: z.string(),
   reason: z.string().optional()
 });
 

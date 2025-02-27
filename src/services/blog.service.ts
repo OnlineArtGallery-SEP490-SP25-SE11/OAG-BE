@@ -83,7 +83,7 @@ export class BlogService implements IBlogService {
 		}
 	}
 
-	async create(userId: string,data: CreateBlogDto): Promise<Blog> {
+	async create(userId: string, data: CreateBlogDto): Promise<Blog> {
 		try {
 			const blog = new BlogModel({
 				title: data.title,
@@ -116,10 +116,13 @@ export class BlogService implements IBlogService {
 		userId,
 		data,
 		role
-	}: { blogId: string, userId: string, data: UpdateBlogDto, role: string[]
+	}: {
+		blogId: string, userId: string, data: UpdateBlogDto, role: string[]
 	}): Promise<Blog> {
 		try {
 			const blog = await BlogModel.findById(blogId);
+			console.log('cancel request')
+
 			if (!blog) {
 				throw new CouldNotFindBlogException();
 			}
@@ -136,10 +139,14 @@ export class BlogService implements IBlogService {
 				);
 			}
 
-			let status = data.status || blog.status;
-			// If user is trying to change status to PUBLISHED but isn't admin
-			if (data.status === Status.PUBLISHED && !role.includes("admin")) {
-				status = Status.PENDING_REVIEW;
+			let status = blog.status;
+
+			if (data.status) {
+				if (data.status === Status.PUBLISHED && !role.includes("admin")) {
+					status = Status.PENDING_REVIEW;
+				} else {
+					status = data.status;
+				}
 			}
 
 
@@ -241,7 +248,7 @@ export class BlogService implements IBlogService {
 				...query,
 				status: Status.PUBLISHED
 			};
-			
+
 			const total = await BlogModel.countDocuments(publishedQuery);
 			return total;
 		} catch (error) {
@@ -290,6 +297,13 @@ export class BlogService implements IBlogService {
 			if (!blog) {
 				throw new CouldNotFindBlogException();
 			}
+
+			if(blog.status !== Status.PENDING_REVIEW) {
+				throw new BadRequestException(
+					'Invalid blog status',
+					ErrorCode.INVALID_BLOG_STATUS
+				);
+			}
 			const updatedBlog = await BlogModel.findByIdAndUpdate(
 				blogId,
 				{
@@ -332,6 +346,13 @@ export class BlogService implements IBlogService {
 				throw new CouldNotFindBlogException();
 			}
 
+			if(blog.status !== Status.PENDING_REVIEW) {
+				throw new BadRequestException(
+					'Invalid blog status',
+					ErrorCode.INVALID_BLOG_STATUS
+				);
+			}	
+
 			// Update blog with rejected status
 			await BlogModel.findByIdAndUpdate(
 				blogId,
@@ -355,7 +376,7 @@ export class BlogService implements IBlogService {
 				error instanceof BadRequestException ||
 				error instanceof CouldNotFindBlogException
 			) {
-				throw error; 
+				throw error;
 			}
 			logger.error(error, 'Error rejecting blog');
 			throw new InternalServerErrorException(
