@@ -133,8 +133,7 @@ export class PaymentController {
 
   public static async handlePayOSWebhook(req: Request, res: Response) {
     try {
-      const signature = req.headers['x-payos-signature'] as string;
-      const rawBody = JSON.stringify(req.body);
+  
 
       // Since we can't verify the signature, we'll assume it's valid for now
       // In a production environment, you should implement proper signature verification
