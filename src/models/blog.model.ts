@@ -5,9 +5,6 @@ import { Types } from "mongoose";
 
 @modelOptions({ schemaOptions: { timestamps: true } })
 export class Blog {
-	@prop({ required: true, default: false })
-	published!: boolean;
-
 	@prop({ required: true })
 	title!: string;
 
@@ -17,20 +14,26 @@ export class Blog {
 	@prop({ required: true })
 	image!: string;
 
-  @prop({ ref: () => User, required: true, index: true })
-  author!: Ref<User>;
+	@prop({ ref: () => User, required: true, index: true })
+	author!: Ref<User>;
 
 	@prop({
 		required: true,
 		type: String,
 		enum: Status,
-		default: Status.INACTIVE,
+		default: Status.DRAFT,
 		index: true // Index cho status filters
 	})
 	status!: Status;
 
 	@prop({ default: 0 })
 	heartCount?: number;
+
+	@prop({ default: 0 })
+	views?: number;
+
+	@prop({ type: () => [String], default: [] })
+	tags?: string[];
 
 	static async incrementHeartCount(postId: string) {
 		return getModelForClass(Blog).findByIdAndUpdate(
@@ -51,8 +54,8 @@ export class Blog {
 
 
 export type BlogDocument = Blog & {
-  _id: Types.ObjectId;
-  createdAt: Date;
-  updatedAt: Date;
+	_id: Types.ObjectId;
+	createdAt: Date;
+	updatedAt: Date;
 };
 export default getModelForClass(Blog, { schemaOptions: { timestamps: true } });
