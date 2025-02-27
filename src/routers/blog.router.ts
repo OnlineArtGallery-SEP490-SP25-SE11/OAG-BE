@@ -19,7 +19,7 @@ router.get("/published", blogController.findPublished);
 router.get('/last-edited', roleRequire(['user']), blogController.findLastEditedByUser);
 router.get('/:id', blogController.findById);
 
-router.post('/', roleRequire([Role.USER, Role.ADMIN]), validate(CreateBlogPayload), blogController.create);
+router.post('/', roleRequire([Role.ARTIST, Role.ADMIN]), validate(CreateBlogPayload), blogController.create);
 router.put("/:id", roleRequire([Role.ARTIST, Role.ADMIN]), validate(UpdateBlogSchema), blogController.update);
 router.delete("/:id", roleRequire([Role.ARTIST, Role.ADMIN]), blogController.delete);
 

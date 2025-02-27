@@ -85,6 +85,7 @@ export class BlogService implements IBlogService {
 
 	async create(userId: string, data: CreateBlogDto): Promise<Blog> {
 		try {
+			console.log('data', data)
 			const blog = new BlogModel({
 				title: data.title,
 				content: data.content,

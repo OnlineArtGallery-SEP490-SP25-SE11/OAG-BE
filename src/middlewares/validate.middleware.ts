@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { AnyZodObject } from 'zod';
 import { BaseHttpResponse } from '@/lib/base-http-response';
 import { ErrorCode } from '@/constants/error-code';
@@ -12,19 +12,22 @@ import logger from '@/configs/logger.config';
 export const validate = (
   schema: AnyZodObject,
   source: 'body' | 'query' | 'params' = 'body'
-) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+) : RequestHandler => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       // Validate request data against schema
+      console.log(req[source], 'source');
       const result = await schema.safeParseAsync(req[source]);
+
       if (!result.success) {
         // Format validation errors
         const formattedErrors = result.error.errors.map((error) => ({
           path: error.path.join('.'),
           message: error.message
         }));
+        logger.error(formattedErrors, 'Validation failed data');
         
-        // Send error response
+        // Send error response and STOP here
         res.status(400).json(
           BaseHttpResponse.error(
             'Validation failed',
@@ -33,10 +36,14 @@ export const validate = (
             formattedErrors
           )
         );
+        return;
       }
       
+      // If we reach here, validation was successful
       // Add validated data to request object
-      req.validatedData = result.data;
+      req.validatedData = result.success ? result.data : {};
+      
+      // Continue with the next middleware
       next();
     } catch (error) {
       logger.error(error, 'Validation middleware error');
