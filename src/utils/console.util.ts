@@ -20,6 +20,6 @@
  * 37 - Trắng
  */
 const colorize = (text: string, color: string): string =>
-  `\x1b[${color}m${text}\x1b[0m`;
+	`\x1b[${color}m${text}\x1b[0m`;
 
 export { colorize };
