@@ -14,9 +14,10 @@ import {
 const router = Router();
 const blogController = container.get<BlogController>(TYPES.BlogController);
 
-router.get("/", blogController.findAll);
+router.get("/", blogController.find);
 router.get("/published", blogController.findPublished);
-router.get('/last-edited', roleRequire(['user']), blogController.findLastEditedByUser);
+router.get('/last-edited', roleRequire([Role.ARTIST]), blogController.findLastEditedByUser);
+router.get('/user-blogs', roleRequire([Role.ARTIST]), blogController.findUserBlogs);
 router.get('/:id', blogController.findById);
 
 router.post('/', roleRequire([Role.ARTIST, Role.ADMIN]), validate(CreateBlogPayload), blogController.create);
