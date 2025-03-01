@@ -1,20 +1,20 @@
-import roleRequire from "@/configs/middleware.config";
-import AuthController from "@/controllers/auth.controller";
-import { validate } from "@/middlewares/validate.middleware";
-import { phoneSchema, phoneSignupSchema } from "@/schemas/auth.schema";
-import { Request, Response, Router } from "express";
+import roleRequire from '@/configs/middleware.config';
+import AuthController from '@/controllers/auth.controller';
+import { validate } from '@/middlewares/validate.middleware';
+import { phoneSchema, phoneSignupSchema } from '@/schemas/auth.schema';
+import { Request, Response, Router } from 'express';
 
 const router = Router();
-router.post("/", AuthController.authenticate);
+router.post('/', AuthController.authenticate);
 router.post(
-  "/phone/send-otp",
-  validate(phoneSchema),
-  AuthController.sendOTPController
+	'/phone/send-otp',
+	validate(phoneSchema),
+	AuthController.sendOTPController
 );
 router.post(
-  "/phone/signup",
-  validate(phoneSignupSchema),
-  AuthController.phoneSignupController
+	'/phone/signup',
+	validate(phoneSignupSchema),
+	AuthController.phoneSignupController
 );
 
 // router.post(
@@ -23,9 +23,9 @@ router.post(
 //   AuthController.phoneSigninController
 // );
 
-router.post("/token", AuthController.generateTokens);
-router.post("/refresh", AuthController.refreshToken);
-router.get("/decode/:token", AuthController.decodeToken);
+router.post('/token', AuthController.generateTokens);
+router.post('/refresh', AuthController.refreshToken);
+router.get('/decode/:token', AuthController.decodeToken);
 
 // router.get("/refresh/:token", async (req: Request, res: Response) => {
 //   const { token } = req.params;
@@ -38,16 +38,16 @@ router.get("/decode/:token", AuthController.decodeToken);
 //   }
 // });
 
-router.get("/test", roleRequire(), async (req: Request, res: Response) => {
-  res.json({ message: "Auth router works!" });
+router.get('/test', roleRequire(), async (req: Request, res: Response) => {
+	res.json({ message: 'Auth router works!' });
 });
 
 router.get(
-  "/test/admin",
-  roleRequire("admin"),
-  async (req: Request, res: Response) => {
-    res.json({ message: "Admin router works!" });
-  }
+	'/test/admin',
+	roleRequire('admin'),
+	async (req: Request, res: Response) => {
+		res.json({ message: 'Admin router works!' });
+	}
 );
 
 export default router;

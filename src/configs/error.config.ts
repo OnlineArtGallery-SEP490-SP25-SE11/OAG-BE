@@ -1,5 +1,5 @@
-import logger from "@/configs/logger.config";
-import { NextFunction, Request, Response } from "express";
+import logger from '@/configs/logger.config';
+import { NextFunction, Request, Response } from 'express';
 
 /**
  * Middleware xử lý lỗi
@@ -9,12 +9,12 @@ import { NextFunction, Request, Response } from "express";
  * @param next
  */
 export const errorHandler = (
-  err: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
+	err: Error,
+	req: Request,
+	res: Response,
+	next: NextFunction
 ) => {
-  logger.error({ err, req }, "Unhandled error occurred"); // Log lỗi chi tiết
-  res.status(500).send("Internal Server Error");
-  next();
+	logger.error({ err, req }, 'Unhandled error occurred'); // Log lỗi chi tiết
+	res.status(500).send('Internal Server Error');
+	next();
 };
