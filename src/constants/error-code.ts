@@ -15,5 +15,8 @@ export enum ErrorCode {
 
 	//Validation
 	VALIDATION_ERROR = 'validation_error',
+
+	//Event
+	INVALID_EVENT_ID = 'invalid_event_id',
 	SERVER_ERROR = 'server_error'
 }
