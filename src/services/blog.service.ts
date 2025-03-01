@@ -299,7 +299,7 @@ export class BlogService implements IBlogService {
 				throw new CouldNotFindBlogException();
 			}
 
-			if(blog.status !== Status.PENDING_REVIEW) {
+			if (blog.status !== Status.PENDING_REVIEW) {
 				throw new BadRequestException(
 					'Invalid blog status',
 					ErrorCode.INVALID_BLOG_STATUS
@@ -347,12 +347,12 @@ export class BlogService implements IBlogService {
 				throw new CouldNotFindBlogException();
 			}
 
-			if(blog.status !== Status.PENDING_REVIEW) {
+			if (blog.status !== Status.PENDING_REVIEW) {
 				throw new BadRequestException(
 					'Invalid blog status',
 					ErrorCode.INVALID_BLOG_STATUS
 				);
-			}	
+			}
 
 			// Update blog with rejected status
 			await BlogModel.findByIdAndUpdate(
@@ -433,5 +433,85 @@ export class BlogService implements IBlogService {
 		}
 	}
 
+	async find(options: {
+		page?: number;
+		limit?: number;
+		sort?: Record<string, 1 | -1>;
+		filter?: Record<string, any>;
+		userId?: string;
+		status?: Status | Status[];
+		search?: string;
+	}): Promise<{
+		blogs: Blog[],
+		pagination: {
+			total: number;
+			page: number;
+			limit: number;
+			pages: number;
+			hasNext: boolean;
+			hasPrev: boolean;
+		}
+	}> {
+		try {
+			const { page = 1, limit = 10, sort = { createdAt: -1 }, filter = {}, userId, status, search } = options;
+
+			// Build query filters
+			const query: Record<string, any> = { ...filter };
+
+			if (userId) {
+				query.author = new Types.ObjectId(userId);
+			}
+
+			if (status) {
+				if (Array.isArray(status)) {
+					query.status = { $in: status };
+				} else {
+					query.status = status;
+				}
+			}
+
+			if (search) {
+				query.$or = [
+					{ title: { $regex: search, $options: 'i' } },
+					{ content: { $regex: search, $options: 'i' } }
+				];
+			}
+
+			// Calculate pagination
+			const skip = (page - 1) * limit;
+
+			// Execute query
+			const blogs = await BlogModel.find(query)
+				.sort(sort)
+				.skip(skip)
+				.limit(limit)
+				.populate('author', 'name email image')
+				.populate('tags')
+				.lean();
+
+			const total = await BlogModel.countDocuments(query);
+			const pages = Math.ceil(total / limit);
+			const hasNext = page < pages;
+			const hasPrev = page > 1;
+		
+			return {
+				blogs: blogs as Blog[],
+				pagination: {
+					total,
+					page,
+					limit,
+					pages,
+					hasNext,
+					hasPrev
+				}
+			};
+		} catch (error) {
+			logger.error(error, "Error finding blogs");
+			throw new InternalServerErrorException(
+				"Error finding blogs",
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
 
 }
