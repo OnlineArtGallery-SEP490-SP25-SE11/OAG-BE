@@ -1,4 +1,3 @@
-import bcrypt from 'bcryptjs';
 import {
 	getModelForClass,
 	index,
@@ -6,6 +5,7 @@ import {
 	pre,
 	prop
 } from '@typegoose/typegoose';
+import bcrypt from 'bcryptjs';
 // userSchema.pre("updateOne", async function (next) {
 //   const update = this.getUpdate() as mongoose.UpdateQuery<IUser>;
 //   if (!update) {
@@ -50,7 +50,7 @@ type RoleType = 'user' | 'admin' | 'artist';
 	}
 	next();
 })
-export class User {
+class User {
 	@prop({
 		required: true,
 		type: () => String,

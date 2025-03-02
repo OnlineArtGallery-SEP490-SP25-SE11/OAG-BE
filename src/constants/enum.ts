@@ -10,5 +10,6 @@ export enum InteractionType {
 
 export enum Role {
 	ADMIN = 'admin',
-	USER = 'user'
+	USER = 'user',
+	ARTIST = 'artist'
 }

@@ -4,11 +4,16 @@ import fileRouter from '@/routers/file.router';
 import interactionRouter from '@/routers/interaction.router';
 import notificationRouter from '@/routers/notification.router';
 import userRouter from '@/routers/user.router';
+import artworkRouter from '@/routers/artwork.router';
+import collectionRouter from '@/routers/collection.router';
+
 export default [
 	{ path: '/api/auth', router: authRouter },
 	{ path: '/api/user', router: userRouter },
 	{ path: '/api/notification', router: notificationRouter },
 	{ path: '/api/blog', router: blogRouter },
 	{ path: '/api/upload', router: fileRouter },
-  { path: "/api/interaction", router: interactionRouter }
+	{ path: '/api/interaction', router: interactionRouter },
+	{ path: '/api/artwork', router: artworkRouter },
+	{ path: '/api/collection', router: collectionRouter }
 ];
