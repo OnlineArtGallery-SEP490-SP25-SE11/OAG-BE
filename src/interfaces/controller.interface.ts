@@ -23,5 +23,9 @@ export interface IBlogController {
 }
 
 export interface IInteractionController {
-  getUserInteractions(req: Request, res: Response, next: NextFunction): Promise<any>;
+	getUserInteractions(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any>;
 }

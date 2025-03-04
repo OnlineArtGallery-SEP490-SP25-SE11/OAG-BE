@@ -15,12 +15,15 @@ const container = new Container();
 // Services
 container.bind<IBlogTagService>(TYPES.BlogTagService).to(BlogTagService);
 container.bind<IBlogService>(TYPES.BlogService).to(BlogService);
-container.bind<IInteractionService>(TYPES.InteractionService).to(InteractionService);
+container
+	.bind<IInteractionService>(TYPES.InteractionService)
+	.to(InteractionService);
 
 // Controllers
 container.bind<IBlogTagController>(TYPES.BlogTagController).to(BlogTagController);
 container.bind<IBlogController>(TYPES.BlogController).to(BlogController); //chỉ dùng nội hàm interface
 // container.bind<BlogController>(TYPES.BlogController).to(BlogController); //dùng toàn bộ class, kể cả hàm không có trong interface
-container.bind<IInteractionController>(TYPES.InteractionController).to(InteractionController);
+container
+	.bind<IInteractionController>(TYPES.InteractionController)
+	.to(InteractionController);
 export default container;
-

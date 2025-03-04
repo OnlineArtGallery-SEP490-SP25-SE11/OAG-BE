@@ -58,7 +58,10 @@ export interface IBlogService {
 
 
 export interface IInteractionService {
-  getUserInteractions(userId: string, blogId: string): Promise<{
-    hearted: boolean;
-  }>;
+	getUserInteractions(
+		userId: string,
+		blogId: string
+	): Promise<{
+		hearted: boolean;
+	}>;
 }

@@ -41,7 +41,7 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 
 	findById = async (
 		req: Request,
@@ -59,7 +59,7 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 
 	findLastEditedByUser = async (
 		req: Request,
@@ -78,7 +78,7 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 
 	create = async (
 		req: Request,
@@ -99,7 +99,7 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 
 	update = async (
 		req: Request,
@@ -128,7 +128,7 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 
 	delete = async (req: Request, res: Response, next: NextFunction) => {
 		const userId = req.userId;
@@ -145,7 +145,7 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 
 	findPublished = async (
 		req: Request,
