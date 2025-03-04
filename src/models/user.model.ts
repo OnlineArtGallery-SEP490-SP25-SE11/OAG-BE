@@ -4,7 +4,8 @@ import {
 	index,
 	modelOptions,
 	pre,
-	prop
+	prop,
+	
 } from '@typegoose/typegoose';
 // userSchema.pre("updateOne", async function (next) {
 //   const update = this.getUpdate() as mongoose.UpdateQuery<IUser>;
@@ -127,7 +128,6 @@ export class User {
 		}
 	})
 	role!: RoleType[];
-	static findByIdAndUpdate: any;
 }
 
 export default getModelForClass(User, { schemaOptions: { timestamps: true } });

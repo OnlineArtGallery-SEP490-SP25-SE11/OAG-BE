@@ -1,13 +1,23 @@
 export const TYPES = {
-	IBlogService: Symbol.for('IBlogService'),
-	BlogService: Symbol.for('BlogService'),
 
-	IInteractionService: Symbol.for('IInteractionService'),
-	InteractionService: Symbol.for('InteractionService'),
+    // Services
+    IBlogTagService: Symbol.for('IBlogTagService'),
+    BlogTagService: Symbol.for('BlogTagService'),
 
-	IBlogController: Symbol.for('IBlogController'),
-	BlogController: Symbol.for('BlogController'),
+    IBlogService: Symbol.for('IBlogService'),
+    BlogService: Symbol.for('BlogService'),
+    
+    IInteractionService: Symbol.for('IInteractionService'),
+    InteractionService: Symbol.for('InteractionService'),
 
-	IInteractionController: Symbol.for('IInteractionController'),
-	InteractionController: Symbol.for('InteractionController')
-};
+    // Controllers
+    IBlogTagController: Symbol.for('IBlogTagController'),
+    BlogTagController: Symbol.for('BlogTagController'),
+
+    IBlogController: Symbol.for('IBlogController'),
+    BlogController: Symbol.for('BlogController'),
+    
+    IInteractionController: Symbol.for('IInteractionController'),
+    InteractionController: Symbol.for('InteractionController'),
+
+}

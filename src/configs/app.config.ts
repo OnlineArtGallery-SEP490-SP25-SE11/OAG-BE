@@ -66,8 +66,8 @@ class AppConfig {
 	private initMiddlewares(): void {
 		this.app.use(
 			cors({
-				origin: env.CLIENT_URL,
-				credentials: true
+			origin: [env.CLIENT_URL, env.ADMIN_URL],
+			credentials: true
 			})
 		);
 		this.app.use(Cookieparser());
