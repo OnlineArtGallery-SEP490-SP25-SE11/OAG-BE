@@ -5,9 +5,6 @@ import User from "./user.model";
 
 @modelOptions({ schemaOptions: { timestamps: true } })
 export class Blog {
-	@prop({ required: true, default: false })
-	published!: boolean;
-
 	@prop({ required: true })
 	title!: string;
 
@@ -24,13 +21,19 @@ export class Blog {
 		required: true,
 		type: String,
 		enum: Status,
-		default: Status.INACTIVE,
+		default: Status.DRAFT,
 		index: true // Index cho status filters
 	})
 	status!: Status;
 
 	@prop({ default: 0 })
 	heartCount?: number;
+
+	@prop({ default: 0 })
+	views?: number;
+
+	@prop({ type: () => [String], default: [] })
+	tags?: string[];
 
 	static async incrementHeartCount(postId: string) {
 		return getModelForClass(Blog).findByIdAndUpdate(
@@ -48,7 +51,6 @@ export class Blog {
 		);
 	}
 }
-
 
 export type BlogDocument = Blog & {
 	_id: Types.ObjectId;

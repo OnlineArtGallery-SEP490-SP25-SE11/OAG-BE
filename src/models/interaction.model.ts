@@ -1,8 +1,8 @@
 import { InteractionType } from "@/constants/enum";
 import { getModelForClass, index, pre, prop, type Ref } from "@typegoose/typegoose";
-import User  from "./user.model";
-import { Blog } from "./blog.model";
 import { Types } from "mongoose";
+import { Blog } from "./blog.model";
+import User from "./user.model";
 
 @index({ post: 1, type: 1, createdAt: -1 })
 @pre<Interaction>('save', async function (next) {
@@ -34,8 +34,8 @@ export class Interaction {
 }
 
 export type InteractionDocument = Interaction & {
-  _id: Types.ObjectId;
-  createdAt: Date;
-  updatedAt: Date;
+	_id: Types.ObjectId;
+	createdAt: Date;
+	updatedAt: Date;
 };
 export default getModelForClass(Interaction);

@@ -3,9 +3,11 @@ import {
 	index,
 	modelOptions,
 	pre,
-	prop
+	prop,
+	type Ref
 } from '@typegoose/typegoose';
 import bcrypt from 'bcryptjs';
+import { PremiumSubscriptionModel } from './premium.model';
 // userSchema.pre("updateOne", async function (next) {
 //   const update = this.getUpdate() as mongoose.UpdateQuery<IUser>;
 //   if (!update) {
@@ -22,6 +24,14 @@ import bcrypt from 'bcryptjs';
 /* eslint-disable no-unused-vars */
 type ProviderType = 'google' | 'facebook' | 'phone';
 type RoleType = 'user' | 'admin' | 'artist';
+
+class AvatarStyle {
+	@prop({ default: false })
+	hasCrown!: boolean;
+
+	@prop({ default: false })
+	hasSparklingBorder!: boolean;
+}
 
 @modelOptions({
 	schemaOptions: {
@@ -127,6 +137,20 @@ class User {
 		}
 	})
 	role!: RoleType[];
+
+	@prop({ default: false })
+	isPremium!: boolean;
+
+	@prop()
+	premiumSince?: Date;
+
+	@prop({ type: () => AvatarStyle, default: () => ({}) })
+	avatarStyle!: AvatarStyle;
+
+	@prop({ ref: () => PremiumSubscriptionModel })
+	premiumSubscription?: Ref<typeof PremiumSubscriptionModel>;
+
+	static findByIdAndUpdate: any;
 }
 
 export default getModelForClass(User, { schemaOptions: { timestamps: true } });

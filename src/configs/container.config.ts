@@ -8,7 +8,6 @@ import {
 	IInteractionController
 } from '@/interfaces/controller.interface';
 import {
-	IArtworkService,
 	IBlogService,
 	ICollectionService,
 	IInteractionService
@@ -20,16 +19,25 @@ import 'reflect-metadata';
 
 import { ArtworkController } from '@/controllers/artwork.controller';
 // import {  } from '@/interfaces/controller.interface';
-import { ArtworkService } from '@/services/artwork.service.ts';
-import { CollectionService } from '@/services/collection.service.ts';
+import { BlogTagController } from "@/controllers/blog-tag.controller";
 import { CollectionController } from '@/controllers/collection.controller.ts';
+import { IBlogTagController } from "@/interfaces/controller.interface";
+import { IBlogTagService } from "@/interfaces/service.interface";
+import { ArtworkService } from '@/services/artwork.service.ts';
+import { BlogTagService } from "@/services/blog-tag.service";
+import { CollectionService } from '@/services/collection.service.ts';
 
 const container = new Container();
 
 // Services
+container.bind<IBlogTagService>(TYPES.BlogTagService).to(BlogTagService);
 container.bind<IBlogService>(TYPES.BlogService).to(BlogService);
+container
+	.bind<IInteractionService>(TYPES.InteractionService)
+	.to(InteractionService);
 
 // Controllers
+container.bind<IBlogTagController>(TYPES.BlogTagController).to(BlogTagController);
 container.bind<IBlogController>(TYPES.BlogController).to(BlogController); //chỉ dùng nội hàm interface
 // container.bind<BlogController>(TYPES.BlogController).to(BlogController); //dùng toàn bộ class, kể cả hàm không có trong interface
 container
@@ -37,10 +45,8 @@ container
 	.to(InteractionController);
 
 // ARTWORK
-container
-	.bind<IInteractionService>(TYPES.InteractionService)
-	.to(InteractionService);
-container.bind<IArtworkService>(TYPES.ArtworkService).to(ArtworkService);
+// container.bind<IArtworkService>(TYPES.ArtworkService).to(ArtworkService);
+container.bind(TYPES.ArtworkService).to(ArtworkService);
 container
 	.bind<IArtworkController>(TYPES.ArtworkController)
 	.to(ArtworkController);
