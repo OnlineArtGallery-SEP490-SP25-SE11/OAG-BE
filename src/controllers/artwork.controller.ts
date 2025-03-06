@@ -13,6 +13,8 @@ export class ArtworkController {
 		this.get = this.get.bind(this);
 		this.add = this.add.bind(this);
 		this.getById = this.getById.bind(this);
+		this.update = this.update.bind(this);
+		this.delete = this.delete.bind(this);
 	}
 
 	async add(req: Request, res: Response, next: NextFunction): Promise<any> {
@@ -26,9 +28,16 @@ export class ArtworkController {
 				status,
 				price
 			} = req.body;
+			const artistId = req.userId;
+			// valid artistId
+			if (!artistId) {
+				const errorMessage = 'Invalid artist id';
+				throw new Error(errorMessage);
+			}
 			const artwork = await this._artworkService.add(
 				title,
 				description,
+				artistId,
 				category,
 				dimensions,
 				url,
@@ -90,6 +99,68 @@ export class ArtworkController {
 				artwork,
 				200,
 				'Get artwork by id success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async update(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> {
+		try {
+			const { id } = req.params;
+			const { title, description, category, status, price } = req.body;
+			const artistId = req.userId;
+			// valid artistId
+			if (!artistId) {
+				const errorMessage = 'Invalid artist id';
+				throw new Error(errorMessage);
+			}
+			const artwork = await this._artworkService.update(
+				{
+					title,
+					description,
+					category,
+					status,
+					price
+				},
+				id,
+				artistId
+			);
+			const response = BaseHttpResponse.success(
+				artwork,
+				200,
+				'Update artwork success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async delete(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> {
+		try {
+			const { id } = req.params;
+			const artistId = req.userId;
+			// valid artistId
+			if (!artistId) {
+				const errorMessage = 'Invalid artist id';
+				throw new Error(errorMessage);
+			}
+
+			const isDeleted = await this._artworkService.delete(id, artistId);
+			const response = BaseHttpResponse.success(
+				isDeleted,
+				200,
+				'Delete artwork success'
 			);
 			return res.status(response.statusCode).json(response);
 		} catch (error) {
