@@ -8,14 +8,33 @@ import {
 	CreateEventPayload,
 	UpdateEventSchema
 } from '@/dto/event.dto';
-
 export class EventController {
-	constructor(private readonly _eventService: EventService) {
+	private readonly _eventService = new EventService();
+	constructor() {
 		this.getEvents = this.getEvents.bind(this);
 		this.getEventById = this.getEventById.bind(this);
-		this.createEvent = this.createEvent.bind(this);
-		this.updateEvent = this.updateEvent.bind(this);
+		this.add = this.add.bind(this);
+		this.update = this.update.bind(this);
 		this.deleteEvent = this.deleteEvent.bind(this);
+		this.get = this.get.bind(this);
+	}
+
+	async get(req: Request, res: Response, next: NextFunction): Promise<any>{
+		try{
+			const options = req.query;
+			const {skip: _skip, take: _take, ...rest} = options;
+			void _skip;
+			void _take;
+			const skip = parseInt(options.skip as string);
+			const take = parseInt(options.take as string);
+			console.log(skip, take);
+			const {events, total} = await this._eventService.get(rest, skip, take);
+			const response = BaseHttpResponse.success({events, total}, 200, 'Get events success');
+			return res.status(response.statusCode).json(response);
+		}
+		catch(error){
+			next(error);
+		}
 	}
 
 	async getEvents(
@@ -30,7 +49,7 @@ export class EventController {
 				200,
 				'Get events success'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -50,100 +69,90 @@ export class EventController {
 				200,
 				'Get event success'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
 	}
 
 
-	async createEvent(
-		req: Request,
-		res: Response,
-		next: NextFunction
-	): Promise<any> {
-		try {
-			const userId = req.userId;
-			if (!userId) {
-				throw new ForbiddenException('Forbidden');
-			}
-			req.body.userId = userId;
-			const validationResult = CreateEventPayload.safeParse(req.body);
-			if (!validationResult.success) {
-				const errors = validationResult.error.errors.map((error) => ({
-					path: error.path.join('.'),
-					message: error.message
-				}));
-				return res
-					.status(400)
-					.json(
-						BaseHttpResponse.error(
-							'Invalid event data',
-							400,
-							ErrorCode.VALIDATION_ERROR,
-							errors
-						)
-					);
-			}
-
-			const eventData = { ...validationResult.data, userId };
-			const event = await this._eventService.createEvent({
-				...eventData,
-				participants: eventData.participants || []
-			});
-			const response = BaseHttpResponse.success(
-				event,
-				201,
-				'Create event success'
-			);
-			return res.status(response.statusCode).json(response.data);
-		} catch (error) {
-			next(error);
-		}
-	}
-
-	async updateEvent(
-		req: Request,
+	async add(req: Request,
 		res: Response,
 		next: NextFunction): Promise<any> {
 		try {
 			const userId = req.userId;
+			//valid userid
 			if (!userId) {
 				throw new ForbiddenException('Forbidden');
 			}
-			req.body.userId = userId;
-			const role = req.userRole!;
-			const eventId = req.params.id;
-			req.body._id = eventId;
-			const validationResult = UpdateEventSchema.safeParse(req.body);
-			if (!validationResult.success) {
-				const errors = validationResult.error.errors.map((error) => ({
-					path: error.path.join('.'),
-					message: error.message
-				}));
-				return res
-					.status(400)
-					.json(
-						BaseHttpResponse.error(
-							'Invalid event data',
-							400,
-							ErrorCode.VALIDATION_ERROR,
-							errors
-						)
-					);
-			}
-			const eventData: UpdateEventDto = validationResult.data;
-			const updatedEvent = await this._eventService.updateEvent(eventData, role);
-			const response = BaseHttpResponse.success(
-				updatedEvent,
-				200,
-				'Update event success'
-			);
+			const {
+				title,
+				description,
+				type,
+				startDate,
+				endDate,
+				status,
+				organizer,
+				image
+			} = req.body;
 
-			return res.status(response.statusCode).json(response.data);
-		}
-		catch (error) {
+			const event = await this._eventService.add(
+				title,
+				description,
+				type,
+				startDate,
+				endDate,
+				status,
+				organizer,
+				image,
+				userId
+			)
+			const response = BaseHttpResponse.success(event, 201, 'Add event success');
+			console.log(response);
+			return res.status(response.statusCode).json(response);
+			
+		} catch (error) {
 			next(error);
+		}
+	}	
+		
+	async update(req: Request, res: Response, next: NextFunction): Promise<any> {
+		try {
+			const {id} = req.params;
+			const userId = req.userId;
+			
+			//valid userid
+			if (!userId) {
+				throw new ForbiddenException('Forbidden');
+			}
+			const {
+				title,
+				description,
+				type,
+				startDate,
+				endDate,
+				status,
+				organizer,
+				image
+			} = req.body;
+			console.log(userId,req.body);
+			const event = await this._eventService.update(
+				id,
+				title,
+				description,
+				type,
+				startDate,
+				endDate,
+				status,
+				organizer,
+				image
+			);
+			const response = BaseHttpResponse.success(event, 201, 'Update event success');
+			console.log(response);
+			return res.status(response.statusCode).json(response);
+
+		} catch(error){
+			next(error)
 		}
 	}
 
@@ -158,11 +167,13 @@ export class EventController {
 		try {
 			await this._eventService.deleteEvent(eventId, role);
 			const response = BaseHttpResponse.success(null, 204, 'Delete event success');
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		}
 		catch (error) {
 			next(error);
 		}
 
 	}
+
+	
 }

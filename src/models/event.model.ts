@@ -1,6 +1,6 @@
 import { getModelForClass, modelOptions, prop } from '@typegoose/typegoose';
 import { User } from './user.model';
-
+import { EventStatus} from '../constants/enum';
 class Participant {
   @prop({ ref: () => User, required: false })
   public userId!: User;
@@ -12,8 +12,10 @@ class Participant {
   public joinedAt!: Date;
 }
 
+
+
 @modelOptions({ schemaOptions: { timestamps: true } })
-export class Event {
+class Event {
   @prop({ required: true })
   image!: string;
 
@@ -32,8 +34,14 @@ export class Event {
   @prop({ required: true })
   endDate!: Date;
 
-  @prop({ required: true })
-  status!: string;
+  @prop({
+		required: true,
+		type: String,
+		enum: EventStatus,
+		default: EventStatus.UPCOMING,
+		index: true // Index cho status filters
+	})
+	status!: EventStatus;
 
   @prop({ required: true })
   organizer?: string;
