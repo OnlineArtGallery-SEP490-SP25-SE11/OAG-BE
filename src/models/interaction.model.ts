@@ -1,14 +1,8 @@
-import { InteractionType } from '@/constants/enum';
-import {
-	getModelForClass,
-	index,
-	pre,
-	prop,
-	type Ref
-} from '@typegoose/typegoose';
-import { User } from './user.model';
-import { Blog } from './blog.model';
-import { Types } from 'mongoose';
+import { InteractionType } from "@/constants/enum";
+import { getModelForClass, index, pre, prop, type Ref } from "@typegoose/typegoose";
+import { Types } from "mongoose";
+import { Blog } from "./blog.model";
+import User from "./user.model";
 
 @index({ post: 1, type: 1, createdAt: -1 })
 @pre<Interaction>('save', async function (next) {
@@ -33,7 +27,7 @@ export class Interaction {
 	type!: InteractionType;
 
 	@prop({ required: true, ref: () => User, index: true })
-	userId!: Ref<User>;
+	userId!: Ref<typeof User>;
 
 	@prop({ required: true, ref: () => Blog, index: true })
 	blogId!: Ref<Blog>;

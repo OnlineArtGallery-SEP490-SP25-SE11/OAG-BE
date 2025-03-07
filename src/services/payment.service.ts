@@ -4,12 +4,11 @@ import { CreatePaymentDto, UpdatePaymentDto, VerifyPaymentDto } from '@/dto/paym
 import {
     BadRequestException,
     InternalServerErrorException,
-
 } from '@/exceptions/http-exception';
+import { PaymentModel } from '@/models/payment.model';
+import User from '@/models/user.model';
 import PayOS from '@payos/node';
 import { injectable } from 'inversify';
-import { PaymentModel } from '@/models/payment.model';
-import { User } from '@/models/user.model';
 
 @injectable()
 export class PaymentService {

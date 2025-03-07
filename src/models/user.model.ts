@@ -1,4 +1,3 @@
-import bcrypt from 'bcryptjs';
 import {
 	getModelForClass,
 	index,
@@ -7,6 +6,7 @@ import {
 	prop,
 	type Ref
 } from '@typegoose/typegoose';
+import bcrypt from 'bcryptjs';
 import { PremiumSubscriptionModel } from './premium.model';
 // userSchema.pre("updateOne", async function (next) {
 //   const update = this.getUpdate() as mongoose.UpdateQuery<IUser>;
@@ -60,7 +60,7 @@ class AvatarStyle {
 	}
 	next();
 })
-export class User {
+class User {
 	@prop({
 		required: true,
 		type: () => String,
