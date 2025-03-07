@@ -1,11 +1,11 @@
-import {
-	prop,
-	getModelForClass,
-	modelOptions,
-	index
-} from '@typegoose/typegoose';
-import { User } from '@/models/user.model';
+import User from '@/models/user.model';
 import type { Ref } from '@typegoose/typegoose'; // Import the Ref type
+import {
+	getModelForClass,
+	index,
+	modelOptions,
+	prop
+} from '@typegoose/typegoose';
 @modelOptions({
 	schemaOptions: {
 		timestamps: true, // Tự động tạo createdAt và updatedAt
@@ -15,7 +15,7 @@ import type { Ref } from '@typegoose/typegoose'; // Import the Ref type
 @index({ token: 1 }, { unique: true })
 export class RefreshToken {
 	@prop({ ref: () => User })
-	userId!: Ref<User>;
+	userId!: Ref<typeof User>;
 
 	@prop({
 		required: true,

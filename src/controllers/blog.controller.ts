@@ -6,6 +6,7 @@ import { IBlogController } from '@/interfaces/controller.interface';
 import { BlogService } from '@/services/blog.service';
 import { inject, injectable } from 'inversify';
 import { TYPES } from '@/constants/types';
+import { Status } from '@/constants/enum';
 
 @injectable()
 export class BlogController implements IBlogController {
@@ -40,7 +41,7 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 
 	findById = async (
 		req: Request,
@@ -58,7 +59,7 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 
 	findLastEditedByUser = async (
 		req: Request,
@@ -77,7 +78,7 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 
 	create = async (
 		req: Request,
@@ -98,7 +99,7 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 
 	update = async (
 		req: Request,
@@ -106,7 +107,7 @@ export class BlogController implements IBlogController {
 		next: NextFunction
 	): Promise<any> => {
 		try {
-	
+
 
 			const role = req.userRole!;
 			const blogId = req.params.id;
@@ -127,7 +128,7 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 
 	delete = async (req: Request, res: Response, next: NextFunction) => {
 		const userId = req.userId;
@@ -144,7 +145,7 @@ export class BlogController implements IBlogController {
 		} catch (error) {
 			next(error);
 		}
-	}
+	};
 
 	findPublished = async (
 		req: Request,
@@ -268,6 +269,50 @@ export class BlogController implements IBlogController {
 				blog,
 				200,
 				'Blog submitted for review successfully'
+			);
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	findUserBlogs = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const blogs = await this._blogService.find({ userId: req.userId! });
+			const response = BaseHttpResponse.success(
+				blogs,
+				200,
+				'Blogs retrieved successfully'
+			);
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	find = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const { page, limit, sort, filter, status, search } = req.query;
+			let statusParam: Status | Status[] | undefined = undefined;
+			if (status) {
+				if (typeof status === 'string' && status.includes(',')) {
+					statusParam = status.split(',') as Status[];
+				} else {
+					statusParam = status as Status;
+				}
+			}
+			const blogs = await this._blogService.find({
+				page: parseInt(page as string) || 1,
+				limit: parseInt(limit as string) || 10,
+				sort: sort as Record<string, any>,
+				filter: filter as Record<string, any>,
+				status: statusParam,
+				search: search as string
+			});
+			const response = BaseHttpResponse.success(
+				blogs,
+				200,
+				'Blogs retrieved successfully'
 			);
 			return res.status(response.statusCode).json(response.data);
 		} catch (error) {

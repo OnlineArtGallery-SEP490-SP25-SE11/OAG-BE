@@ -1,9 +1,9 @@
-import { getModelForClass, modelOptions, prop } from '@typegoose/typegoose';
-import { User } from './user.model';
+import { getModelForClass, modelOptions, prop, type Ref } from '@typegoose/typegoose';
+import User from './user.model';
 import { EventStatus} from '../constants/enum';
 class Participant {
   @prop({ ref: () => User, required: false })
-  public userId!: User;
+  public userId!: Ref<typeof User>;
 
   @prop({ required: false })
   public role!: string; // "host", "artist", "attendee"
@@ -49,7 +49,7 @@ class Event {
   @prop({ type: () => [Participant], required: false })
   public participants?: Participant[];
   @prop({ ref: () => User, required: true, index: true })
-  userId!: User;
+  userId!: Ref<typeof User>;
 }
 
 export default getModelForClass(Event, { schemaOptions: { timestamps: true } });
