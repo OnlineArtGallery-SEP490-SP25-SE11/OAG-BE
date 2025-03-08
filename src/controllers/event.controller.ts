@@ -17,6 +17,7 @@ export class EventController {
 		this.update = this.update.bind(this);
 		this.deleteEvent = this.deleteEvent.bind(this);
 		this.get = this.get.bind(this);
+		this.participate = this.participate.bind(this);
 	}
 
 	async get(req: Request, res: Response, next: NextFunction): Promise<any>{
@@ -175,5 +176,20 @@ export class EventController {
 
 	}
 
-	
+	async participate(req: Request, res: Response, next: NextFunction): Promise<any> {
+		const userId = req.userId;
+		if (!userId) {
+			throw new ForbiddenException('Forbidden');
+		}
+		const eventId = req.params.id;
+		try{
+			const event = await this._eventService.participate(eventId, userId);
+			const response = BaseHttpResponse.success(event, 200, 'Participate in event success');
+			return res.status(response.statusCode).json(response);
+		}
+		catch(error){
+			next(error);
+		}
+	}
+
 }

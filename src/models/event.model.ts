@@ -4,12 +4,6 @@ import { EventStatus} from '../constants/enum';
 class Participant {
   @prop({ ref: () => User, required: false })
   public userId!: Ref<typeof User>;
-
-  @prop({ required: false })
-  public role!: string; // "host", "artist", "attendee"
-
-  @prop({ required: false })
-  public joinedAt!: Date;
 }
 
 

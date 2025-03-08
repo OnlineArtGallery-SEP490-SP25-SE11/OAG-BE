@@ -16,6 +16,6 @@ router.get('/:id', eventController.getEventById);
 router.post('/',roleRequire([Role.ADMIN]),validate(eventSchema), eventController.add);
 router.put('/:id', roleRequire([Role.ADMIN]), eventController.update);
 router.delete('/:id', roleRequire([Role.ADMIN]), eventController.deleteEvent);
-
+router.post('/:id/participate', roleRequire(), eventController.participate);
 
 export default router;
