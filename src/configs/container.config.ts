@@ -4,11 +4,13 @@ import { BlogController } from "@/controllers/blog.controller";
 import { InteractionService } from "@/services/interaction.service";
 import { TYPES } from "@/constants/types";
 import { InteractionController } from "@/controllers/interaction.controller";
-import { IBlogService, IBlogTagService, IInteractionService } from "@/interfaces/service.interface";
-import { IBlogTagController, IInteractionController } from "@/interfaces/controller.interface";
+import { IBlogService, IBlogTagService, ICommentService, IInteractionService } from "@/interfaces/service.interface";
+import { IBlogTagController, ICommentController, IInteractionController } from "@/interfaces/controller.interface";
 import { IBlogController } from "@/interfaces/controller.interface";
 import { BlogTagService } from "@/services/blog-tag.service";
 import { BlogTagController } from "@/controllers/blog-tag.controller";
+import { CommentController } from "@/controllers/comment.controller";
+import { CommentService } from "@/services/comment.service";
 
 const container = new Container();
 
@@ -22,5 +24,9 @@ container.bind<IBlogTagController>(TYPES.BlogTagController).to(BlogTagController
 container.bind<IBlogController>(TYPES.BlogController).to(BlogController); //chỉ dùng nội hàm interface
 // container.bind<BlogController>(TYPES.BlogController).to(BlogController); //dùng toàn bộ class, kể cả hàm không có trong interface
 container.bind<IInteractionController>(TYPES.InteractionController).to(InteractionController);
+
+container.bind<ICommentService>(TYPES.CommentService).to(CommentService);
+container.bind<CommentController>(TYPES.CommentController).to(CommentController);
+
 export default container;
 

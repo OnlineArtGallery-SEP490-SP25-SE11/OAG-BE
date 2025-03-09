@@ -6,6 +6,7 @@ import notificationRouter from '@/routers/notification.router';
 import userRouter from '@/routers/user.router';
 import eventRouter from '@/routers/event.router';
 import blogTagRouter from '@/routers/blog-tag.router';
+import commentRoute from '@/routers/comment.route';
 
 export default [
 	{ path: '/api/auth', router: authRouter },
@@ -16,5 +17,6 @@ export default [
 	{ path: '/api/interaction', router: interactionRouter },
 	{ path: '/api/event', router: eventRouter },
 	{ path: '/api/interaction', router: interactionRouter },
-	{ path: '/api/blog-tag', router: blogTagRouter }
+	{ path: '/api/blog-tag', router: blogTagRouter },
+	{ path: '/api/comments', router: commentRoute}
 ];
