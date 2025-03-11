@@ -23,5 +23,20 @@ export interface IBlogController {
 }
 
 export interface IInteractionController {
-  getUserInteractions(req: Request, res: Response, next: NextFunction): Promise<any>;
+	getUserInteractions(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any>;
+}
+
+export interface IArtworkController {
+  add(req: Request, res: Response, next: NextFunction): Promise<any>;
+  get(req: Request, res: Response, next: NextFunction): Promise<any>;
+}
+
+export interface ICollectionController {
+    add(req: Request, res: Response, next: NextFunction): Promise<any>;
+    update(req: Request, res: Response, next: NextFunction): Promise<any>;
+    get(req: Request, res: Response, next: NextFunction): Promise<any>;
 }

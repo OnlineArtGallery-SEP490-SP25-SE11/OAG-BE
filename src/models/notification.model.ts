@@ -1,5 +1,5 @@
+import User from '@/models/user.model.ts';
 import { getModelForClass, index, prop, type Ref } from '@typegoose/typegoose';
-import { User } from '@/models/user.model.ts';
 
 @index({ userId: 1, createdAt: -1 })
 class Notification {
@@ -19,7 +19,7 @@ class Notification {
 		ref: () => User,
 		required: true
 	})
-	public userId!: Ref<User>;
+	public userId!: Ref<typeof User>;
 
 	@prop({
 		type: () => Boolean,
