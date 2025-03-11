@@ -18,9 +18,13 @@
   
     async getCommentsByBlog(blogId: string): Promise<CommentDocument[]> {
       return await CommentModel.find({ blog: new Types.ObjectId(blogId) })
-        .populate("author", "name email image")
-        .sort({ createdAt: -1 })
-        .lean();
+      .populate({
+				path: 'author',
+				select: 'name email image',
+				model: 'User' 
+			})
+      .sort({ createdAt: -1 })
+      .lean();
     }
   
     async updateComment(commentId: string, userId: string, content: string): Promise<CommentDocument> {
