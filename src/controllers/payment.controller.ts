@@ -1,13 +1,13 @@
-import { Request, Response } from 'express';
-import { injectable, inject } from 'inversify';
-import { PaymentService } from '@/services/payment.service';
-import { CreatePaymentSchema, UpdatePaymentSchema } from '@/dto/payment.dto';
-import { TYPES } from '@/types/payment.types';
-import { UnauthorizedException, BadRequestException } from '@/exceptions/http-exception';
-import PayOS from '@payos/node';
-import { User } from '../models/user.model';
-import { PremiumSubscriptionModel } from '../models/premium.model';
 import logger from '@/configs/logger.config';
+import { CreatePaymentSchema, UpdatePaymentSchema } from '@/dto/payment.dto';
+import { BadRequestException, UnauthorizedException } from '@/exceptions/http-exception';
+import { PaymentService } from '@/services/payment.service';
+import { TYPES } from '@/types/payment.types';
+import PayOS from '@payos/node';
+import { Request, Response } from 'express';
+import { inject, injectable } from 'inversify';
+import { PremiumSubscriptionModel } from '../models/premium.model';
+import User from '../models/user.model';
 
 @injectable()
 export class PaymentController {
@@ -54,7 +54,7 @@ export class PaymentController {
 
   async verifyPayment(req: Request, res: Response) {
     try {
-     
+
       return res.status(200).json({ success: true, paymentUrl: 'https://payos.com' });
     } catch (error: any) {
       logger.error('Error in verifyPayment:', error);
@@ -133,7 +133,7 @@ export class PaymentController {
 
   public static async handlePayOSWebhook(req: Request, res: Response) {
     try {
-  
+
 
       // Since we can't verify the signature, we'll assume it's valid for now
       // In a production environment, you should implement proper signature verification

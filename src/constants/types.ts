@@ -26,7 +26,17 @@ export const TYPES = {
     IArtistController: Symbol.for('IArtistController'),
     ArtistController: Symbol.for('ArtistController'),
 
-    ActiveArtistService: Symbol.for('ActiveArtistService'),
-    ActiveArtistController: Symbol.for('ActiveArtistController'),
+    // Artwork
+    IArtworkService: Symbol.for('IArtworkService'),
+    ArtworkService: Symbol.for('ArtworkService'),
 
+    IArtworkController: Symbol.for('IArtworkController'),
+    ArtworkController: Symbol.for('ArtworkController'),
+
+    // Collection
+    ICollectionService: Symbol.for('ICollectionService'),
+    CollectionService: Symbol.for('CollectionService'),
+
+    ICollectionController: Symbol.for('ICollectionController'),
+    CollectionController: Symbol.for('CollectionController'),
 }

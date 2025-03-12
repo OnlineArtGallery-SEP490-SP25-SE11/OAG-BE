@@ -1,4 +1,3 @@
-import bcrypt from 'bcryptjs';
 import {
 	getModelForClass,
 	index,
@@ -8,6 +7,7 @@ import {
 	type Ref,
 
 } from '@typegoose/typegoose';
+import bcrypt from 'bcryptjs';
 import { PremiumSubscriptionModel } from './premium.model';
 import { Role } from '@/constants/enum';
 // userSchema.pre("updateOne", async function (next) {
@@ -54,7 +54,7 @@ type ProviderType = 'google' | 'facebook' | 'phone';
 	}
 	next();
 })
-export class User {
+class User {
 	@prop({
 		required: true,
 		type: () => String,
