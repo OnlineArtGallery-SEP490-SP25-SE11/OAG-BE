@@ -38,6 +38,7 @@ class UserService {
 			const user = await User.findByIdAndUpdate(userId, update, {
 				new: true
 			});
+
 			if (!user) {
 				logger.error(`User not found!`);
 				throw new Error('User not found');
@@ -57,6 +58,10 @@ class UserService {
 			console.log('Starting avatar update for user:', userId);
 			console.log('Image file:', imageFile);
 
+			if (!imageFile) {
+				throw new Error('No image file provided');
+			}
+
 			// Upload image to Cloudinary
 			const result = await cloudinary.uploader.upload(imageFile.path, {
 				folder: 'avatars',
@@ -68,30 +73,29 @@ class UserService {
 
 			console.log('Cloudinary upload result:', result);
 
-			// Update user's avatar URL in database
-			const user = await User.findByIdAndUpdate(
-				userId,
+			// Update user's avatar URL in database using findOneAndUpdate
+			const user = await User.findOneAndUpdate(
+				{ _id: userId },
 				{
 					$set: {
 						image: result.secure_url,
-						googleImage: null // Clear the Google image when user uploads their own
+						googleImage: null
 					}
 				},
-				{ new: true }
+				{
+					new: true,
+					runValidators: true // Đảm bảo validate theo schema
+				}
 			);
 
 			if (!user) {
-				logger.error(`User not found!`);
+				logger.error(`User not found with ID: ${userId}`);
 				throw new Error('User not found');
 			}
 
 			console.log('Updated user in database:', user);
+			return user;
 
-			// Fetch the updated user to ensure we have the latest data
-			const updatedUser = await User.findById(userId);
-			console.log('Fetched updated user:', updatedUser);
-
-			return updatedUser;
 		} catch (err: any) {
 			console.error('Error in updateAvatar:', err);
 			logger.error(`Update avatar failed!, ${err.message}`);

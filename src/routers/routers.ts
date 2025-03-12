@@ -6,8 +6,9 @@ import notificationRouter from '@/routers/notification.router';
 import userRouter from '@/routers/user.router';
 import eventRouter from '@/routers/event.router';
 import blogTagRouter from '@/routers/blog-tag.router';
-
+import artistRouter from '@/routers/artist.router';
 import paymentRouter from '@/routers/payment.router';
+
 export default [
 	{ path: '/api/auth', router: authRouter },
 	{ path: '/api/user', router: userRouter },
@@ -20,4 +21,6 @@ export default [
 	{ path: '/api/blog-tag', router: blogTagRouter },
 	{ path: '/api/interaction', router: interactionRouter },
 	{ path: '/api/payment', router: paymentRouter },
+	{ path: '/api/artist', router: artistRouter },
+	
 ];

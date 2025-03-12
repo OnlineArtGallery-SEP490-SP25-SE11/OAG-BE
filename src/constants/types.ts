@@ -6,9 +6,12 @@ export const TYPES = {
 
     IBlogService: Symbol.for('IBlogService'),
     BlogService: Symbol.for('BlogService'),
-    
+
     IInteractionService: Symbol.for('IInteractionService'),
     InteractionService: Symbol.for('InteractionService'),
+
+    IArtistService: Symbol.for('IArtistService'),
+    ArtistService: Symbol.for('ArtistService'),
 
     // Controllers
     IBlogTagController: Symbol.for('IBlogTagController'),
@@ -16,8 +19,14 @@ export const TYPES = {
 
     IBlogController: Symbol.for('IBlogController'),
     BlogController: Symbol.for('BlogController'),
-    
+
     IInteractionController: Symbol.for('IInteractionController'),
     InteractionController: Symbol.for('InteractionController'),
+
+    IArtistController: Symbol.for('IArtistController'),
+    ArtistController: Symbol.for('ArtistController'),
+
+    ActiveArtistService: Symbol.for('ActiveArtistService'),
+    ActiveArtistController: Symbol.for('ActiveArtistController'),
 
 }

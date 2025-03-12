@@ -23,9 +23,27 @@ export interface IBlogController {
 }
 
 export interface IInteractionController {
-	getUserInteractions(
-		req: Request,
-		res: Response,
-		next: NextFunction
-	): Promise<any>;
+  getUserInteractions(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<any>;
+}
+
+export interface IArtistController {
+  getProfile(req: Request, res: Response, next: NextFunction): Promise<any>;
+  updateProfile(req: Request, res: Response, next: NextFunction): Promise<any>;
+  getAllArtists(req: Request, res: Response, next: NextFunction): Promise<any>;
+  searchArtists(req: Request, res: Response, next: NextFunction): Promise<any>;
+}
+
+export interface ArtistProfileUpdate {
+  bio?: string;
+  genre?: string;
+  experience?: string;
+  socialLinks?: {
+    instagram?: string;
+    twitter?: string;
+    website?: string;
+  };
 }

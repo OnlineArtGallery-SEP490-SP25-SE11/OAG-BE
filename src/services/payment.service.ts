@@ -9,7 +9,7 @@ import {
 import PayOS from '@payos/node';
 import { injectable } from 'inversify';
 import { PaymentModel } from '@/models/payment.model';
-import { User } from '@/models/user.model';
+import  User  from '@/models/user.model';
 
 @injectable()
 export class PaymentService {
@@ -71,10 +71,12 @@ export class PaymentService {
 
                     // Update user to premium if payment is successful
                     if (payment.status === 'PENDING') {
-                        await User.findByIdAndUpdate(payment.userId, {
-                            isPremium: true,
-                            premiumSince: new Date(),
-                            avatarStyle: {
+                        await User.findOneAndUpdate(
+                            { _id: payment.userId },
+                            {
+                                isPremium: true,
+                                premiumSince: new Date(),
+                                avatarStyle: {
                                 hasCrown: true,
                                 hasSparklingBorder: true
                             }
