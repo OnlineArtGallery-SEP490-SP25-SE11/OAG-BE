@@ -55,8 +55,7 @@ class UserService {
 		imageFile: Express.Multer.File
 	): Promise<InstanceType<typeof User> | null> {
 		try {
-			console.log('Starting avatar update for user:', userId);
-			console.log('Image file:', imageFile);
+	
 
 			if (!imageFile) {
 				throw new Error('No image file provided');
@@ -71,7 +70,7 @@ class UserService {
 				]
 			});
 
-			console.log('Cloudinary upload result:', result);
+		
 
 			// Update user's avatar URL in database using findOneAndUpdate
 			const user = await User.findOneAndUpdate(
@@ -93,11 +92,11 @@ class UserService {
 				throw new Error('User not found');
 			}
 
-			console.log('Updated user in database:', user);
+		
 			return user;
 
 		} catch (err: any) {
-			console.error('Error in updateAvatar:', err);
+			
 			logger.error(`Update avatar failed!, ${err.message}`);
 			throw new Error(`Update avatar failed!, ${err.message}`);
 		}

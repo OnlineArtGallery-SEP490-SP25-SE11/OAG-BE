@@ -1,11 +1,11 @@
 import { prop, getModelForClass, type Ref, modelOptions } from '@typegoose/typegoose';
-import { User } from './user.model';
+import User from '@/models/user.model.ts';
 
 @modelOptions({ schemaOptions: { timestamps: true } })
 
 export class ArtistProfile {
     @prop({ ref: () => User, required: true })
-    userId!: Ref<User>;
+    userId!: Ref<typeof User>;
 
     @prop()
     bio!: string;

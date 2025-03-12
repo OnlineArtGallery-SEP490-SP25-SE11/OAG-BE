@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { BaseHttpResponse } from '@/lib/base-http-response';
 import { ForbiddenException } from '@/exceptions/http-exception';
 import { NextFunction, Request, Response } from 'express';
@@ -47,18 +48,12 @@ export class ArtistController implements IArtistController {
         next: NextFunction
     ): Promise<any> => {
         try {
-            const artistId = req.params.artistId;
-            const userId = req.userId;
-
-            if (!userId) {
-                throw new ForbiddenException('Forbidden');
-            }
+            const artistId = req.userId!;
 
             const updateData: ArtistProfileUpdate = {
                 bio: req.body.bio,
                 genre: req.body.genre,
-                experience: req.body.experience,
-                socialLinks: req.body.socialLinks
+               
             };
 
             const result = await this._artistService.updateArtistProfile(
