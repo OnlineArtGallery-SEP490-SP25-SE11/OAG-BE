@@ -6,8 +6,7 @@
 		"dev": "bun --watch src/index.ts",
 		"lint": "eslint src/**/*.ts",
 		"start": "bun src/index.ts",
-		"build": "tsc",
-		"start:prod": "node dist/index.js"
+		"build": "bun build src/index.ts --target node --outdir ./dist"
 	},
 	"devDependencies": {
 		"@types/bcryptjs": "^2.4.6",
