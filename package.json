@@ -4,9 +4,10 @@
 	"type": "module",
 	"scripts": {
 		"dev": "bun --watch src/index.ts",
-		"start": "bun src/index.ts",
 		"lint": "eslint src/**/*.ts",
-		"build": "bun build src/index.ts --target node --outdir ./dist"
+		"start": "bun src/index.ts",
+		"build": "tsc",
+		"start:prod": "node dist/index.js"
 	},
 	"devDependencies": {
 		"@types/bcryptjs": "^2.4.6",
