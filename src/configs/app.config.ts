@@ -11,32 +11,49 @@ import Cookieparser from 'cookie-parser';
 import cors from 'cors';
 import express, { Express, NextFunction, Request, Response } from 'express';
 import { createServer, Server as HttpServer } from 'http';
+// Import hệ thống sự kiện
+import EventStatusSchedule from '@/services/schedule.service';
+
 class AppConfig {
 	private readonly app: Express;
 	private readonly httpServer: HttpServer;
+	private eventSystem: any; // Lưu trữ tham chiếu đến hệ thống sự kiện
+
 	constructor() {
 		this.app = express();
 		this.httpServer = createServer(this.app);
 	}
+
 	private async init(): Promise<void> {
 		await this.initDatabase();
 		this.initMiddlewares();
 		this.initSocket();
 		this.initServices();
+		this.initEventSystem(); // Thêm khởi tạo hệ thống sự kiện
 		this.initRoutes();
 		this.initErrorHandlers();
 	}
+
 	private initSocket(): void {
 		//khởi tạo socket
 		SocketConfig.init(this.httpServer);
 	}
+
 	private initServices(): void {
 		//khởi tạo các service đặc biệt
 		NotificationService.init(SocketConfig.getIO());
 	}
+
+	private initEventSystem(): void {
+		//khởi tạo hệ thống tự động cập nhật trạng thái sự kiện
+		this.eventSystem = new EventStatusSchedule();
+		logger.info('🗓️ Event status update system initialized');
+	}
+
 	private async initDatabase(): Promise<void> {
 		await connectDatabase.connect();
 	}
+
 	private initErrorHandlers(): void {
 		this.app.use(
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
@@ -63,6 +80,7 @@ class AppConfig {
 			}
 		);
 	}
+
 	private initMiddlewares(): void {
 		this.app.use(
 			cors({
@@ -97,6 +115,23 @@ class AppConfig {
 			logger.error('💔 Failed to start server', e.message);
 		}
 	}
+
+	// public async stop(): Promise<void> {
+	// 	try {
+	// 		// Dừng hệ thống sự kiện nếu đang chạy
+	// 		if (this.eventSystem) {
+	// 			this.eventSystem.stopAll();
+	// 			logger.info('🗓️ Event status update system stopped');
+	// 		}
+			
+	// 		// Đóng các kết nối khác
+	// 		this.httpServer.close();
+	// 		await connectDatabase.disconnect();
+	// 		logger.info('👋 Server shut down gracefully');
+	// 	} catch (error: any) {
+	// 		logger.error('💔 Error during server shutdown', error.message);
+	// 	}
+	// }
 }
 
 export default AppConfig;
