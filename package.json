@@ -7,7 +7,7 @@
 		"start": "bun src/index.ts",
 		"lint": "eslint src/**/*.ts",
 		"build": "bun build src/index.ts --target node --outdir ./dist"
-	},
+		},
 	"devDependencies": {
 		"@types/bcryptjs": "^2.4.6",
 		"@types/bun": "latest",
