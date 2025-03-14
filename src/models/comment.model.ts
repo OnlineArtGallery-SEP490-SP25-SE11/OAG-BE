@@ -1,4 +1,5 @@
 // comment.model.ts 
+//new pull
 import { getModelForClass, modelOptions, prop, type Ref } from "@typegoose/typegoose";
 import User from "./user.model";
 import { Blog } from "./blog.model";
