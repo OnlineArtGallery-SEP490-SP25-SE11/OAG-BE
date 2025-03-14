@@ -22,14 +22,13 @@ import { ArtworkController } from '@/controllers/artwork.controller';
 // import {  } from '@/interfaces/controller.interface';
 import { BlogTagController } from "@/controllers/blog-tag.controller";
 import { CollectionController } from '@/controllers/collection.controller.ts';
+import { CommentController } from '@/controllers/comment.controller';
 import { IBlogTagController } from "@/interfaces/controller.interface";
 import { IBlogTagService } from "@/interfaces/service.interface";
 import { ArtworkService } from '@/services/artwork.service.ts';
 import { BlogTagService } from "@/services/blog-tag.service";
 import { CollectionService } from '@/services/collection.service.ts';
-
-import { CommentController } from "@/controllers/comment.controller";
-import { CommentService } from "@/services/comment.service";
+import { CommentService } from '@/services/comment.service';
 
 const container = new Container();
 
@@ -44,12 +43,12 @@ container
 container.bind<IBlogTagController>(TYPES.BlogTagController).to(BlogTagController);
 container.bind<IBlogController>(TYPES.BlogController).to(BlogController); //chỉ dùng nội hàm interface
 // container.bind<BlogController>(TYPES.BlogController).to(BlogController); //dùng toàn bộ class, kể cả hàm không có trong interface
-container.bind<IInteractionController>(TYPES.InteractionController).to(InteractionController);
+container
+	.bind<IInteractionController>(TYPES.InteractionController)
+	.to(InteractionController);
 
 container.bind<ICommentService>(TYPES.CommentService).to(CommentService);
 container.bind<CommentController>(TYPES.CommentController).to(CommentController);
-
-
 
 // ARTWORK
 // container.bind<IArtworkService>(TYPES.ArtworkService).to(ArtworkService);

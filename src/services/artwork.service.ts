@@ -1,8 +1,8 @@
 import logger from '@/configs/logger.config';
 import Artwork from '@/models/artwork.model';
+import User from '@/models/user.model.ts';
 import { injectable } from 'inversify';
 import { FilterQuery, Types } from 'mongoose';
-import User from '@/models/user.model.ts';
 
 export interface ArtworkQueryOptions {
 	select?: string;
@@ -260,6 +260,15 @@ export class ArtworkService {
 		} catch (error) {
 			logger.error(`Error deleting artwork: ${error}`);
 			return false;
+		}
+	}
+	async getCategory(): Promise<string[]> {
+		try {
+			const categories = await Artwork.distinct('category').exec();
+			return categories;
+		} catch (error) {
+			logger.error(`Error get category artwork: ${error}`);
+			throw error;
 		}
 	}
 }
