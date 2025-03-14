@@ -32,7 +32,9 @@ export class ArtistController implements IArtistController {
             const artist = await this._artistService.getArtistProfile(artistId);
 
             const response = BaseHttpResponse.success(
-                artist,
+                {
+                    user: artist,
+                },
                 200,
                 'Get artist profile success'
             );

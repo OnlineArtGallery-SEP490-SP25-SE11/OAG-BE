@@ -47,6 +47,17 @@ export interface ArtistProfileUpdate {
     website?: string;
   };
 }
+export interface ICommentController {
+  create(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  getComments(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  update(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  delete(req: Request, res: Response, next: NextFunction): Promise<Response>;
+	// getUserInteractions(
+	// 	req: Request,
+	// 	res: Response,
+	// 	next: NextFunction
+	// ): Promise<any>;
+}
 
 export interface IArtworkController {
   add(req: Request, res: Response, next: NextFunction): Promise<any>;

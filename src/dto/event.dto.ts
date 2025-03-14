@@ -6,12 +6,6 @@ export const CreateEventSchema = z.object({
     type: z.string().min(5).max(100).nonempty(),
     status: z.string().min(5).max(100).nonempty(),
     organizer: z.string(),
-    participants: z.array(z.object({
-        userId: z.string(),
-        role: z.string(),
-        joinedAt: z.string()
-    })),
-    userId: z.string(),
     startDate: z.string().optional(),
     endDate: z.string().optional(),
     image: z.string().url().nonempty(),
@@ -24,14 +18,7 @@ export const UpdateEventSchema = z.object({
     type: z.string().min(5).max(100).optional(),
     status: z.string().min(5).max(100).optional(),
     organizer: z.string().optional(),
-    participants: z.array(z.object({
-        userId: z.string(),
-        role: z.string(),
-        joinedAt: z.string()
-    })).optional(),
-    userId: z.string().optional(),
     image: z.string().url().nonempty(),
-
 });
 
 export const CreateEventPayload = z.object({
@@ -42,11 +29,6 @@ export const CreateEventPayload = z.object({
     endDate: z.string(),
     status: z.string().min(5).max(100).nonempty(),
     organizer: z.string(),
-    participants: z.array(z.object({
-        userId: z.string(),
-        role: z.string(),
-        joinedAt: z.string()
-    })).optional(),
     image: z.string().url().nonempty(),
 });
 export type CreateEventDto = z.infer<typeof CreateEventSchema>;
