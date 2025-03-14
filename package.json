@@ -4,7 +4,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "bun --watch src/index.ts",
-		"start": "bun src/index.ts",
+		"start": "node src/index.ts --max-old-space-size=512",
 		"lint": "eslint src/**/*.ts",
 		"build": "bun build src/index.ts --out-dir ./dist"
 	},
