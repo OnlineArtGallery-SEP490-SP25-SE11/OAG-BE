@@ -10,6 +10,14 @@ export const TYPES = {
     IInteractionService: Symbol.for('IInteractionService'),
     InteractionService: Symbol.for('InteractionService'),
 
+    ICommentService: Symbol.for('ICommentService'),
+    CommentService: Symbol.for('CommentService'),
+
+    
+
+    IArtistService: Symbol.for('IArtistService'),
+    ArtistService: Symbol.for('ArtistService'),
+
     // Controllers
     IBlogTagController: Symbol.for('IBlogTagController'),
     BlogTagController: Symbol.for('BlogTagController'),
@@ -19,6 +27,12 @@ export const TYPES = {
 
     IInteractionController: Symbol.for('IInteractionController'),
     InteractionController: Symbol.for('InteractionController'),
+
+    ICommentController: Symbol.for('ICommentController'),
+    CommentController: Symbol.for('CommentController'),
+
+    IArtistController: Symbol.for('IArtistController'),
+    ArtistController: Symbol.for('ArtistController'),
 
     // Artwork
     IArtworkService: Symbol.for('IArtworkService'),

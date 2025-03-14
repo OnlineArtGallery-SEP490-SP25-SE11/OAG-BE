@@ -1,5 +1,6 @@
 import logger from '@/configs/logger.config';
 import User from '@/models/user.model';
+import cloudinary from '@/configs/cloudinary.config';
 
 class UserService {
 	async getUserByPhone(
@@ -37,6 +38,7 @@ class UserService {
 			const user = await User.findByIdAndUpdate(userId, update, {
 				new: true
 			});
+
 			if (!user) {
 				logger.error(`User not found!`);
 				throw new Error('User not found');
@@ -47,5 +49,58 @@ class UserService {
 			throw new Error(`Update profile failed!, ${err.message}`);
 		}
 	}
+
+	async updateAvatar(
+		userId: string,
+		imageFile: Express.Multer.File
+	): Promise<InstanceType<typeof User> | null> {
+		try {
+	
+
+			if (!imageFile) {
+				throw new Error('No image file provided');
+			}
+
+			// Upload image to Cloudinary
+			const result = await cloudinary.uploader.upload(imageFile.path, {
+				folder: 'avatars',
+				transformation: [
+					{ width: 400, height: 400, crop: 'fill' },
+					{ quality: 'auto' }
+				]
+			});
+
+		
+
+			// Update user's avatar URL in database using findOneAndUpdate
+			const user = await User.findOneAndUpdate(
+				{ _id: userId },
+				{
+					$set: {
+						image: result.secure_url,
+						googleImage: null
+					}
+				},
+				{
+					new: true,
+					runValidators: true // Đảm bảo validate theo schema
+				}
+			);
+
+			if (!user) {
+				logger.error(`User not found with ID: ${userId}`);
+				throw new Error('User not found');
+			}
+
+		
+			return user;
+
+		} catch (err: any) {
+			
+			logger.error(`Update avatar failed!, ${err.message}`);
+			throw new Error(`Update avatar failed!, ${err.message}`);
+		}
+	}
 }
+
 export default new UserService();

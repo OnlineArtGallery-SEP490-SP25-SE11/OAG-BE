@@ -16,3 +16,10 @@ export enum Role {
 	USER = 'user',
 	ARTIST = 'artist'
 }
+
+export enum EventStatus {
+	ONGOING = 'ONGOING',
+	UPCOMING = 'UPCOMING',
+	COMPLETED = 'COMPLETED',
+}
+

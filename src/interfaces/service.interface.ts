@@ -1,9 +1,11 @@
+// service.interface.ts
+import { CreateBlogDto, RejectBlogDto, UpdateBlogDto } from "@/dto/blog.dto";
+import { BlogTag } from "@/models/blog-tag.model";
+import { Blog } from "@/models/blog.model";
+import { CommentDocument } from "@/models/comment.model";
 /* eslint-disable no-unused-vars */
 import { Status } from "@/constants/enum";
-import { CreateBlogDto, RejectBlogDto, UpdateBlogDto } from '@/dto/blog.dto';
 import Artwork from '@/models/artwork.model.ts';
-import { BlogTag } from "@/models/blog-tag.model";
-import { Blog, BlogDocument } from '@/models/blog.model';
 import Collection from '@/models/collection.model.ts';
 import { ArtworkQueryOptions } from '@/services/artwork.service.ts';
 import { UpdateCollectionOptions } from '@/services/collection.service.ts';
@@ -76,7 +78,6 @@ export interface IBlogTagService {
 	deleteTag(id: string): Promise<void>;
 }
 
-
 export interface IBlogService {
 	findAll(): Promise<Blog[]>;
 	findById(id: string): Promise<Blog | null>;
@@ -121,13 +122,18 @@ export interface IBlogService {
 	}>;
 }
 
-
-
 export interface IInteractionService {
-	getUserInteractions(
-		userId: string,
-		blogId: string
-	): Promise<{
-		hearted: boolean;
-	}>;
+  getUserInteractions(
+    userId: string,
+    blogId: string
+  ): Promise<{
+    hearted: boolean;
+  }>;
+}
+
+export interface ICommentService {
+  createComment(userId: string, blogId: string, content: string): Promise<CommentDocument>;
+  getCommentsByBlog(blogId: string): Promise<CommentDocument[]>;
+  updateComment(commentId: string, userId: string, content: string): Promise<CommentDocument>;
+  deleteComment(commentId: string, userId: string, role: string[]): Promise<void>;
 }
