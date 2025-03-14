@@ -31,11 +31,11 @@ export interface ICommentController {
   getComments(req: Request, res: Response, next: NextFunction): Promise<Response>;
   update(req: Request, res: Response, next: NextFunction): Promise<Response>;
   delete(req: Request, res: Response, next: NextFunction): Promise<Response>;
-	getUserInteractions(
-		req: Request,
-		res: Response,
-		next: NextFunction
-	): Promise<any>;
+	// getUserInteractions(
+	// 	req: Request,
+	// 	res: Response,
+	// 	next: NextFunction
+	// ): Promise<any>;
 }
 
 export interface IArtworkController {

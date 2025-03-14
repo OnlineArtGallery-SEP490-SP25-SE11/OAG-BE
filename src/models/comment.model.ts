@@ -1,6 +1,6 @@
-// comment.model.ts
+// comment.model.ts 
 import { getModelForClass, modelOptions, prop, type Ref } from "@typegoose/typegoose";
-import User  from "./user.model";
+import User from "./user.model";
 import { Blog } from "./blog.model";
 import { Types } from "mongoose";
 
@@ -18,14 +18,18 @@ export class Comment {
   @prop({ default: 0 })
   likeCount?: number;
 
+  @prop({ ref: () => Comment })
+  parentComment?: Ref<Comment>;
+
+  @prop({ ref: () => Comment, default: [], type: () => [Types.ObjectId] })
+  replies!: Types.ObjectId[];
+
   createdAt!: Date;
   updatedAt!: Date;
 }
 
 export type CommentDocument = Comment & {
   _id: Types.ObjectId;
-  createdAt: Date;
-  updatedAt: Date;
 };
 
-export default getModelForClass(Comment, { schemaOptions: { timestamps: true } });
+export default getModelForClass(Comment);
