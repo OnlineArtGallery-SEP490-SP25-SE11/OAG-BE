@@ -15,6 +15,9 @@ export const TYPES = {
 
     
 
+    IArtistService: Symbol.for('IArtistService'),
+    ArtistService: Symbol.for('ArtistService'),
+
     // Controllers
     IBlogTagController: Symbol.for('IBlogTagController'),
     BlogTagController: Symbol.for('BlogTagController'),
@@ -27,6 +30,9 @@ export const TYPES = {
 
     ICommentController: Symbol.for('ICommentController'),
     CommentController: Symbol.for('CommentController'),
+
+    IArtistController: Symbol.for('IArtistController'),
+    ArtistController: Symbol.for('ArtistController'),
 
     // Artwork
     IArtworkService: Symbol.for('IArtworkService'),

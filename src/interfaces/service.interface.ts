@@ -1,7 +1,7 @@
 // service.interface.ts
 import { CreateBlogDto, RejectBlogDto, UpdateBlogDto } from "@/dto/blog.dto";
 import { BlogTag } from "@/models/blog-tag.model";
-import { Blog, BlogDocument } from "@/models/blog.model";
+import { Blog } from "@/models/blog.model";
 import { CommentDocument } from "@/models/comment.model";
 /* eslint-disable no-unused-vars */
 import { Status } from "@/constants/enum";
@@ -123,12 +123,12 @@ export interface IBlogService {
 }
 
 export interface IInteractionService {
-	getUserInteractions(
-		userId: string,
-		blogId: string
-	): Promise<{
-		hearted: boolean;
-	}>;
+  getUserInteractions(
+    userId: string,
+    blogId: string
+  ): Promise<{
+    hearted: boolean;
+  }>;
 }
 
 export interface ICommentService {
