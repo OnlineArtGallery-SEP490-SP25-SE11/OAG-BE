@@ -19,7 +19,7 @@ export enum ErrorCode {
 	//Event
 	INVALID_EVENT_ID = 'invalid_event_id',
 	
-
+	NOTFOUND = 'notfound',
 	
 	SERVER_ERROR = 'server_error',
 

@@ -29,6 +29,12 @@ export class ForbiddenException extends HttpException {
 	}
 }
 
+export class NotFoundException extends HttpException {
+	constructor(message: string = 'NotFound') {
+		super(message, 403, ErrorCode.NOTFOUND);
+	}
+}
+
 export class InternalServerErrorException extends HttpException {
 	constructor(
 		message: string = 'Internal Server Error',

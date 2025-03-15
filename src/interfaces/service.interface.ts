@@ -9,6 +9,7 @@ import Artwork from '@/models/artwork.model.ts';
 import Collection from '@/models/collection.model.ts';
 import { ArtworkQueryOptions } from '@/services/artwork.service.ts';
 import { UpdateCollectionOptions } from '@/services/collection.service.ts';
+import { ChatDocument } from "@/models/chat.model";
 // export interface IBlogService {
 // 	getBlogs(): Promise<Blog[]>;
 
@@ -136,4 +137,15 @@ export interface ICommentService {
   getCommentsByBlog(blogId: string): Promise<CommentDocument[]>;
   updateComment(commentId: string, userId: string, content: string): Promise<CommentDocument>;
   deleteComment(commentId: string, userId: string, role: string[]): Promise<void>;
+}
+
+export interface IChatService {
+	createChat(senderId: string, receiverId: string, message: string, replyTo?: string): Promise<ChatDocument>;
+	getChatHistory(userId: string, recipientId: string): Promise<ChatDocument[]>;
+	getChatList(userId: string): Promise<ChatDocument[]>;
+	getLastMessageWithUsers(userId: string): Promise<{ userId: string; lastMessage: ChatDocument }[]>;
+	markMessageAsRead(chatId: string, userId: string): Promise<ChatDocument>;
+	markAllMessagesAsRead(userId: string, contactId: string): Promise<void>;
+	deleteMessage(chatId: string, userId: string): Promise<void>;
+	deleteChat(userId: string, contactId: string): Promise<void>;
 }

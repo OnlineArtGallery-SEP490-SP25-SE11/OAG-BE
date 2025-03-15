@@ -13,7 +13,8 @@ export const TYPES = {
     ICommentService: Symbol.for('ICommentService'),
     CommentService: Symbol.for('CommentService'),
 
-    
+    IChatService: Symbol.for('IChatService'),
+    ChatService: Symbol.for('ChatService'),
 
     // Controllers
     IBlogTagController: Symbol.for('IBlogTagController'),
@@ -27,6 +28,9 @@ export const TYPES = {
 
     ICommentController: Symbol.for('ICommentController'),
     CommentController: Symbol.for('CommentController'),
+
+    IChatController: Symbol.for('IChatController'),
+    ChatController: Symbol.for('ChatController'),
 
     // Artwork
     IArtworkService: Symbol.for('IArtworkService'),

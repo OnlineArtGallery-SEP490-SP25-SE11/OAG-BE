@@ -9,6 +9,7 @@ import userRouter from '@/routers/user.router';
 import eventRouter from '@/routers/event.router';
 import blogTagRouter from '@/routers/blog-tag.router';
 import commentRoute from '@/routers/comment.route';
+import chatRoute from '@/routers/chat.route';
 
 import paymentRouter from '@/routers/payment.router';
 export default [
@@ -24,5 +25,6 @@ export default [
 	{ path: '/api/interaction', router: interactionRouter },
 	{ path: '/api/blog-tag', router: blogTagRouter },
 	{ path: '/api/comments', router: commentRoute},
+	{ path: '/api/chat', router: chatRoute},
 	{ path: '/api/payment', router: paymentRouter },
 ];

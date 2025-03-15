@@ -4,11 +4,13 @@ import { InteractionController } from '@/controllers/interaction.controller';
 import {
 	IArtworkController,
 	IBlogController,
+	IChatController,
 	ICollectionController,
 	IInteractionController
 } from '@/interfaces/controller.interface';
 import {
 	IBlogService,
+	IChatService,
 	ICollectionService,
 	ICommentService,
 	IInteractionService
@@ -30,6 +32,8 @@ import { CollectionService } from '@/services/collection.service.ts';
 
 import { CommentController } from "@/controllers/comment.controller";
 import { CommentService } from "@/services/comment.service";
+import { ChatController } from '@/controllers/chat.controller';
+import { ChatService } from '@/services/chat.service';
 
 const container = new Container();
 
@@ -49,6 +53,9 @@ container.bind<IInteractionController>(TYPES.InteractionController).to(Interacti
 container.bind<ICommentService>(TYPES.CommentService).to(CommentService);
 container.bind<CommentController>(TYPES.CommentController).to(CommentController);
 
+// Chat
+container.bind<IChatService>(TYPES.ChatService).to(ChatService);
+container.bind<ChatController>(TYPES.ChatController).to(ChatController);
 
 
 // ARTWORK
