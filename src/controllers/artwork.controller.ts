@@ -15,6 +15,7 @@ export class ArtworkController {
 		this.getById = this.getById.bind(this);
 		this.update = this.update.bind(this);
 		this.delete = this.delete.bind(this);
+		this.getCategory = this.getCategory.bind(this);
 	}
 
 	async add(req: Request, res: Response, next: NextFunction): Promise<any> {
@@ -161,6 +162,24 @@ export class ArtworkController {
 				isDeleted,
 				200,
 				'Delete artwork success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async getCategory(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> {
+		try {
+			const categories = await this._artworkService.getCategory();
+			const response = BaseHttpResponse.success(
+				categories,
+				200,
+				'Get category success'
 			);
 			return res.status(response.statusCode).json(response);
 		} catch (error) {

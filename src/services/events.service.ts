@@ -1,18 +1,15 @@
 import logger from '@/configs/logger.config';
+import { EventStatus } from '@/constants/enum';
 import { ErrorCode } from '@/constants/error-code';
 import { CouldNotFindBlogException } from '@/exceptions';
 import {
 	BadRequestException,
-	ForbiddenException,
 	InternalServerErrorException,
 	UnauthorizedException
 } from '@/exceptions/http-exception';
-import { Types } from 'mongoose';
 import Event from '@/models/event.model';
-import { CreateEventDto, UpdateEventDto } from '@/dto/event.dto';
-import { FilterQuery } from 'mongoose';
-import { EventStatus } from '@/constants/enum';
-import  User  from '@/models/user.model';
+import User from '@/models/user.model';
+import { FilterQuery, Types } from 'mongoose';
 export interface EventQueryOptions {
 	title?: string;
 	description?: string;
@@ -224,23 +221,23 @@ export class EventService {
 			// Tìm kiếm user theo id
 			const user = await User.findById(userId);
 			if (!user) throw new CouldNotFindBlogException();
-	
+
 			// Lấy thông tin event
 			const event = await Event.findById(eventId);
 			if (!event) throw new CouldNotFindBlogException();
-	
+
 			// Tạo set từ danh sách participants hiện tại
 			const participantsSet = new Set(
 				event.participants?.map(participant => participant.userId.toString()) || []
 			);
-	
+
 			// Nếu user đã tham gia, xóa khỏi set, ngược lại thêm vào set
 			if (participantsSet.has(userId)) {
 				participantsSet.delete(userId);
 			} else {
 				participantsSet.add(userId);
 			}
-	
+
 			// Cập nhật event với danh sách participants mới dùng $set
 			// Giả sử định dạng của participant là { userId: string }
 			const updatedEvent = await Event.findByIdAndUpdate(
@@ -254,8 +251,8 @@ export class EventService {
 			);
 			if (!updatedEvent) {
 				throw new CouldNotFindBlogException();
-			  }
-	
+			}
+
 			return updatedEvent;
 		} catch (error) {
 			logger.error(error, 'Error participating in event');
@@ -267,7 +264,7 @@ export class EventService {
 	}
 
 
-	
-	
+
+
 }
 

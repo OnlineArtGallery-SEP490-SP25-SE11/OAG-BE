@@ -44,3 +44,9 @@ export class InternalServerErrorException extends HttpException {
 		super(message, 500, errorCode, details);
 	}
 }
+
+export class NotFoundException extends HttpException {
+	constructor(message: string, errorCode?: ErrorCode, details?: any) {
+		super(message, 404, errorCode, details);
+	}
+}
