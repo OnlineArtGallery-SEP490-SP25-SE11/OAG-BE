@@ -54,7 +54,7 @@ type ProviderType = 'google' | 'facebook' | 'phone';
 	}
 	next();
 })
-class User {
+export class User {
 	@prop({
 		required: true,
 		type: () => String,

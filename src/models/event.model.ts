@@ -1,10 +1,10 @@
 import { getModelForClass, modelOptions, prop, type Ref, pre } from '@typegoose/typegoose';
-import User from './user.model';
+import {User} from './user.model';
 import { EventStatus } from '../constants/enum';
 
 class Participant {
   @prop({ ref: () => User, required: false })
-  public userId!: Ref<typeof User>;
+  public userId!: Ref<User>;
 }
 
 @pre<Event>('save', function() {

@@ -1,9 +1,9 @@
 import { prop, getModelForClass, type Ref } from '@typegoose/typegoose';
-import  User  from './user.model';
+import  {User}  from './user.model';
 
 class PremiumSubscription {
   @prop({ ref: 'User', required: true })
-  userId!: Ref<typeof User>;
+  userId!: Ref< User>;
 
   @prop({ required: true })
   startDate!: Date;

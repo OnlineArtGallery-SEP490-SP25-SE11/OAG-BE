@@ -1,7 +1,7 @@
 // comment.model.ts 
 //new pull
 import { getModelForClass, modelOptions, prop, type Ref } from "@typegoose/typegoose";
-import User from "./user.model";
+import {User} from "./user.model";
 import { Blog } from "./blog.model";
 import { Types } from "mongoose";
 
@@ -11,7 +11,7 @@ export class Comment {
   blog!: Ref<Blog>;
 
   @prop({ ref: () => User, required: true, index: true })
-  author!: Ref<typeof User>;
+  author!: Ref< User>;
 
   @prop({ required: true, trim: true })
   content!: string;

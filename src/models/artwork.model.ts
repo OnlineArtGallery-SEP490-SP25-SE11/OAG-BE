@@ -1,5 +1,5 @@
 import { getModelForClass, index, modelOptions, prop, type Ref } from "@typegoose/typegoose";
-import User from "./user.model";
+import { User } from "./user.model";
 
 class Dimensions {
     @prop({ required: true })
@@ -16,7 +16,7 @@ class Dimensions {
 })
 @index({ artistId: 1 })
 @index({ title: 'text', description: 'text' })
-class Artwork {
+export class Artwork {
     @prop({
         type: () => String,
         required: true
@@ -71,7 +71,7 @@ class Artwork {
         ref: () => User,
         // required: true
     })
-    public artistId?: Ref<typeof User>;
+    public artistId?: Ref<User>;
 }
 
 export default getModelForClass(Artwork, {

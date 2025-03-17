@@ -1,4 +1,4 @@
-import Artwork from '@/models/artwork.model';
+import {Artwork} from '@/models/artwork.model';
 import {
 	getModelForClass,
 	modelOptions,
@@ -25,7 +25,7 @@ class Collection {
 	public description!: string;
 
 	@prop({ ref: () => Artwork })
-	public artworks?: Ref<typeof Artwork>[];
+	public artworks?: Ref<Artwork>[];
 }
 
 export default getModelForClass(Collection, {

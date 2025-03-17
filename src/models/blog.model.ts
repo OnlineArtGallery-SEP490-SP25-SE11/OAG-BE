@@ -1,7 +1,7 @@
 import { Status } from "@/constants/enum";
 import { getModelForClass, modelOptions, prop, type Ref } from "@typegoose/typegoose";
 import { Types } from "mongoose";
-import User from "./user.model";
+import { User } from "./user.model";
 
 @modelOptions({ schemaOptions: { timestamps: true } })
 export class Blog {
@@ -15,7 +15,7 @@ export class Blog {
 	image!: string;
 
 	@prop({ ref: () => User, required: true, index: true })
-	author!: Ref<typeof User>;
+	author!: Ref< User>;
 
 	@prop({
 		required: true,
