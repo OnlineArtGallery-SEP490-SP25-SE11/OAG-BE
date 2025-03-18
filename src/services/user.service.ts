@@ -1,7 +1,8 @@
 import logger from '@/configs/logger.config';
 import User from '@/models/user.model';
-
-class UserService {
+import mongoose from 'mongoose';
+import { Role } from '@/constants/enum';
+export default class UserService {
 	async getUserByPhone(
 		phone: string
 	): Promise<InstanceType<typeof User> | null> {
@@ -46,6 +47,58 @@ class UserService {
 			logger.error(`Update profile failed!, ${err.message}`);
 			throw new Error(`Update profile failed!, ${err.message}`);
 		}
+	} 
+
+	//admin function user
+	async getAllUser(): Promise<InstanceType<typeof User>[]> {
+		try {
+			const users = await User.find();
+			return users;
+		}
+		catch{
+			logger.error(`Get all user failed!`);
+			throw new Error(`Get all user failed!`);
+		}
 	}
+	//get artist
+	async getArtist(): Promise<InstanceType<typeof User>[]> {
+		try{
+			const artist = await User.find({ role: 'artist' });
+		return artist;
+		}
+		catch{
+			logger.error(`Get artist failed!`);
+			throw new Error(`Get artist failed!`);
+		}
+	}
+	//update role
+	async updateRole(
+		userId: string,
+		role: Role
+	): Promise<InstanceType<typeof User> | null> {
+		try{
+			if (!userId) {
+				logger.error(`User not found!`);
+				throw new Error('User not found');
+			}
+			const validRole = ['user', 'artist', 'admin'];
+			if(!validRole){
+				logger.error(`Role not found!`);
+				throw new Error('Role not found');
+			}
+
+			const user = await User.findByIdAndUpdate(
+				userId,
+				{ role },
+				{ new: true }
+			)
+			logger.info(`Successfully updated role of user ${userId} to ${role}`);
+			return user;
+		}
+		catch{
+			logger.error(`Update role failed!`);
+			throw new Error(`Update role failed!`);
+		}
+	}
+		
 }
-export default new UserService();

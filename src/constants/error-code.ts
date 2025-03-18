@@ -18,8 +18,11 @@ export enum ErrorCode {
 
 	//Event
 	INVALID_EVENT_ID = 'invalid_event_id',
-	
 
+	//Report
+	INVALID_REPORT_ID = 'invalid_report_id',
+	ACTION_REPORT_FAILED = 'action_report_failed',
+	INVALID_REPORTER_ID = 'invalid_reporter_id',
 	
 	SERVER_ERROR = 'server_error',
 

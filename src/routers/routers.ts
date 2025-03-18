@@ -6,6 +6,7 @@ import fileRouter from '@/routers/file.router';
 import interactionRouter from '@/routers/interaction.router';
 import notificationRouter from '@/routers/notification.router';
 import userRouter from '@/routers/user.router';
+import reportRouter from '@/routers/report.router';
 
 import blogTagRouter from '@/routers/blog-tag.router';
 import eventRouter from '@/routers/event.router';
@@ -23,4 +24,5 @@ export default [
 	{ path: '/api/event', router: eventRouter },
 	{ path: '/api/blog-tag', router: blogTagRouter },
 	{ path: '/api/payment', router: paymentRouter },
+	{ path: '/api/report', router: reportRouter },
 ];
