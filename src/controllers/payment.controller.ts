@@ -1,10 +1,12 @@
 import logger from '@/configs/logger.config';
 import { CreatePaymentSchema, UpdatePaymentSchema } from '@/dto/payment.dto';
 import { BadRequestException, UnauthorizedException } from '@/exceptions/http-exception';
+import { BaseHttpResponse } from '@/lib/base-http-response';
 import { PaymentService } from '@/services/payment.service';
 import { TYPES } from '@/types/payment.types';
+import env from '@/utils/validateEnv.util';
 import PayOS from '@payos/node';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 import { PremiumSubscriptionModel } from '../models/premium.model';
 import User from '../models/user.model';
@@ -12,14 +14,98 @@ import User from '../models/user.model';
 @injectable()
 export class PaymentController {
   private static payOS = new PayOS(
-    process.env.PAYOS_CLIENT_ID!,
-    process.env.PAYOS_API_KEY!,
-    process.env.PAYOS_CHECKSUM_KEY!
+    env.PAYOS_CLIENT_ID!,
+    env.PAYOS_API_KEY!,
+    env.PAYOS_CHECKSUM_KEY!
   );
 
   constructor(
     @inject(TYPES.PaymentService) private paymentService: PaymentService
-  ) { }
+  ) {
+    this.create = this.create.bind(this);
+    this.verify = this.verify.bind(this);
+    this.get = this.get.bind(this);
+  }
+
+
+  async create(req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+      const userId = req.userId;
+      if (!userId) {
+        throw new UnauthorizedException('User not authenticated');
+      }
+      const { amount, description } = req.body;
+      const payment = await this.paymentService.payment(
+        { amount, description }, userId
+      )
+      const response = BaseHttpResponse.success(payment, 201, 'Payment success');
+      return res.status(response.statusCode).json(response);
+    } catch (
+    error
+    ) {
+      next(error);
+    }
+  }
+
+  async verify(req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+      // Kiểm tra xác thực người dùng
+      const userId = req.userId;
+      if (!userId) {
+        throw new UnauthorizedException('User not authenticated');
+      }
+
+      // Lấy tham số từ URL params và query
+      const { paymentId } = req.params;
+      const orderCode = req.query.orderCode as string;
+      const status = req.query.status as string
+
+      // const paymentId = req.validatedData?.params?.paymentId || req.params.paymentId;
+      // const orderCode = req.validatedData?.query?.orderCode || req.query.orderCode as string;
+      // const status = req.validatedData?.query?.status || req.query.status as string;
+
+      console.log('Verify payment:', { paymentId, orderCode, status });
+      // Gọi service method với các tham số đã validate
+      const payment = await this.paymentService.verify({
+        orderCode,
+        status,
+        paymentId
+      }, userId);
+
+      // Trả về response thành công
+      const response = BaseHttpResponse.success(
+        payment,
+        200,
+        'Payment verified'
+      );
+      return res.status(response.statusCode).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async get(req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+      const userId = req.userId;
+      if (!userId) {
+        throw new UnauthorizedException('User not authenticated');
+      }
+      const skip = parseInt(req.query.skip as string);
+      const take = parseInt(req.query.take as string);
+      const {
+        payment,
+        total,
+      } = await this.paymentService.get(userId, skip, take);
+      const response = BaseHttpResponse.success({
+        payment,
+        total,
+      }, 200, 'Payment retrieved successfully');
+      return res.status(response.statusCode).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
 
   async createPayment(req: Request & { user?: { id: string } }, res: Response) {
     try {

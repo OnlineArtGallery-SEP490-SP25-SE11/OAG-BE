@@ -1,29 +1,51 @@
-import { prop, getModelForClass } from '@typegoose/typegoose';
+import { getModelForClass, modelOptions, prop, type Ref } from '@typegoose/typegoose';
+import User from './user.model';
 
-export class Payment {
-    @prop({ required: true })
-    public userId!: string;
+@modelOptions({
+    schemaOptions: {
+        timestamps: true
+    }
+})
+class Payment {
+    @prop({
+        ref: () => User,
+        required: true
+    })
+    public userId!: Ref<typeof User>;
 
-    @prop({ required: true })
+    @prop({
+        type: () => Number,
+        required: true
+    })
     public amount!: number;
 
-    @prop()
+    @prop({
+        type: () => String,
+        required: false
+    }
+    )
     public description?: string;
 
-    @prop({ required: true })
+    @prop({
+        enum: ['PENDING', 'PAID', 'FAILED'],
+        required: true
+    })
     public status!: 'PENDING' | 'PAID' | 'FAILED';
 
-    @prop({ required: true })
+    @prop({
+        type: () => String,
+        required: true
+    })
     public paymentUrl!: string;
 
-    @prop({ required: true })
+    @prop({
+        type: () => String,
+        required: true
+    })
     public orderCode!: string;
 
-    @prop({ default: Date.now })
-    public createdAt!: Date;
-
-    @prop({ default: Date.now })
-    public updatedAt!: Date;
 }
 
-export const PaymentModel = getModelForClass(Payment);
+export default getModelForClass(Payment,
+    { schemaOptions: { timestamps: true } }
+);

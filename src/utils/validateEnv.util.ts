@@ -3,7 +3,7 @@ import { cleanEnv, port, str } from 'envalid';
 const env = cleanEnv(process.env, {
 	PORT: port({ default: 5000 }),
 	CLIENT_URL: str({ default: 'http://localhost:3000' }),
-	ADMIN_URL: str({ default: 'http://localhost:3001' }), 
+	ADMIN_URL: str({ default: 'http://localhost:3001' }),
 	MONGO_URI: str({ default: 'mongodb://localhost:27017/art_vault' }),
 	JWT_SECRET: str(),
 	JWT_EXPIRE: str({ default: '1d' }),
@@ -19,6 +19,9 @@ const env = cleanEnv(process.env, {
 	CLOUDINARY_CLOUD_NAME: str(),
 	CLOUDINARY_API_KEY: str(),
 	CLOUDINARY_API_SECRET: str(),
-	CLOUD_IMG_FOLDER: str()
+	CLOUD_IMG_FOLDER: str(),
+	PAYOS_CLIENT_ID: str(),
+	PAYOS_API_KEY: str(),
+	PAYOS_CHECKSUM_KEY: str()
 });
 export default env;
