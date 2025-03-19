@@ -65,3 +65,9 @@ container
 	.bind<ICollectionController>(TYPES.CollectionController)
 	.to(CollectionController);
 export default container;
+
+
+// GALLERY
+// In your container configuration
+// container.bind<GalleryService>(TYPES.GalleryService).to(GalleryService);
+// container.bind<GalleryController>(TYPES.GalleryController).to(GalleryController);
