@@ -1,4 +1,5 @@
-import { NextFunction } from "express";
+import { NextFunction, Request, Response } from 'express';
+/* eslint-disable no-unused-vars */
 
 export interface IGalleryController {
     create(req: Request, res: Response, next: NextFunction): Promise<any>;

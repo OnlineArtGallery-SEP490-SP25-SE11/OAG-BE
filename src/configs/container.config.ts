@@ -1,3 +1,5 @@
+import { Container } from 'inversify';
+import 'reflect-metadata';
 import { TYPES } from '@/constants/types';
 import { BlogController } from '@/controllers/blog.controller';
 import { InteractionController } from '@/controllers/interaction.controller';
@@ -15,11 +17,8 @@ import {
 } from '@/interfaces/service.interface';
 import { BlogService } from '@/services/blog.service';
 import { InteractionService } from '@/services/interaction.service';
-import { Container } from 'inversify';
-import 'reflect-metadata';
 
 import { ArtworkController } from '@/controllers/artwork.controller';
-// import {  } from '@/interfaces/controller.interface';
 import { BlogTagController } from "@/controllers/blog-tag.controller";
 import { CollectionController } from '@/controllers/collection.controller.ts';
 import { CommentController } from '@/controllers/comment.controller';
@@ -29,6 +28,10 @@ import { ArtworkService } from '@/services/artwork.service.ts';
 import { BlogTagService } from "@/services/blog-tag.service";
 import { CollectionService } from '@/services/collection.service.ts';
 import { CommentService } from '@/services/comment.service';
+import { GalleryService } from '@/services/gallery.service';
+import { GalleryController } from '@/controllers/gallery.controller';
+import { IGalleryService } from '@/interfaces/service/gallery-service.interface';
+import { IGalleryController } from '@/interfaces/service/gallery-controller.interface';
 
 const container = new Container();
 
@@ -64,10 +67,10 @@ container
 container
 	.bind<ICollectionController>(TYPES.CollectionController)
 	.to(CollectionController);
-export default container;
-
 
 // GALLERY
-// In your container configuration
-// container.bind<GalleryService>(TYPES.GalleryService).to(GalleryService);
-// container.bind<GalleryController>(TYPES.GalleryController).to(GalleryController);
+container.bind<IGalleryService>(TYPES.GalleryService).to(GalleryService);
+container.bind<IGalleryController>(TYPES.GalleryController).to(GalleryController);
+
+
+export default container;
