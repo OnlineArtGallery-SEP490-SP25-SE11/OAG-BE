@@ -3,7 +3,7 @@ import User from './user.model';
 
 @modelOptions({
     schemaOptions: {
-        timestamps: true
+        timestamps: true,
     }
 })
 class Payment {
@@ -44,8 +44,17 @@ class Payment {
     })
     public orderCode!: string;
 
+
+    public getId(): string {
+        return (this as any)._id?.toString();
+    }
 }
 
 export default getModelForClass(Payment,
-    { schemaOptions: { timestamps: true } }
+    {
+        schemaOptions: {
+            timestamps: true,
+            id: true
+        }
+    }
 );

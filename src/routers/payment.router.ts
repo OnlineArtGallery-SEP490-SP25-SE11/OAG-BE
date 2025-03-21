@@ -1,7 +1,7 @@
 import { PaymentController } from '@/controllers/payment.controller';
 import { Router } from 'express';
 // import { authMiddleware } from '@/middlewares/auth.middleware';
-import { container } from '@/configs/inversify.config';
+import container from '@/configs/container.config';
 import roleRequire from '@/configs/middleware.config';
 import { Role } from '@/constants/enum';
 import { validate } from '@/middlewares/validate.middleware';

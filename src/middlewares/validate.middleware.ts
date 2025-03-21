@@ -42,10 +42,10 @@ export const validate = (
       // If we reach here, validation was successful
       // Add validated data to request object
       req.validatedData = result.success ? result.data : {};
-      console.log({
-        params: req.params,
-        query: req.query,
-      })
+      // console.log({
+      //   params: req.params,
+      //   query: req.query,
+      // })
       // Continue with the next middleware
       next();
     } catch (error) {
