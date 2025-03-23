@@ -33,11 +33,28 @@ export class GalleryController implements IGalleryController{
 
     findAll = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
         try {
-            const galleries = await this._galleryService.findAll();
+            const { 
+                page, 
+                limit, 
+                sort, 
+                filter, 
+                search 
+            } = req.query;
+
+            const options = {
+                page: parseInt(page as string) || 1,
+                limit: parseInt(limit as string) || 10,
+                sort: sort ? JSON.parse(sort as string) : { createdAt: -1 },
+                filter: filter ? JSON.parse(filter as string) : {},
+                search: search as string
+            };
+
+            const result = await this._galleryService.findAll(options);
+            
             const response = BaseHttpResponse.success(
-                galleries,
+                result,
                 200,
-                'Get galleries success'
+                'Galleries retrieved successfully'
             );
             return res.status(response.statusCode).json(response);
         } catch (error) {

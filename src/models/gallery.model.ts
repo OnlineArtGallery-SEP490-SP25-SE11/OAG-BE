@@ -79,7 +79,13 @@ export class Gallery {
   public modelPosition!: number[];
 
   @prop()
-  public previewImage?: string;
+  public previewImage!: string;
+
+  @prop()
+  public planImage!: string;
+
+  @prop({ default: false })
+  public isPremium!: boolean;
 
   @prop({ 
     type: () => [[Number]], 
@@ -89,6 +95,7 @@ export class Gallery {
       message: 'Each collider must have 3 coordinates'
     }
   })
+
   public customColliders?: number[][];
 
   @prop({ 

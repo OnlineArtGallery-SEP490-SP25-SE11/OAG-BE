@@ -90,12 +90,11 @@ export class BlogController implements IBlogController {
 			const blogData = { ...req.validatedData };
 			const blog = await this._blogService.create(req.userId!, blogData);
 
-			const response = BaseHttpResponse.success(
-				blog,
+			const response = BaseHttpResponse.success({ blog },
 				201,
 				'Create blog success'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -117,8 +116,7 @@ export class BlogController implements IBlogController {
 				data: blogData,
 				role
 			});
-			const response = BaseHttpResponse.success(
-				blog,
+			const response = BaseHttpResponse.success({ blog },
 				200,
 				'Update blog success'
 			);

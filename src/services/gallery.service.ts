@@ -7,6 +7,25 @@ import { ErrorCode } from '@/constants/error-code';
 import { CreateGalleryDto, UpdateGalleryDto } from '@/dto/gallery.dto';
 import { IGalleryService } from '@/interfaces/service/gallery-service.interface';
 
+interface GalleryQueryOptions {
+    page?: number;
+    limit?: number;
+    sort?: Record<string, any>;
+    filter?: Record<string, any>;
+    search?: string;
+}
+
+interface PaginatedGalleryResponse {
+    galleries: GalleryDocument[];
+    pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        pages: number;
+        hasNext: boolean;
+        hasPrev: boolean;
+    };
+}
 
 @injectable()
 export class GalleryService implements IGalleryService {
@@ -56,10 +75,51 @@ export class GalleryService implements IGalleryService {
         }
     }
 
-    async findAll(): Promise<GalleryDocument[]> {
+    async findAll(options: GalleryQueryOptions = {}): Promise<PaginatedGalleryResponse> {
         try {
-            const galleries = await GalleryModel.find();
-            return galleries;
+            const { 
+                page = 1, 
+                limit = 10, 
+                sort = { createdAt: -1 }, 
+                filter = {},
+                search 
+            } = options;
+
+            // Build query filters
+            const query: Record<string, any> = { ...filter };
+
+            if (search) {
+                query.$or = [
+                    { name: { $regex: search, $options: 'i' } },
+                    { description: { $regex: search, $options: 'i' } }
+                ];
+            }
+
+            // Calculate pagination
+            const skip = (page - 1) * limit;
+
+            // Execute query
+            const [galleries, total] = await Promise.all([
+                GalleryModel.find(query)
+                    .sort(sort)
+                    .skip(skip)
+                    .limit(limit),
+                GalleryModel.countDocuments(query)
+            ]);
+
+            const pages = Math.ceil(total / limit);
+
+            return {
+                galleries,
+                pagination: {
+                    total,
+                    page,
+                    limit,
+                    pages,
+                    hasNext: page < pages,
+                    hasPrev: page > 1
+                }
+            };
         } catch (error) {
             logger.error('Error retrieving galleries:', error);
             throw new InternalServerErrorException(

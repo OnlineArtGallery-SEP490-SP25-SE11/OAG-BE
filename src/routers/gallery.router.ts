@@ -9,14 +9,12 @@ import container from '@/configs/container.config';
 
 const router = Router();
 const galleryController = container.get<GalleryController>(TYPES.GalleryController);
-
 router.post(
     '/',
     roleRequire([Role.ADMIN]),
     validate(createGallerySchema),
     galleryController.create
 );
-
 router.get('/', galleryController.findAll);
 router.get('/:id', galleryController.findById);
 

@@ -22,7 +22,9 @@ export const createGallerySchema = z.object({
     modelScale: z.number().positive(),
     modelRotation: vector3Schema.optional(),
     modelPosition: vector3Schema.optional(),
-    previewImage: z.string().url().optional(),
+    previewImage: z.string().url(),
+    isPremium: z.boolean(),
+    planImage: z.string().url(),
     customColliders: z.array(z.array(z.number())).optional(),
     artworkPlacements: z.array(artworkPlacementSchema).optional()
 });
