@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { injectable, inject } from 'inversify';
 import { BaseHttpResponse } from '@/lib/base-http-response';
 import { TYPES } from '@/constants/types';
-import { IGalleryController } from '@/interfaces/service/gallery-controller.interface';
+import { IGalleryController } from '@/interfaces/controller/gallery-controller.interface';
 import { GalleryService } from '@/services/gallery.service';
 
 @injectable()

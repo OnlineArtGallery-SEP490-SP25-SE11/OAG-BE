@@ -31,7 +31,7 @@ import { CommentService } from '@/services/comment.service';
 import { GalleryService } from '@/services/gallery.service';
 import { GalleryController } from '@/controllers/gallery.controller';
 import { IGalleryService } from '@/interfaces/service/gallery-service.interface';
-import { IGalleryController } from '@/interfaces/service/gallery-controller.interface';
+import { IGalleryController } from '@/interfaces/controller/gallery-controller.interface';
 
 const container = new Container();
 

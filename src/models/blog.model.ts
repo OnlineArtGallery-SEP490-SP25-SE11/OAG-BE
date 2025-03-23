@@ -8,7 +8,7 @@ export class Blog {
 	@prop({ required: true })
 	title!: string;
 
-	@prop()
+	@prop({required: false})
 	content?: string;
 
 	@prop({ required: true })
@@ -26,13 +26,13 @@ export class Blog {
 	})
 	status!: Status;
 
-	@prop({ default: 0 })
+	@prop({ default: 0 ,required: false})
 	heartCount?: number;
 
 	@prop({ default: 0 })
 	views?: number;
 
-	@prop({ type: () => [String], default: [] })
+	@prop({ type: () => [String], default: [], required: false })
 	tags?: string[];
 
 	static async incrementHeartCount(postId: string) {
