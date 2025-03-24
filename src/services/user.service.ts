@@ -2,7 +2,7 @@ import logger from '@/configs/logger.config';
 import User from '@/models/user.model';
 import mongoose from 'mongoose';
 import { Role } from '@/constants/enum';
-export default class UserService {
+class UserService {
 	async getUserByPhone(
 		phone: string
 	): Promise<InstanceType<typeof User> | null> {
@@ -71,6 +71,24 @@ export default class UserService {
 			throw new Error(`Get artist failed!`);
 		}
 	}
+
+	//get user by id
+	async getUserById(userId: string): Promise<InstanceType<typeof User> | null> {
+		try{
+			if (!userId) {
+				logger.error(`User not found!`);
+				throw new Error('User not found');
+			}
+			const user = await User.findById(userId);
+			return user;
+		}
+		catch(error){
+			logger.error(`Get user by id failed!`);
+			throw new Error(`Get user by id failed!`);
+
+		}
+	}
+
 	//update role
 	async updateRole(
 		userId: string,
@@ -102,3 +120,5 @@ export default class UserService {
 	}
 		
 }
+
+export default new UserService();

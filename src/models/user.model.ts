@@ -150,7 +150,8 @@ class User {
 	@prop({ ref: () => PremiumSubscriptionModel })
 	premiumSubscription?: Ref<typeof PremiumSubscriptionModel>;
 
-	static findByIdAndUpdate: any;
+	@prop({ default: false })
+	isBanned!: boolean;
 }
 
 export default getModelForClass(User, { schemaOptions: { timestamps: true } });

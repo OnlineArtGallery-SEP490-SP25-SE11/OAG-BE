@@ -15,6 +15,7 @@ import  User  from '@/models/user.model';
 import  Blog  from '@/models/blog.model';
 import Artwork  from '@/models/artwork.model';
 export class ReportService {
+	
 	async get() {
 		try {
 			const reports = await Report.find();
@@ -223,6 +224,56 @@ export class ReportService {
 			logger.error(error, 'Error action report');
 			throw new InternalServerErrorException(
 				'Error action report',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
+
+	//ban 
+	async permanentBan(reportId: string): Promise<InstanceType<typeof User> | null> {
+		try {
+			if (!Types.ObjectId.isValid(reportId)) {
+				throw new BadRequestException(
+					'Invalid report id',
+					ErrorCode.INVALID_REPORT_ID
+				);
+			}
+			
+			// Find the report first
+			const report = await Report.findById(reportId);
+			if (!report) {
+				logger.warn(`Report with id ${reportId} not found`);
+				return null;
+			}
+			
+			// Get the reportedId from the report
+			const reportedUserId = report.reportedId;
+			if (!reportedUserId) {
+				logger.warn(`Report with id ${reportId} has no reportedId`);
+				return null;
+			}
+			
+			// Ban the reported user
+			const user = await User.findByIdAndUpdate(
+				reportedUserId,
+				{ isBanned: true },
+				{ new: true } // Return the updated document
+			);
+			
+			if (!user) {
+				logger.warn(`User with id ${reportedUserId} not found`);
+				return null;
+			}
+			
+			// Update all reports involving this user to RESOLVED
+			await Report.updateMany({ reportedId: reportedUserId }, { status: ReportStatus.RESOLVED });
+			
+			logger.info(`Successfully banned user ${reportedUserId} permanently from report ${reportId}`);
+			return user;
+		} catch (error) {
+			logger.error(error, 'Error permanently banning user');
+			throw new InternalServerErrorException(
+				'Error permanently banning user',
 				ErrorCode.DATABASE_ERROR
 			);
 		}

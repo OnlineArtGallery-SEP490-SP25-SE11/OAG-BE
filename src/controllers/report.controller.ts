@@ -15,6 +15,7 @@ export class ReportController {
         this.updateStatus = this.updateStatus.bind(this);
 		this.action = this.action.bind(this);
 		this.getByReporterId = this.getByReporterId.bind(this);
+		this.permanentBan = this.permanentBan.bind(this);
 	}
 
 	async get(req: Request, res: Response, next: NextFunction): Promise<any> {
@@ -159,6 +160,25 @@ export class ReportController {
 			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error); // Xử lý lỗi qua middleware
+		}
+	}
+
+	async permanentBan(req: Request, res: Response, next: NextFunction): Promise<any> {
+		try{
+			const userId = req.params.id; 
+			if(!userId){
+				throw new ForbiddenException('Forbidden');
+			}
+			const user = await this._reportService.permanentBan(userId);
+			const response = BaseHttpResponse.success(
+				user,
+				200,
+				'Permanent ban user success'
+			);
+			return res.status(response.statusCode).json(response);
+		}
+		catch(error){
+			next(error);
 		}
 	}
 }
