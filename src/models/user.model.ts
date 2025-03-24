@@ -4,10 +4,12 @@ import {
 	modelOptions,
 	pre,
 	prop,
-	type Ref
+	type Ref,
+
 } from '@typegoose/typegoose';
 import bcrypt from 'bcryptjs';
 import { PremiumSubscriptionModel } from './premium.model';
+import { Role } from '@/constants/enum';
 // userSchema.pre("updateOne", async function (next) {
 //   const update = this.getUpdate() as mongoose.UpdateQuery<IUser>;
 //   if (!update) {
@@ -23,15 +25,7 @@ import { PremiumSubscriptionModel } from './premium.model';
 // });
 /* eslint-disable no-unused-vars */
 type ProviderType = 'google' | 'facebook' | 'phone';
-type RoleType = 'user' | 'admin' | 'artist';
 
-class AvatarStyle {
-	@prop({ default: false })
-	hasCrown!: boolean;
-
-	@prop({ default: false })
-	hasSparklingBorder!: boolean;
-}
 
 @modelOptions({
 	schemaOptions: {
@@ -136,7 +130,7 @@ class User {
 			message: 'Please provide valid roles (user, admin, artist)'
 		}
 	})
-	role!: RoleType[];
+	role!: Role[];
 
 	@prop({ default: false })
 	isPremium!: boolean;
@@ -144,14 +138,26 @@ class User {
 	@prop()
 	premiumSince?: Date;
 
-	@prop({ type: () => AvatarStyle, default: () => ({}) })
-	avatarStyle!: AvatarStyle;
-
 	@prop({ ref: () => PremiumSubscriptionModel })
 	premiumSubscription?: Ref<typeof PremiumSubscriptionModel>;
 
 	@prop({ default: false })
 	isBanned!: boolean;
+	@prop({ type: () => String })
+	address?: string;
+
+	@prop({ type: () => Object })
+	artistProfile?: {
+		bio?: string;
+		genre?: string;
+		experience?: string;
+		socialLinks?: {
+			instagram?: string;
+			twitter?: string;
+			website?: string;
+		};
+	};
 }
 
-export default getModelForClass(User, { schemaOptions: { timestamps: true } });
+const UserModel = getModelForClass(User, { schemaOptions: { timestamps: true } });
+export default UserModel;

@@ -27,8 +27,11 @@ export class BlogService implements IBlogService {
 		try {
 			const blogs = await BlogModel.find()
 				.populate('tags') // Add this to include tags
-				.populate('author', 'name email image') // Also populate author info for consistency
-				.lean() // Ensuring we return plain JavaScript objects
+				.populate({
+					path: 'author',
+					select: 'name email image',
+					model: 'User' 
+				}).lean();
 			return blogs as Blog[];
 		} catch (error) {
 			logger.error(error, 'Error getting blogs');
@@ -67,7 +70,11 @@ export class BlogService implements IBlogService {
 				);
 			}
 			const blog = await BlogModel.findById(id)
-				.populate('author', 'name email image')
+			.populate({
+				path: 'author',
+				select: 'name email image',
+				model: 'User' 
+			}).lean();
 
 			if (!blog) {
 				throw new CouldNotFindBlogException();
@@ -231,8 +238,11 @@ export class BlogService implements IBlogService {
 			const blogs = await BlogModel.find(publishedQuery)
 				.limit(limit)
 				.sort({ createdAt: -1 })
-				.populate('author', 'name email image')
-				.lean();
+				.populate({
+					path: 'author',
+					select: 'name email image',
+					model: 'User' 
+				}).lean();
 			return blogs as unknown as BlogDocument[];
 		} catch (error) {
 			logger.error(error, "Error getting published blogs");
@@ -485,7 +495,11 @@ export class BlogService implements IBlogService {
 				.sort(sort)
 				.skip(skip)
 				.limit(limit)
-				.populate('author', 'name email image')
+				.populate({
+					path: 'author',
+					select: 'name email image',
+					model: 'User' 
+				})
 				.populate('tags')
 				.lean();
 

@@ -1,7 +1,7 @@
 import logger from '@/configs/logger.config';
 import User from '@/models/user.model';
-import mongoose from 'mongoose';
-import { Role } from '@/constants/enum';
+import cloudinary from '@/configs/cloudinary.config';
+
 class UserService {
 	async getUserByPhone(
 		phone: string
@@ -38,6 +38,7 @@ class UserService {
 			const user = await User.findByIdAndUpdate(userId, update, {
 				new: true
 			});
+
 			if (!user) {
 				logger.error(`User not found!`);
 				throw new Error('User not found');
@@ -60,65 +61,58 @@ class UserService {
 			throw new Error(`Get all user failed!`);
 		}
 	}
-	//get artist
-	async getArtist(): Promise<InstanceType<typeof User>[]> {
-		try{
-			const artist = await User.find({ role: 'artist' });
-		return artist;
-		}
-		catch{
-			logger.error(`Get artist failed!`);
-			throw new Error(`Get artist failed!`);
-		}
-	}
 
-	//get user by id
-	async getUserById(userId: string): Promise<InstanceType<typeof User> | null> {
-		try{
-			if (!userId) {
-				logger.error(`User not found!`);
-				throw new Error('User not found');
-			}
-			const user = await User.findById(userId);
-			return user;
-		}
-		catch(error){
-			logger.error(`Get user by id failed!`);
-			throw new Error(`Get user by id failed!`);
-
-		}
-	}
-
-	//update role
-	async updateRole(
+	async updateAvatar(
 		userId: string,
-		role: Role
+		imageFile: Express.Multer.File
 	): Promise<InstanceType<typeof User> | null> {
-		try{
-			if (!userId) {
-				logger.error(`User not found!`);
-				throw new Error('User not found');
-			}
-			const validRole = ['user', 'artist', 'admin'];
-			if(!validRole){
-				logger.error(`Role not found!`);
-				throw new Error('Role not found');
+		try {
+	
+
+			if (!imageFile) {
+				throw new Error('No image file provided');
 			}
 
-			const user = await User.findByIdAndUpdate(
-				userId,
-				{ role },
-				{ new: true }
-			)
-			logger.info(`Successfully updated role of user ${userId} to ${role}`);
+			// Upload image to Cloudinary
+			const result = await cloudinary.uploader.upload(imageFile.path, {
+				folder: 'avatars',
+				transformation: [
+					{ width: 400, height: 400, crop: 'fill' },
+					{ quality: 'auto' }
+				]
+			});
+
+		
+
+			// Update user's avatar URL in database using findOneAndUpdate
+			const user = await User.findOneAndUpdate(
+				{ _id: userId },
+				{
+					$set: {
+						image: result.secure_url,
+						googleImage: null
+					}
+				},
+				{
+					new: true,
+					runValidators: true // Đảm bảo validate theo schema
+				}
+			);
+
+			if (!user) {
+				logger.error(`User not found with ID: ${userId}`);
+				throw new Error('User not found');
+			}
+
+		
 			return user;
-		}
-		catch{
-			logger.error(`Update role failed!`);
-			throw new Error(`Update role failed!`);
+
+		} catch (err: any) {
+			
+			logger.error(`Update avatar failed!, ${err.message}`);
+			throw new Error(`Update avatar failed!, ${err.message}`);
 		}
 	}
-		
 }
 
 export default new UserService();
