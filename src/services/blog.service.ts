@@ -32,7 +32,7 @@ export class BlogService implements IBlogService {
 					select: 'name email image',
 					model: 'User' 
 				}).lean();
-			return blogs as unknown as BlogDocument[];
+			return blogs as BlogDocument[];
 		} catch (error) {
 			logger.error(error, 'Error getting blogs');
 			throw new InternalServerErrorException(
@@ -79,7 +79,7 @@ export class BlogService implements IBlogService {
 			if (!blog) {
 				throw new CouldNotFindBlogException();
 			}
-			return blog as unknown as BlogDocument;
+			return blog as BlogDocument;
 		} catch (error) {
 			if (error instanceof BadRequestException) throw error;
 			logger.error(error, 'Error getting blog by id');
@@ -241,7 +241,7 @@ export class BlogService implements IBlogService {
 					select: 'name email image',
 					model: 'User' 
 				}).lean();
-			return blogs as unknown as BlogDocument[];
+			return blogs as BlogDocument[];
 		} catch (error) {
 			logger.error(error, "Error getting published blogs");
 			throw new InternalServerErrorException(
@@ -518,7 +518,7 @@ export class BlogService implements IBlogService {
 			const hasPrev = page > 1;
 		
 			return {
-				blogs: blogs as unknown as BlogDocument[],
+				blogs: blogs as BlogDocument[],
 				pagination: {
 					total,
 					page,
