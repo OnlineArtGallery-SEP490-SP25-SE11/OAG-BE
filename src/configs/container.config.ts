@@ -19,11 +19,6 @@ import { BlogService } from '@/services/blog.service';
 import { InteractionService } from '@/services/interaction.service';
 
 import { ArtworkController } from '@/controllers/artwork.controller';
-<<<<<<< HEAD
-=======
-// import {  } from '@/interfaces/controller.interface';
-import BankRequestController from '@/controllers/bankrequest.controller';
->>>>>>> f06a8f55723945248e1fee1ac2f829a9ef514e0f
 import { BlogTagController } from "@/controllers/blog-tag.controller";
 import { CollectionController } from '@/controllers/collection.controller.ts';
 import { CommentController } from '@/controllers/comment.controller';
@@ -46,6 +41,7 @@ import { ExhibitionService } from '@/services/exhibition.service';
 import { ExhibitionController } from '@/controllers/exhibition.controller';
 import { PaymentService } from '@/services/payment.service';
 import WalletService from '@/services/wallet.service';
+import BankRequestController from '@/controllers/bankrequest.controller';
 
 const container = new Container();
 
@@ -91,7 +87,6 @@ container.bind<IExhibitionService>(TYPES.ExhibitionService).to(ExhibitionService
 container.bind<IExhibitionController>(TYPES.ExhibitionController).to(ExhibitionController);
 
 
-export default container;
 container.bind<PaymentService>(Symbol.for('PaymentService')).to(PaymentService);
 container.bind<PaymentController>(Symbol.for('PaymentController')).to(PaymentController);
 container.bind(Symbol.for('WalletService')).to(WalletService);
