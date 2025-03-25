@@ -32,11 +32,7 @@ export default [
 	{ path: '/api/comments', router: commentRoute },
 	{ path: '/api/payment', router: paymentRouter },
 	{ path: '/api/artist', router: artistRouter },
-<<<<<<< HEAD
 	{ path: '/api/gallery', router: galleryRouter },
 	{ path: '/api/exhibition', router: exhibitionRouter },
-];
-=======
 	{ path: '/api/wallet', router: walletRouter },
 	{ path: '/api/bank-request', router: bankrequestRouter }];
->>>>>>> f06a8f55723945248e1fee1ac2f829a9ef514e0f
