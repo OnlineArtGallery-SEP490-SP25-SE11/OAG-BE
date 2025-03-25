@@ -528,4 +528,99 @@ export class BlogService implements IBlogService {
 		}
 	}
 
+	async addHeart(blogId: string, userId: string): Promise<Blog> {
+		try {
+			const updatedBlog = await BlogModel.findByIdAndUpdate(
+				blogId,
+				{ $addToSet: { hearts: userId } },
+				{ new: true }
+			);
+	
+			if (!updatedBlog) {
+				throw new CouldNotFindBlogException();
+			}
+	
+			return updatedBlog;
+		} catch (error) {
+			logger.error(error, 'Error adding heart');
+			throw new InternalServerErrorException(
+				'Error adding heart to blog',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
+	
+
+	async removeHeart(blogId: string, userId: string): Promise<Blog> {
+		try {
+			const updatedBlog = await BlogModel.findByIdAndUpdate(
+				blogId,
+				{ $pull: { hearts: userId } },
+				{ new: true }
+			);
+	
+			if (!updatedBlog) {
+				throw new CouldNotFindBlogException();
+			}
+	
+			return updatedBlog;
+		} catch (error) {
+			logger.error(error, 'Error removing heart');
+			throw new InternalServerErrorException(
+				'Error removing heart from blog',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
+	
+	async getHeartCount(blogId: string): Promise<number> {
+		try {
+			const blog = await BlogModel.findById(blogId).select('hearts');
+			if (!blog) {
+				throw new CouldNotFindBlogException();
+			}
+			return blog.hearts.length;
+		} catch (error) {
+			logger.error(error, 'Error getting heart count');
+			throw new InternalServerErrorException(
+				'Error getting heart count',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
+
+	async isHeart(blogId: string, userId: string): Promise<boolean> {
+		try {
+			const blog = await BlogModel.findById(blogId).select('hearts');
+			if (!blog) {
+				throw new CouldNotFindBlogException();
+			}
+			// Chuyển ObjectId về string để so sánh
+			return blog.hearts.map(id => id.toString()).includes(userId);
+		} catch (error) {
+			logger.error(error, 'Error checking heart status');
+			throw new InternalServerErrorException(
+				'Error checking heart status',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
+	
+	async getHeartUsers(blogId: string): Promise<string[]> {
+		try {
+			const blog = await BlogModel.findById(blogId).select('hearts');
+			if (!blog) {
+				throw new CouldNotFindBlogException();
+			}
+			// Chuyển đổi ObjectId[] thành string[]
+			return blog.hearts.map(id => id.toString());
+		} catch (error) {
+			logger.error(error, 'Error fetching heart users');
+			throw new InternalServerErrorException(
+				'Error fetching heart users',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
+
 }

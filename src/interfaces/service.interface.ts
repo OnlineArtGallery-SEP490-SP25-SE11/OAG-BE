@@ -78,7 +78,6 @@ export interface IBlogTagService {
 	getTags(): Promise<BlogTag[]>;
 	deleteTag(id: string): Promise<void>;
 }
-
 export interface IBlogService {
 	findAll(): Promise<Blog[]>;
 	findById(id: string): Promise<Blog | null>;
@@ -121,6 +120,11 @@ export interface IBlogService {
 			hasPrev: boolean;
 		};
 	}>;
+	addHeart(blogId: string, userId: string): Promise<Blog>;
+	removeHeart(blogId: string, userId: string): Promise<Blog>;
+	getHeartCount(blogId: string): Promise<number>;
+	isHeart(blogId: string, userId: string): Promise<boolean>;
+	getHeartUsers(blogId: string): Promise<string[]>;
 }
 
 export interface IInteractionService {

@@ -23,6 +23,10 @@ export class BlogController implements IBlogController {
 		this.delete = this.delete.bind(this);
 		this.approve = this.approve.bind(this);
 		this.reject = this.reject.bind(this);
+		this.addHeart = this.addHeart.bind(this);
+		this.removeHeart = this.removeHeart.bind(this);
+		// this.getLikes = this.getLikes.bind(this);
+		this.getHeartCount = this.getHeartCount.bind(this);
 	}
 
 	findAll = async (
@@ -319,4 +323,73 @@ export class BlogController implements IBlogController {
 			next(error);
 		}
 	}
+
+	// Like a blog
+	addHeart = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const userId = req.userId;
+			const blogId = req.params.id;
+			if (!userId) {
+				throw new ForbiddenException('Forbidden');
+			}
+			await this._blogService.addHeart(blogId, userId);
+			const response = BaseHttpResponse.success(null, 200, 'Liked successfully');
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	};
+
+	// Unlike a blog
+	removeHeart = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const userId = req.userId;
+			const blogId = req.params.id;
+			if (!userId) {
+				throw new ForbiddenException('Forbidden');
+			}
+			await this._blogService.removeHeart(blogId, userId);
+			const response = BaseHttpResponse.success(null, 200, 'Unliked successfully');
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	};
+
+	// Get like count for a blog
+	getHeartCount = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const blogId = req.params.id;
+			const count = await this._blogService.getHeartCount(blogId);
+			const response = BaseHttpResponse.success({ count }, 200, 'Fetched like count successfully');
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	};
+
+	// ✅ Check if user has liked the blog
+	isHeart = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const userId = req.params.userId;
+			const blogId = req.params.id;
+			const hasLiked = await this._blogService.isHeart(blogId, userId);
+			const response = BaseHttpResponse.success({ hasLiked }, 200, 'Checked successfully');
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	};
+
+	// ✅ Get list of users who liked the blog
+	getHeartUsers = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const blogId = req.params.id;
+			const users = await this._blogService.getHeartUsers(blogId);
+			const response = BaseHttpResponse.success({ users }, 200, 'Fetched users successfully');
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	};
 }

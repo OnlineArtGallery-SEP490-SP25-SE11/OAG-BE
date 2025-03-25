@@ -20,6 +20,11 @@ export interface IBlogController {
   requestPublish(req: Request, res: Response, next: NextFunction): Promise<any>;
   findUserBlogs(req: Request, res: Response, next: NextFunction): Promise<any>;
   find(req: Request, res: Response, next: NextFunction): Promise<any>;
+  addHeart(req: Request, res: Response, next: NextFunction): Promise<any>;
+  removeHeart(req: Request, res: Response, next: NextFunction): Promise<any>;
+  getHeartCount(req: Request, res: Response, next: NextFunction): Promise<any>;
+  isHeart(req: Request, res: Response, next: NextFunction): Promise<any>;
+  getHeartUsers(req: Request, res: Response, next: NextFunction): Promise<any>;
 }
 
 export interface IInteractionController {
