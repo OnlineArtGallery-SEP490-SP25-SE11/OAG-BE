@@ -7,7 +7,7 @@ import {
 	InternalServerErrorException,
 	UnauthorizedException,
 } from "@/exceptions/http-exception";
-import BlogModel, { BlogDocument } from "@/models/blog.model";
+import BlogModel, { Blog, BlogDocument } from "@/models/blog.model";
 import { Types } from "mongoose";
 import { inject, injectable } from "inversify";
 import { TYPES } from '@/constants/types';

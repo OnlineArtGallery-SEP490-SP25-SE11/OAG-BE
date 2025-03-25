@@ -8,7 +8,7 @@
 // 	@prop({ required: true })
 // 	title!: string;
 
-// 	@prop()
+// 	@prop({required: false})
 // 	content?: string;
 
 // 	@prop({ required: true })
@@ -22,31 +22,31 @@
 // 		type: String,
 // 		enum: Status,
 // 		default: Status.DRAFT,
-// 		index: true // Index cho status filters
+// 		index: true,
 // 	})
 // 	status!: Status;
 
-// 	@prop({ default: 0 })
-// 	heartCount?: number;
+// 	@prop({ type: () => [Types.ObjectId], ref: () => User, default: [] })
+// 	hearts!: Types.ObjectId[];
 
 // 	@prop({ default: 0 })
 // 	views?: number;
 
-// 	@prop({ type: () => [String], default: [] })
+// 	@prop({ type: () => [String], default: [], required: false })
 // 	tags?: string[];
 
-// 	static async incrementHeartCount(postId: string) {
+// 	static async addHeart(postId: string, userId: string) {
 // 		return getModelForClass(Blog).findByIdAndUpdate(
 // 			postId,
-// 			{ $inc: { heartCount: 1 } },
+// 			{ $addToSet: { hearts: userId } }, // Thêm userId nếu chưa tồn tại
 // 			{ new: true }
 // 		);
 // 	}
 
-// 	static async decrementHeartCount(postId: string) {
+// 	static async removeHeart(postId: string, userId: string) {
 // 		return getModelForClass(Blog).findByIdAndUpdate(
 // 			postId,
-// 			{ $inc: { heartCount: -1 } },
+// 			{ $pull: { hearts: userId } }, // Xóa userId khỏi danh sách hearts
 // 			{ new: true }
 // 		);
 // 	}
@@ -54,14 +54,17 @@
 
 // export type BlogDocument = Blog & {
 // 	_id: Types.ObjectId;
+	
 // 	createdAt: Date;
 // 	updatedAt: Date;
+
 // };
 // export default getModelForClass(Blog, { schemaOptions: { timestamps: true } });
 
 
+
 import { Status } from "@/constants/enum";
-import { getModelForClass, modelOptions, prop, type Ref } from "@typegoose/typegoose";
+import { DocumentType, getModelForClass, modelOptions, prop, type Ref } from "@typegoose/typegoose";
 import { Types } from "mongoose";
 import User from "./user.model";
 
@@ -84,12 +87,12 @@ export class Blog {
 		type: String,
 		enum: Status,
 		default: Status.DRAFT,
-		index: true,
+		index: true // Index cho status filters
 	})
 	status!: Status;
 
 	@prop({ type: () => [Types.ObjectId], ref: () => User, default: [] })
-	hearts!: Types.ObjectId[];
+ 	hearts!: Types.ObjectId[];
 
 	@prop({ default: 0 })
 	views?: number;
@@ -97,26 +100,25 @@ export class Blog {
 	@prop({ type: () => [String], default: [], required: false })
 	tags?: string[];
 
-	static async addHeart(postId: string, userId: string) {
+	static async incrementHeartCount(postId: string) {
 		return getModelForClass(Blog).findByIdAndUpdate(
 			postId,
-			{ $addToSet: { hearts: userId } }, // Thêm userId nếu chưa tồn tại
+			{ $inc: { heartCount: 1 } },
 			{ new: true }
 		);
 	}
 
-	static async removeHeart(postId: string, userId: string) {
+	static async decrementHeartCount(postId: string) {
 		return getModelForClass(Blog).findByIdAndUpdate(
 			postId,
-			{ $pull: { hearts: userId } }, // Xóa userId khỏi danh sách hearts
+			{ $inc: { heartCount: -1 } },
 			{ new: true }
 		);
 	}
 }
 
-export type BlogDocument = Blog & {
-	_id: Types.ObjectId;
+export type BlogDocument = DocumentType<Blog> & {
 	createdAt: Date;
 	updatedAt: Date;
 };
-export default getModelForClass(Blog, { schemaOptions: { timestamps: true } });
+export default getModelForClass(Blog);
