@@ -1,6 +1,6 @@
 import { Status } from "@/constants/enum";
 import { DocumentType, getModelForClass, modelOptions, prop, type Ref } from "@typegoose/typegoose";
-// import { Types } from "mongoose";
+import { Types } from "mongoose";
 import User from "./user.model";
 
 @modelOptions({ schemaOptions: { timestamps: true } })
@@ -26,8 +26,8 @@ export class Blog {
 	})
 	status!: Status;
 
-	@prop({ default: 0 ,required: false})
-	heartCount?: number;
+	@prop({ type: () => [Types.ObjectId], ref: () => User, default: [] })
+ 	hearts!: Types.ObjectId[];
 
 	@prop({ default: 0 })
 	views?: number;
