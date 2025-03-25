@@ -1,15 +1,21 @@
-import { Router } from 'express';
 import { PaymentController } from '@/controllers/payment.controller';
+import { Router } from 'express';
 // import { authMiddleware } from '@/middlewares/auth.middleware';
-import { container } from '@/configs/inversify.config';
+import container from '@/configs/container.config';
 import roleRequire from '@/configs/middleware.config';
-import { TYPES } from '@/types/payment.types';
 import { Role } from '@/constants/enum';
-import logger from '@/configs/logger.config';
+import { validate } from '@/middlewares/validate.middleware';
+import { VerifyPaymentParamsSchema, VerifyPaymentQuerySchema } from '@/schemas/payment.schema';
+import { TYPES } from '@/types/payment.types';
 
 const router = Router();
 const paymentController = container.get<PaymentController>(TYPES.PaymentController);
 
+router.post('/create', roleRequire(), paymentController.create);
+router.get('/verify/:paymentId', validate(VerifyPaymentParamsSchema, "params"),
+    validate(VerifyPaymentQuerySchema, "query")
+    , roleRequire(), paymentController.verify);
+router.get('/', roleRequire(), paymentController.get);
 router.post(
     '/create-payment',
     roleRequire([Role.USER]),
@@ -23,21 +29,21 @@ router.post(
     }
 );
 
-router.get(
-    '/verify/:paymentId',
-    roleRequire([Role.USER]),
-    async (req, res) => {
-        try {
-            await paymentController.verifyPayment(req, res);
-        } catch (error) {
-            logger.error('Payment verification route error:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Payment verification failed'
-            });
-        }
-    }
-);
+// router.get(
+//     '/verify/:paymentId',
+//     roleRequire([Role.USER]),
+//     async (req, res) => {
+//         try {
+//             await paymentController.verifyPayment(req, res);
+//         } catch (error) {
+//             logger.error('Payment verification route error:', error);
+//             res.status(500).json({
+//                 success: false,
+//                 message: 'Payment verification failed'
+//             });
+//         }
+//     }
+// );
 
 router.get(
     '/history',

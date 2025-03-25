@@ -8,8 +8,6 @@ import { ArtistController } from '@/controllers/artist.controller';
 
 const container = new Container();
 
-container.bind<PaymentService>(TYPES.PaymentService).to(PaymentService);
-container.bind<PaymentController>(TYPES.PaymentController).to(PaymentController);
 container.bind<ArtistService>(TYPES.ArtistService).to(ArtistService);
 container.bind<ArtistController>(TYPES.ArtistController).to(ArtistController);
 
