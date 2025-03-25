@@ -37,7 +37,7 @@ export class BlogController implements IBlogController {
 				200,
 				'Get blogs success'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -55,7 +55,7 @@ export class BlogController implements IBlogController {
 				200,
 				'Get blog success'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -74,7 +74,7 @@ export class BlogController implements IBlogController {
 				200,
 				'Get last edited blog success'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -90,12 +90,11 @@ export class BlogController implements IBlogController {
 			const blogData = { ...req.validatedData };
 			const blog = await this._blogService.create(req.userId!, blogData);
 
-			const response = BaseHttpResponse.success(
-				blog,
+			const response = BaseHttpResponse.success({ blog },
 				201,
 				'Create blog success'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -107,8 +106,6 @@ export class BlogController implements IBlogController {
 		next: NextFunction
 	): Promise<any> => {
 		try {
-
-
 			const role = req.userRole!;
 			const blogId = req.params.id;
 			const blogData = req.validatedData;
@@ -119,12 +116,11 @@ export class BlogController implements IBlogController {
 				data: blogData,
 				role
 			});
-			const response = BaseHttpResponse.success(
-				blog,
+			const response = BaseHttpResponse.success({ blog },
 				200,
 				'Update blog success'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -201,7 +197,7 @@ export class BlogController implements IBlogController {
 				200,
 				'Get published blogs success'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -223,7 +219,7 @@ export class BlogController implements IBlogController {
 				200,
 				'Blog approved successfully'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -270,7 +266,7 @@ export class BlogController implements IBlogController {
 				200,
 				'Blog submitted for review successfully'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -284,7 +280,7 @@ export class BlogController implements IBlogController {
 				200,
 				'Blogs retrieved successfully'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -314,7 +310,7 @@ export class BlogController implements IBlogController {
 				200,
 				'Blogs retrieved successfully'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
