@@ -7,6 +7,14 @@ export enum Status {
     REJECTED = 'REJECTED',     // Admin rejected the blog
     ARCHIVED = 'ARCHIVED'      // No longer active but kept for records
 }
+
+export enum ExhibitionStatus {
+	DRAFT = 'DRAFT',
+	PENDING = 'PENDING',
+	PUBLISHED = 'PUBLISHED',
+	PRIVATE = 'PRIVATE',
+	REJECTED = 'REJECTED'
+}
 export enum InteractionType {
 	HEART = 'HEART'
 }

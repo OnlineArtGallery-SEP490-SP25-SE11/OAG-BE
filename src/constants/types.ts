@@ -51,4 +51,17 @@ export const TYPES = {
 
     ICollectionController: Symbol.for('ICollectionController'),
     CollectionController: Symbol.for('CollectionController'),
+
+
+    // Gallery
+    IGalleryController: Symbol.for('IGalleryController'),
+    GalleryController: Symbol.for('GalleryController'),
+    IGalleryService: Symbol.for('IGalleryService'),
+    GalleryService: Symbol.for('GalleryService'),
+
+    // Exhibition
+    IExhibitionController: Symbol.for('IExhibitionController'),
+    ExhibitionController: Symbol.for('ExhibitionController'),
+    IExhibitionService: Symbol.for('IExhibitionService'),
+    ExhibitionService: Symbol.for('ExhibitionService')
 }

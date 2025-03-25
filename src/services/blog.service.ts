@@ -7,7 +7,7 @@ import {
 	InternalServerErrorException,
 	UnauthorizedException,
 } from "@/exceptions/http-exception";
-import BlogModel, { Blog, BlogDocument } from "@/models/blog.model";
+import BlogModel, { BlogDocument } from "@/models/blog.model";
 import { Types } from "mongoose";
 import { inject, injectable } from "inversify";
 import { TYPES } from '@/constants/types';
@@ -23,7 +23,7 @@ export class BlogService implements IBlogService {
 	) { }
 
 	//TODO: implement pagination
-	async findAll(): Promise<Blog[]> {
+	async findAll(): Promise<BlogDocument[]> {
 		try {
 			const blogs = await BlogModel.find()
 				.populate('tags') // Add this to include tags
@@ -32,7 +32,7 @@ export class BlogService implements IBlogService {
 					select: 'name email image',
 					model: 'User' 
 				}).lean();
-			return blogs as Blog[];
+			return blogs as unknown as BlogDocument[];
 		} catch (error) {
 			logger.error(error, 'Error getting blogs');
 			throw new InternalServerErrorException(
@@ -42,7 +42,7 @@ export class BlogService implements IBlogService {
 		}
 	}
 
-	async findLastEditedByUser(userId: string): Promise<Blog | null> {
+	async findLastEditedByUser(userId: string): Promise<BlogDocument | null> {
 		try {
 			const blog = await BlogModel.findOne({
 				author: new Types.ObjectId(userId),
@@ -51,7 +51,7 @@ export class BlogService implements IBlogService {
 			if (!blog) {
 				throw new CouldNotFindBlogException();
 			}
-			return blog;
+			return blog.toObject() as BlogDocument;
 		} catch (error) {
 			logger.error(error, 'Error getting last edited blog');
 			throw new InternalServerErrorException(
@@ -61,7 +61,7 @@ export class BlogService implements IBlogService {
 		}
 	}
 
-	async findById(id: string): Promise<Blog | null> {
+	async findById(id: string): Promise<BlogDocument | null> {
 		try {
 			if (!Types.ObjectId.isValid(id)) {
 				throw new BadRequestException(
@@ -79,7 +79,7 @@ export class BlogService implements IBlogService {
 			if (!blog) {
 				throw new CouldNotFindBlogException();
 			}
-			return blog;
+			return blog as unknown as BlogDocument;
 		} catch (error) {
 			if (error instanceof BadRequestException) throw error;
 			logger.error(error, 'Error getting blog by id');
@@ -90,9 +90,8 @@ export class BlogService implements IBlogService {
 		}
 	}
 
-	async create(userId: string, data: CreateBlogDto): Promise<Blog> {
+	async create(userId: string, data: CreateBlogDto): Promise<BlogDocument> {
 		try {
-			console.log('data', data)
 			const blog = new BlogModel({
 				title: data.title,
 				content: data.content,
@@ -108,7 +107,7 @@ export class BlogService implements IBlogService {
 					data.tags.map(tagName => this.blogTagService.createTag(tagName))
 				);
 			}
-			return newBlog;
+			return newBlog.toObject() as BlogDocument;
 		} catch (error) {
 			logger.error(error, 'Error creating blog');
 			throw new InternalServerErrorException(
@@ -126,10 +125,9 @@ export class BlogService implements IBlogService {
 		role
 	}: {
 		blogId: string, userId: string, data: UpdateBlogDto, role: string[]
-	}): Promise<Blog> {
+	}): Promise<BlogDocument> {
 		try {
 			const blog = await BlogModel.findById(blogId);
-			console.log('cancel request')
 
 			if (!blog) {
 				throw new CouldNotFindBlogException();
@@ -177,7 +175,7 @@ export class BlogService implements IBlogService {
 				);
 			}
 
-			return updatedBlog;
+			return updatedBlog.toObject() as BlogDocument;
 		} catch (error) {
 			if (
 				error instanceof BadRequestException ||
@@ -271,7 +269,7 @@ export class BlogService implements IBlogService {
 		}
 	}
 
-	async updateTags(blogId: string, tags: string[]): Promise<Blog> {
+	async updateTags(blogId: string, tags: string[]): Promise<BlogDocument> {
 		try {
 			const blog = await BlogModel.findById(blogId);
 			if (!blog) {
@@ -291,7 +289,7 @@ export class BlogService implements IBlogService {
 				);
 			}
 
-			return updatedBlog;
+			return updatedBlog.toObject() as BlogDocument;
 		} catch (error) {
 			logger.error(error, 'Error updating blog tags');
 			throw new InternalServerErrorException(
@@ -302,9 +300,13 @@ export class BlogService implements IBlogService {
 	}
 
 
-	async approve(blogId: string): Promise<Blog> {
+	async approve(blogId: string): Promise<BlogDocument> {
 		try {
-			const blog = await BlogModel.findById(blogId).populate('author');
+			const blog = await BlogModel.findById(blogId).populate({
+				path: 'author',
+				select: 'name email image',
+				model: 'User'
+			});
 			if (!blog) {
 				throw new CouldNotFindBlogException();
 			}
@@ -321,8 +323,11 @@ export class BlogService implements IBlogService {
 					status: Status.PUBLISHED
 				},
 				{ new: true }
-			).populate('author', 'name email image');
-
+			).populate({
+				path: 'author',
+				select: 'name email image',
+				model: 'User'
+			});
 			if (!updatedBlog) {
 				throw new BadRequestException(
 					'Failed to approve blog',
@@ -338,7 +343,7 @@ export class BlogService implements IBlogService {
 				});
 			}
 
-			return updatedBlog;
+			return updatedBlog.toObject() as BlogDocument;
 
 		} catch (error) {
 			logger.error(error, 'Error approving blog');
@@ -352,7 +357,11 @@ export class BlogService implements IBlogService {
 	async reject(blogId: string, data: RejectBlogDto): Promise<void> {
 		try {
 			const { reason } = data;
-			const blog = await BlogModel.findById(blogId).populate('author');
+			const blog = await BlogModel.findById(blogId).populate({
+				path: 'author',
+				select: 'name email image',
+				model: 'User'
+			});
 			if (!blog) {
 				throw new CouldNotFindBlogException();
 			}
@@ -398,7 +407,7 @@ export class BlogService implements IBlogService {
 	}
 
 
-	async requestPublish(blogId: string, userId: string): Promise<Blog> {
+	async requestPublish(blogId: string, userId: string): Promise<BlogDocument> {
 		try {
 			const blog = await BlogModel.findById(blogId);
 			if (!blog) {
@@ -426,7 +435,7 @@ export class BlogService implements IBlogService {
 				);
 			}
 
-			return updatedBlog;
+			return updatedBlog.toObject() as BlogDocument;
 		} catch (error) {
 			if (
 				error instanceof BadRequestException ||
@@ -452,7 +461,7 @@ export class BlogService implements IBlogService {
 		status?: Status | Status[];
 		search?: string;
 	}): Promise<{
-		blogs: Blog[],
+		blogs: BlogDocument[],
 		pagination: {
 			total: number;
 			page: number;
@@ -509,7 +518,7 @@ export class BlogService implements IBlogService {
 			const hasPrev = page > 1;
 		
 			return {
-				blogs: blogs as Blog[],
+				blogs: blogs as unknown as BlogDocument[],
 				pagination: {
 					total,
 					page,
