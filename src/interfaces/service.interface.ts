@@ -1,7 +1,7 @@
 // service.interface.ts
 import { CreateBlogDto, RejectBlogDto, UpdateBlogDto } from "@/dto/blog.dto";
 import { BlogTag } from "@/models/blog-tag.model";
-import { Blog } from "@/models/blog.model";
+import { BlogDocument } from "@/models/blog.model";
 import { CommentDocument } from "@/models/comment.model";
 /* eslint-disable no-unused-vars */
 import { Status } from "@/constants/enum";
@@ -9,23 +9,6 @@ import Artwork from '@/models/artwork.model.ts';
 import Collection from '@/models/collection.model.ts';
 import { ArtworkQueryOptions } from '@/services/artwork.service.ts';
 import { UpdateCollectionOptions } from '@/services/collection.service.ts';
-// export interface IBlogService {
-// 	getBlogs(): Promise<Blog[]>;
-
-// 	getBlogById(id: string): Promise<Blog | null>;
-
-// 	getLastEditedBlog(userId: string): Promise<Blog | null>;
-
-// 	createBlog(data: CreateBlogDto): Promise<Blog>;
-
-// 	updateBlog(data: UpdateBlogDto, role: string[]): Promise<Blog>;
-
-// 	deleteBlog(blogId: string, userId: string, role: string[]): Promise<void>;
-
-// 	getPublishedBlogs(query: any, limit: number): Promise<BlogDocument[]>;
-
-// 	getTotalPublishedBlogs(query: any): Promise<number>;
-// }
 
 export interface IInteractionService {
 	getUserInteractions(
@@ -79,10 +62,10 @@ export interface IBlogTagService {
 }
 
 export interface IBlogService {
-	findAll(): Promise<Blog[]>;
-	findById(id: string): Promise<Blog | null>;
-	findLastEditedByUser(userId: string): Promise<Blog | null>;
-	create(userId: string, data: CreateBlogDto): Promise<Blog>;
+	findAll(): Promise<BlogDocument[]>;
+	findById(id: string): Promise<BlogDocument | null>;
+	findLastEditedByUser(userId: string): Promise<BlogDocument | null>;
+	create(userId: string, data: CreateBlogDto): Promise<BlogDocument>;
 	update({
 		blogId,
 		userId,
@@ -93,14 +76,14 @@ export interface IBlogService {
 		userId: string;
 		data: UpdateBlogDto;
 		role: string[];
-	}): Promise<Blog>;
+	}): Promise<BlogDocument>;
 	delete(blogId: string, userId: string, role: string[]): Promise<void>;
-	findPublished(query: any, limit: number): Promise<Blog[]>;
+	findPublished(query: any, limit: number): Promise<BlogDocument[]>;
 	countPublished(query: any): Promise<number>;
-	updateTags(blogId: string, tags: string[]): Promise<Blog>;
-	approve(blogId: string): Promise<Blog>;
+	updateTags(blogId: string, tags: string[]): Promise<BlogDocument>;
+	approve(blogId: string): Promise<BlogDocument>;
 	reject(blogId: string, data: RejectBlogDto): Promise<void>;
-	requestPublish(blogId: string, userId: string): Promise<Blog>;
+	requestPublish(blogId: string, userId: string): Promise<BlogDocument>;
 	find(option: {
 		page?: number;
 		limit?: number;
@@ -110,7 +93,7 @@ export interface IBlogService {
 		status?: Status | Status[];
 		search?: string;
 	}): Promise<{
-		blogs: Blog[];
+		blogs: BlogDocument[];
 		pagination: {
 			total: number;
 			page: number;
