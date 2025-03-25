@@ -32,6 +32,10 @@ import { GalleryService } from '@/services/gallery.service';
 import { GalleryController } from '@/controllers/gallery.controller';
 import { IGalleryService } from '@/interfaces/service/gallery-service.interface';
 import { IGalleryController } from '@/interfaces/controller/gallery-controller.interface';
+import { IExhibitionService } from '@/interfaces/service/exhibition-service.interface';
+import { IExhibitionController } from '@/interfaces/controller/exhibition-controller.interface';
+import { ExhibitionService } from '@/services/exhibition.service';
+import { ExhibitionController } from '@/controllers/exhibition.controller';
 
 const container = new Container();
 
@@ -71,6 +75,10 @@ container
 // GALLERY
 container.bind<IGalleryService>(TYPES.GalleryService).to(GalleryService);
 container.bind<IGalleryController>(TYPES.GalleryController).to(GalleryController);
+
+// EXHIBITION
+container.bind<IExhibitionService>(TYPES.ExhibitionService).to(ExhibitionService);
+container.bind<IExhibitionController>(TYPES.ExhibitionController).to(ExhibitionController);
 
 
 export default container;

@@ -57,4 +57,4 @@ export type BlogDocument = Blog & {
 	createdAt: Date;
 	updatedAt: Date;
 };
-export default getModelForClass(Blog, { schemaOptions: { timestamps: true } });
+export default getModelForClass(Blog);

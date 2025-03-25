@@ -12,6 +12,7 @@ import blogTagRouter from '@/routers/blog-tag.router';
 import commentRoute from '@/routers/comment.route';
 import paymentRouter from '@/routers/payment.router';
 import galleryRouter from '@/routers/gallery.router';
+import exhibitionRouter from '@/routers/exhibition.router';
 
 export default [
 	{ path: '/api/auth', router: authRouter },
@@ -29,4 +30,5 @@ export default [
 	{ path: '/api/payment', router: paymentRouter },
 	{ path: '/api/artist', router: artistRouter },
 	{ path: '/api/gallery', router: galleryRouter },
+	{ path: '/api/exhibition', router: exhibitionRouter },
 ];

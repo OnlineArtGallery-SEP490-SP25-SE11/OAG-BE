@@ -1,9 +1,8 @@
-import { getModelForClass, modelOptions, prop } from "@typegoose/typegoose";
+import { getModelForClass, modelOptions, prop, DocumentType, type Ref, Severity } from "@typegoose/typegoose";
 import User from "./user.model";
 import Artwork from "./artwork.model";
-import { type Ref } from "@typegoose/typegoose/lib/types";
-import { GalleryStatus } from "@/constants/enum";
-
+import { ExhibitionStatus } from "@/constants/enum";
+import { Gallery } from "./gallery.model";
 class LanguageOption {
     @prop({ required: true, trim: true, minlength: 2, maxlength: 2 })
     public name!: string;
@@ -26,7 +25,7 @@ class Result {
     }[];
 
     @prop({ default: 0 })
-    public totalTime?: number;
+    public totalTime?: number; // minutes
 }
 
 class Public {
@@ -38,14 +37,19 @@ class Public {
 }
 
 class ArtWorkPosition {
-	@prop({ ref: () => typeof Artwork, required: true })
-	public artworkId!: string;
+    @prop({ ref: () => typeof Artwork, required: true })
+    public artworkId!: string;
 
-	@prop({ required: true })
-	public positionIndex!: number;
+    @prop({ required: true })
+    public positionIndex!: number;
 }
 
-@modelOptions({ schemaOptions: { timestamps: true } })
+@modelOptions({
+    options: {
+        allowMixed: Severity.ALLOW
+    }
+})
+@modelOptions({ schemaOptions: {} })
 export class Exhibition {
     @prop({ required: true, trim: true, minlength: 2, maxlength: 50 })
     public name!: string;
@@ -59,36 +63,37 @@ export class Exhibition {
     @prop({ required: true })
     public endDate!: Date;
 
-    @prop({ required: true })
-    public artworks!: string[];
+    @prop({ ref: () => Gallery, required: true, index: true })
+    public gallery!: Ref<Gallery>;
 
     @prop({ ref: () => User, required: true, index: true })
-    author!: Ref<typeof User>;
+    public author!: Ref<typeof User>;
 
     @prop({ required: true })
-    languageOptions!: LanguageOption[];
+    public languageOptions!: LanguageOption[];
 
     @prop({ default: false })
-    isFeatured?: boolean;
+    public isFeatured?: boolean;
 
-    @prop({ required: true })
-    status!: GalleryStatus;
+    @prop({
+        required: true, type: String,
+        enum: ExhibitionStatus,
+        default: ExhibitionStatus.DRAFT,
+        index: true // Index cho status filters
+    })
+    public status!: ExhibitionStatus;
 
-    @prop({ required: true })
-    result!: Result;
+    @prop({ required: true, type: () => Result, _id: false })
+    public result!: Result;
 
-    @prop({ required: true })
-    public!: Public;
+    @prop({ required: true, type: () => Public, _id: false })
+    public public!: Public;
 
-    @prop({ required: true })
-    artworkPositions!: ArtWorkPosition[];
+    @prop({ required: true, type: () => [ArtWorkPosition], _id: false })
+    public artworkPositions!: ArtWorkPosition[];
 }
 
 
-export type ExhibitionDocument = Exhibition & {
-    _id: string;
-    createdAt: Date;
-    updatedAt: Date;
-};
+export type ExhibitionDocument = DocumentType<Exhibition>;
 
-export default getModelForClass(Exhibition, { schemaOptions: { timestamps: true } });
+export default getModelForClass(Exhibition);

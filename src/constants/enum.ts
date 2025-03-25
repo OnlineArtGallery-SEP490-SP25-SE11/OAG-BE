@@ -8,7 +8,7 @@ export enum Status {
     ARCHIVED = 'ARCHIVED'      // No longer active but kept for records
 }
 
-export enum GalleryStatus {
+export enum ExhibitionStatus {
 	DRAFT = 'DRAFT',
 	PENDING = 'PENDING',
 	PUBLISHED = 'PUBLISHED',
