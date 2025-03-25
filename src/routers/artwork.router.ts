@@ -12,6 +12,7 @@ const artworkController = container.get<ArtworkController>(
 	TYPES.ArtworkController
 );
 router.get('/', artworkController.get);
+router.get('/artist', roleRequire([Role.ARTIST]), artworkController.getArtistArtwork);
 router.post(
 	'/',
 	roleRequire([Role.ARTIST]),

@@ -271,4 +271,19 @@ export class ArtworkService {
 			throw error;
 		}
 	}
+
+	async getArtistArtwork(artistId: string): Promise<InstanceType<typeof Artwork>[]> {
+		try {
+			if (!Types.ObjectId.isValid(artistId)) {
+				const errorMessage = 'Invalid artist id';
+				logger.error(errorMessage);
+				throw new Error(errorMessage);
+			}
+			const artworks = await Artwork.find({ artistId }).exec();
+			return artworks;
+		} catch (error) {
+			logger.error(`Error fetching artworks by artist id ${artistId}: ${error}`);
+			throw error;
+		}
+	}
 }

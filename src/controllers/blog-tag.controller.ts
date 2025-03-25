@@ -33,7 +33,7 @@ export class BlogTagController {
         try {
             const tags = await this._blogTagService.getTags();
             const response = BaseHttpResponse.success(
-                tags,
+                {tags},
                 200,
                 'Get tags success'
             );
