@@ -9,22 +9,14 @@ import eventRouter from '@/routers/event.router';
 import fileRouter from '@/routers/file.router';
 import interactionRouter from '@/routers/interaction.router';
 import notificationRouter from '@/routers/notification.router';
-<<<<<<< HEAD
-import userRouter from '@/routers/user.router';
-import artistRouter from '@/routers/artist.router';
-import eventRouter from '@/routers/event.router';
-import blogTagRouter from '@/routers/blog-tag.router';
-import commentRoute from '@/routers/comment.route';
-import paymentRouter from '@/routers/payment.router';
+
 import galleryRouter from '@/routers/gallery.router';
 import exhibitionRouter from '@/routers/exhibition.router';
 
-=======
 import paymentRouter from '@/routers/payment.router';
 import userRouter from '@/routers/user.router';
 import bankrequestRouter from './bankrequest.router';
 import walletRouter from './wallet.router';
->>>>>>> f06a8f55723945248e1fee1ac2f829a9ef514e0f
 export default [
 	{ path: '/api/auth', router: authRouter },
 	{ path: '/api/user', router: userRouter },

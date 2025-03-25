@@ -36,7 +36,6 @@ import BankRequestService from '@/services/bankrequest.service';
 import { BlogTagService } from "@/services/blog-tag.service";
 import { CollectionService } from '@/services/collection.service.ts';
 import { CommentService } from '@/services/comment.service';
-<<<<<<< HEAD
 import { GalleryService } from '@/services/gallery.service';
 import { GalleryController } from '@/controllers/gallery.controller';
 import { IGalleryService } from '@/interfaces/service/gallery-service.interface';
@@ -45,10 +44,8 @@ import { IExhibitionService } from '@/interfaces/service/exhibition-service.inte
 import { IExhibitionController } from '@/interfaces/controller/exhibition-controller.interface';
 import { ExhibitionService } from '@/services/exhibition.service';
 import { ExhibitionController } from '@/controllers/exhibition.controller';
-=======
 import { PaymentService } from '@/services/payment.service';
 import WalletService from '@/services/wallet.service';
->>>>>>> f06a8f55723945248e1fee1ac2f829a9ef514e0f
 
 const container = new Container();
 
@@ -85,7 +82,6 @@ container
 	.bind<ICollectionController>(TYPES.CollectionController)
 	.to(CollectionController);
 
-<<<<<<< HEAD
 // GALLERY
 container.bind<IGalleryService>(TYPES.GalleryService).to(GalleryService);
 container.bind<IGalleryController>(TYPES.GalleryController).to(GalleryController);
@@ -96,7 +92,6 @@ container.bind<IExhibitionController>(TYPES.ExhibitionController).to(ExhibitionC
 
 
 export default container;
-=======
 container.bind<PaymentService>(Symbol.for('PaymentService')).to(PaymentService);
 container.bind<PaymentController>(Symbol.for('PaymentController')).to(PaymentController);
 container.bind(Symbol.for('WalletService')).to(WalletService);
@@ -104,4 +99,3 @@ container.bind(Symbol.for('WalletController')).to(WalletController);
 container.bind(Symbol.for('BankRequestService')).to(BankRequestService);
 container.bind(Symbol.for('BankRequestController')).to(BankRequestController);
 export default container;
->>>>>>> f06a8f55723945248e1fee1ac2f829a9ef514e0f
