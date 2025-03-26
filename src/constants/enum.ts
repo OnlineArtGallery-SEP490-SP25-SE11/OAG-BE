@@ -15,6 +15,7 @@ export enum ExhibitionStatus {
 	PRIVATE = 'PRIVATE',
 	REJECTED = 'REJECTED'
 }
+
 export enum InteractionType {
 	HEART = 'HEART'
 }
