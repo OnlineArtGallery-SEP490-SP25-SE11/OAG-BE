@@ -12,6 +12,7 @@ import notificationRouter from '@/routers/notification.router';
 
 import galleryRouter from '@/routers/gallery.router';
 import exhibitionRouter from '@/routers/exhibition.router';
+import chatRoute from '@/routers/chat.route';
 
 import paymentRouter from '@/routers/payment.router';
 import userRouter from '@/routers/user.router';
@@ -31,7 +32,8 @@ export default [
 	{ path: '/api/event', router: eventRouter },
 	{ path: '/api/interaction', router: interactionRouter },
 	{ path: '/api/blog-tag', router: blogTagRouter },
-	{ path: '/api/comments', router: commentRoute },
+	{ path: '/api/comments', router: commentRoute},
+	{ path: '/api/chat', router: chatRoute},
 	{ path: '/api/payment', router: paymentRouter },
 	{ path: '/api/report', router: reportRouter },
 	{ path: '/api/artist', router: artistRouter },

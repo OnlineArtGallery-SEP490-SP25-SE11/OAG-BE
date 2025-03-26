@@ -1,6 +1,7 @@
 import logger from '@/configs/logger.config';
 import User from '@/models/user.model';
 import cloudinary from '@/configs/cloudinary.config';
+import mongoose, { Types } from 'mongoose';
 
 class UserService {
 	async getUserByPhone(
@@ -111,6 +112,71 @@ class UserService {
 			
 			logger.error(`Update avatar failed!, ${err.message}`);
 			throw new Error(`Update avatar failed!, ${err.message}`);
+		}
+	}
+
+	async followUser(userId: string, targetUserId: string) {
+		try {
+			if (!Types.ObjectId.isValid(userId) || !Types.ObjectId.isValid(targetUserId)) {
+				throw new Error('Invalid user ID');
+			}
+
+			await User.findByIdAndUpdate(userId, { $addToSet: { following: targetUserId } });
+			await User.findByIdAndUpdate(targetUserId, { $addToSet: { followers: userId } });
+
+			return { success: true, message: 'Followed successfully' };
+		} catch (error: any) {
+			logger.error(`Follow user failed! ${error.message}`);
+			throw new Error(`Follow user failed! ${error.message}`);
+		}
+	}
+
+	async unfollowUser(userId: string, targetUserId: string) {
+		try {
+			await User.findByIdAndUpdate(userId, { $pull: { following: targetUserId } });
+			await User.findByIdAndUpdate(targetUserId, { $pull: { followers: userId } });
+
+			return { success: true, message: 'Unfollowed successfully' };
+		} catch (error: any) {
+			logger.error(`Unfollow user failed! ${error.message}`);
+			throw new Error(`Unfollow user failed! ${error.message}`);
+		}
+	}
+
+	async getFollowing(userId: string) {
+		try {
+			const user = await User.findById(userId).populate('following', 'name email image');
+			if (!user) throw new Error('User not found');
+			return user.following;
+		} catch (error: any) {
+			logger.error(`Get following list failed! ${error.message}`);
+			throw new Error(`Get following list failed! ${error.message}`);
+		}
+	}
+
+	async getFollowers(userId: string) {
+		try {
+			const user = await User.findById(userId).populate('followers', 'name email image');
+			if (!user) throw new Error('User not found');
+			return user.followers;
+		} catch (error: any) {
+			logger.error(`Get followers list failed! ${error.message}`);
+			throw new Error(`Get followers list failed! ${error.message}`);
+		}
+	}
+
+	async isFollowingUser(userId: string, targetUserId: string): Promise<boolean> {
+		try {
+			const user = await User.findById(userId);
+			if (!user) {
+				throw new Error('User not found');
+			}
+
+			const targetObjectId = new mongoose.Types.ObjectId(targetUserId);
+			return user.following.some(followedId => followedId.equals(targetObjectId));
+		} catch (error: any) {
+			logger.error(`Check follow status failed!, ${error.message}`);
+			throw new Error(`Check follow status failed!, ${error.message}`);
 		}
 	}
 }

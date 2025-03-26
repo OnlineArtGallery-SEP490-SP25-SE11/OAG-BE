@@ -16,6 +16,7 @@ export class ArtworkController {
 		this.update = this.update.bind(this);
 		this.delete = this.delete.bind(this);
 		this.getCategory = this.getCategory.bind(this);
+		this.getArtistArtwork = this.getArtistArtwork.bind(this);
 	}
 
 	async add(req: Request, res: Response, next: NextFunction): Promise<any> {
@@ -186,4 +187,26 @@ export class ArtworkController {
 			next(error);
 		}
 	}
+
+	async getArtistArtwork(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> {
+		try {
+
+			const artworks = await this._artworkService.getArtistArtwork(req.userId!);
+			const response = BaseHttpResponse.success(
+				artworks,
+				200,
+				'Get artist artwork success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+
+
 }

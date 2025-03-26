@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+//controller.interface.ts
 import { Request, Response, NextFunction } from "express";
 
 export interface IBlogTagController {
@@ -20,6 +20,11 @@ export interface IBlogController {
   requestPublish(req: Request, res: Response, next: NextFunction): Promise<any>;
   findUserBlogs(req: Request, res: Response, next: NextFunction): Promise<any>;
   find(req: Request, res: Response, next: NextFunction): Promise<any>;
+  addHeart(req: Request, res: Response, next: NextFunction): Promise<any>;
+  removeHeart(req: Request, res: Response, next: NextFunction): Promise<any>;
+  getHeartCount(req: Request, res: Response, next: NextFunction): Promise<any>;
+  isHeart(req: Request, res: Response, next: NextFunction): Promise<any>;
+  getHeartUsers(req: Request, res: Response, next: NextFunction): Promise<any>;
 }
 
 export interface IInteractionController {
@@ -68,4 +73,14 @@ export interface ICollectionController {
     add(req: Request, res: Response, next: NextFunction): Promise<any>;
     update(req: Request, res: Response, next: NextFunction): Promise<any>;
     get(req: Request, res: Response, next: NextFunction): Promise<any>;
+}
+export interface IChatController {
+  createChat(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  getChatHistory(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  getChatList(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  getLastMessageWithUsers(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  markMessageAsRead(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  markAllMessagesAsRead(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  deleteMessage(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  deleteChat(req: Request, res: Response, next: NextFunction): Promise<Response>;
 }

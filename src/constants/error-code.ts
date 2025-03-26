@@ -25,6 +25,8 @@ export enum ErrorCode {
 	ACTION_REPORT_FAILED = 'action_report_failed',
 	INVALID_REPORTER_ID = 'invalid_reporter_id',
 	
+	NOTFOUND = 'notfound',
+	
 	SERVER_ERROR = 'server_error',
 
 	//Payment

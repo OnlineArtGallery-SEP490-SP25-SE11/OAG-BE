@@ -6,11 +6,13 @@ import { InteractionController } from '@/controllers/interaction.controller';
 import {
 	IArtworkController,
 	IBlogController,
+	IChatController,
 	ICollectionController,
 	IInteractionController
 } from '@/interfaces/controller.interface';
 import {
 	IBlogService,
+	IChatService,
 	ICollectionService,
 	ICommentService,
 	IInteractionService
@@ -21,7 +23,6 @@ import { InteractionService } from '@/services/interaction.service';
 import { ArtworkController } from '@/controllers/artwork.controller';
 import { BlogTagController } from "@/controllers/blog-tag.controller";
 import { CollectionController } from '@/controllers/collection.controller.ts';
-import { CommentController } from '@/controllers/comment.controller';
 import { PaymentController } from '@/controllers/payment.controller';
 import WalletController from '@/controllers/wallet.controller';
 import { IBlogTagController } from "@/interfaces/controller.interface";
@@ -30,7 +31,11 @@ import { ArtworkService } from '@/services/artwork.service.ts';
 import BankRequestService from '@/services/bankrequest.service';
 import { BlogTagService } from "@/services/blog-tag.service";
 import { CollectionService } from '@/services/collection.service.ts';
-import { CommentService } from '@/services/comment.service';
+
+import { CommentController } from "@/controllers/comment.controller";
+import { CommentService } from "@/services/comment.service";
+import { ChatController } from '@/controllers/chat.controller';
+import { ChatService } from '@/services/chat.service';
 import { GalleryService } from '@/services/gallery.service';
 import { GalleryController } from '@/controllers/gallery.controller';
 import { IGalleryService } from '@/interfaces/service/gallery-service.interface';
@@ -62,6 +67,11 @@ container
 
 container.bind<ICommentService>(TYPES.CommentService).to(CommentService);
 container.bind<CommentController>(TYPES.CommentController).to(CommentController);
+
+// Chat
+container.bind<IChatService>(TYPES.ChatService).to(ChatService);
+container.bind<ChatController>(TYPES.ChatController).to(ChatController);
+
 
 // ARTWORK
 // container.bind<IArtworkService>(TYPES.ArtworkService).to(ArtworkService);
