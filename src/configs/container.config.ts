@@ -35,7 +35,7 @@ import { CollectionService } from '@/services/collection.service.ts';
 import { CommentService } from '@/services/comment.service';
 import { PaymentService } from '@/services/payment.service';
 import WalletService from '@/services/wallet.service';
-
+import { AiService } from '@/services/ai.service';
 const container = new Container();
 
 // Services
@@ -77,4 +77,5 @@ container.bind(Symbol.for('WalletService')).to(WalletService);
 container.bind(Symbol.for('WalletController')).to(WalletController);
 container.bind(Symbol.for('BankRequestService')).to(BankRequestService);
 container.bind(Symbol.for('BankRequestController')).to(BankRequestController);
+container.bind(Symbol.for('AiService')).to(AiService);
 export default container;
