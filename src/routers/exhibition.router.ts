@@ -20,7 +20,7 @@ router.post(
 router.get('/', exhibitionController.findAll);
 router.get('/:id', exhibitionController.findById);
 
-router.put(
+router.patch(
   '/:id',
   roleRequire([Role.ADMIN, Role.ARTIST]), 
   validate(updateExhibitionSchema),

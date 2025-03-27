@@ -14,13 +14,17 @@ export class ExhibitionFactory {
     endDate.setMonth(endDate.getMonth() + 1);
     
     return {
-      name,
       gallery: galleryId,
       author: authorId,
       startDate: new Date(),
       endDate,
       status: ExhibitionStatus.DRAFT,
       isFeatured: false,
+      contents: [{
+        languageCode: 'en',
+        name: name,
+        description: ''
+      }],
       languageOptions: [{
         name: 'EN',
         code: 'en',
@@ -49,14 +53,18 @@ export class ExhibitionFactory {
     return {
       ...existingExhibition,
       ...updateData,
-      result: updateData.result ? {
+      contents: updateData.contents || existingExhibition.contents,
+      languageOptions: updateData.languageOptions || existingExhibition.languageOptions,
+      result: {
         ...existingExhibition.result,
         ...updateData.result
-      } : existingExhibition.result,
-      public: updateData.public ? {
+      },
+      public: {
         ...existingExhibition.public,
         ...updateData.public
-      } : existingExhibition.public
+      },
+      artworkPositions: updateData.artworkPositions || existingExhibition.artworkPositions
+
     };
   }
 
@@ -68,7 +76,6 @@ export class ExhibitionFactory {
     const emptyExhibition = this.createEmpty(
       exhibitionData.gallery as any,
       exhibitionData.author as any,
-      exhibitionData.name
     );
     
     // Then update it with provided data

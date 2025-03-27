@@ -38,10 +38,29 @@ class Public {
 
 class ArtWorkPosition {
     @prop({ ref: () => typeof Artwork, required: true })
-    public artworkId!: string;
+    public artwork!: Ref<typeof Artwork>;
 
     @prop({ required: true })
     public positionIndex!: number;
+}
+
+class Content {
+    @prop({ required: true, trim: true, minlength: 2, maxlength: 2 })
+    public languageCode!: string;
+
+    @prop({
+        required: false,
+        trim: true,
+        maxlength: 100,
+        default: '' 
+    })
+    public name!: string;
+
+    @prop({
+        required: false,
+        default: '' 
+    })
+    public description!: string;
 }
 
 @modelOptions({
@@ -51,11 +70,22 @@ class ArtWorkPosition {
 })
 @modelOptions({ schemaOptions: {} })
 export class Exhibition {
-    @prop({ required: true, trim: true, minlength: 2, maxlength: 50 })
-    public name!: string;
+    @prop({
+        type: () => [Content],
+        required: true,
+        _id: false,
+        default: []
+    })
+    public contents!: Content[];
 
-    @prop()
-    public description?: string;
+    @prop({ required: true })
+    public welcomeImage!: string;
+
+    @prop({ required: false })
+    public backgroundMedia?: string;
+
+    @prop({ required: false })
+    public backgroundAudio?: string;
 
     @prop({ required: true })
     public startDate!: Date;
@@ -91,6 +121,15 @@ export class Exhibition {
 
     @prop({ required: true, type: () => [ArtWorkPosition], _id: false })
     public artworkPositions!: ArtWorkPosition[];
+
+    public getContent(languageCode: string) {
+        return this.contents.find(content => content.languageCode === languageCode);
+    }
+
+    public getDefaultContent() {
+        const defaultLang = this.languageOptions.find(lang => lang.isDefault)?.code || 'en';
+        return this.getContent(defaultLang);
+    }
 }
 
 

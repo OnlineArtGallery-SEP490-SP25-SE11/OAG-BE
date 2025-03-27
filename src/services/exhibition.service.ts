@@ -18,12 +18,10 @@ export class ExhibitionService implements IExhibitionService {
             if (!galleryExists) {
                 throw new BadRequestException('Gallery not found', ErrorCode.NOT_FOUND);
             }
-            
             // Use factory to create exhibition object
             const exhibitionData = ExhibitionFactory.createEmpty(
                 data.gallery,
                 data.author,
-                data.name || 'Untitled'
             );
             const exhibition = await ExhibitionModel.create(exhibitionData);
             return exhibition;
@@ -58,7 +56,11 @@ export class ExhibitionService implements IExhibitionService {
                     select: 'name email image',
                     model: 'User'
                 })
-                .populate('gallery');
+                .populate('gallery')
+                .populate({
+                    path: 'artworkPositions.artwork',
+                    model: 'Artwork'
+                });
                 
             if (!exhibition) {
                 throw new NotFoundException('Exhibition not found', ErrorCode.NOT_FOUND);
@@ -104,6 +106,10 @@ export class ExhibitionService implements IExhibitionService {
                         model: 'User'
                     })
                     .populate('gallery')
+                    .populate({
+                        path: 'artworkPositions.artwork',
+                        model: 'Artwork'
+                    })
                     .sort(sort)
                     .skip(skip)
                     .limit(limit),
@@ -161,7 +167,11 @@ export class ExhibitionService implements IExhibitionService {
                 select: 'name email image',
                 model: 'User'
             })
-            .populate('gallery');
+            .populate('gallery')
+            .populate({
+                path: 'artworkPositions.artwork',
+                model: 'Artwork'
+            });
             
             return exhibition;
         } catch (error) {

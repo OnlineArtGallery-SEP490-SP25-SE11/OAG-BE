@@ -1,16 +1,6 @@
-import { DocumentType, getModelForClass, index, modelOptions, prop, Severity } from "@typegoose/typegoose";
+import { DocumentType, getModelForClass, modelOptions, prop, Severity } from "@typegoose/typegoose";
 
-@modelOptions({
-  schemaOptions: { 
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-  },
-  options: {
-    allowMixed: Severity.ALLOW // Cho phép mixed types trong arrays
-  }
-})
-@index({ name: 1 }) // Index cho field thường query
+
 class Dimensions {
   @prop({ required: true, min: 0 })
   public xAxis!: number;
@@ -22,9 +12,23 @@ class Dimensions {
   public zAxis!: number;
 }
 
-class ArtworkPlacement {
-  @prop({ 
-    type: () => [Number], 
+
+class CustomCollider {
+  @prop({ required: true })
+  public shape!: 'box' | 'curved';
+
+  @prop({
+    type: () => [Number],
+    required: true,
+    validate: {
+      validator: (arr: number[]) => arr.length === 3,
+      message: 'Args must have 3 values'
+    }
+  })
+  public args!: number[];
+
+  @prop({
+    type: () => [Number],
     required: true,
     validate: {
       validator: (arr: number[]) => arr.length === 3,
@@ -33,8 +37,8 @@ class ArtworkPlacement {
   })
   public position!: number[];
 
-  @prop({ 
-    type: () => [Number], 
+  @prop({
+    type: () => [Number],
     required: true,
     validate: {
       validator: (arr: number[]) => arr.length === 3,
@@ -44,20 +48,46 @@ class ArtworkPlacement {
   public rotation!: number[];
 }
 
-@modelOptions({ schemaOptions: { timestamps: true } })
+class ArtworkPlacement {
+  @prop({
+    type: () => [Number],
+    required: true,
+    validate: {
+      validator: (arr: number[]) => arr.length === 3,
+      message: 'Position must have 3 coordinates'
+    }
+  })
+  public position!: number[];
+
+  @prop({
+    type: () => [Number],
+    required: true,
+    validate: {
+      validator: (arr: number[]) => arr.length === 3,
+      message: 'Rotation must have 3 angles'
+    }
+  })
+  public rotation!: number[];
+}
+
+@modelOptions({
+  schemaOptions: { timestamps: true }, options: {
+    allowMixed: Severity.ALLOW
+  }
+})
 export class Gallery {
-  @prop({ 
+  @prop({
     required: true,
     trim: true,
     minlength: 2,
-    maxlength: 50 
+    maxlength: 50
   })
   public name!: string;
 
   @prop()
   public description?: string;
 
-  @prop({ required: true })
+  @prop({ required: true, _id: false })
   public dimensions!: Dimensions;
 
   @prop({ required: true })
@@ -87,19 +117,15 @@ export class Gallery {
   @prop({ default: false })
   public isPremium!: boolean;
 
-  @prop({ 
-    type: () => [[Number]], 
-    default: [],
-    validate: {
-      validator: (arr: number[][]) => arr.every(coord => coord.length === 3),
-      message: 'Each collider must have 3 coordinates'
-    }
+  @prop({
+    type: () => [CustomCollider],
+    default: []
   })
 
-  public customColliders?: number[][];
+  public customColliders?: CustomCollider[];
 
-  @prop({ 
-    type: () => [ArtworkPlacement], 
+  @prop({
+    type: () => [ArtworkPlacement],
     default: [],
     _id: false // Disable _id for subdocuments
   })

@@ -197,7 +197,7 @@ export class ArtworkController {
 
 			const artworks = await this._artworkService.getArtistArtwork(req.userId!);
 			const response = BaseHttpResponse.success(
-				artworks,
+				{artworks},
 				200,
 				'Get artist artwork success'
 			);

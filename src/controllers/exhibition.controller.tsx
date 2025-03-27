@@ -74,7 +74,7 @@ export class ExhibitionController implements IExhibitionController {
       );
       
       const response = BaseHttpResponse.success(
-        exhibition,
+        {exhibition},
         200,
         'Exhibition updated successfully'
       );
@@ -104,7 +104,7 @@ export class ExhibitionController implements IExhibitionController {
       const exhibition = await this._exhibitionService.findById(req.params.id);
       
       const response = BaseHttpResponse.success(
-        exhibition,
+        {exhibition},
         200,
         'Exhibition retrieved successfully'
       );

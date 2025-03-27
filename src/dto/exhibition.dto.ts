@@ -3,7 +3,7 @@ import { ExhibitionStatus } from '@/constants/enum';
 
 // Schema definitions for nested objects
 const languageOptionSchema = z.object({
-  name: z.string().min(2).max(2),
+  name: z.string().min(1),
   code: z.string().min(2).max(2),
   isDefault: z.boolean()
 });
@@ -13,7 +13,7 @@ const resultSchema = z.object({
   likes: z.array(
     z.object({
       count: z.number(),
-      artworkId: z.string()
+      artwork: z.string()
     })
   ).optional().default([]),
   totalTime: z.number().optional().default(0)
@@ -25,22 +25,27 @@ const publicSchema = z.object({
 });
 
 const artworkPositionSchema = z.object({
-  artworkId: z.string(),
+  artwork: z.string(),
   positionIndex: z.number()
 });
 
 // Minimal schema for initial creation - only requires gallery ID
 export const createEmptyExhibitionSchema = z.object({
   gallery: z.string(),
-  name: z.string().min(2).max(50).optional()
 });
 
 // Complete schema for exhibitions with all possible fields
 const exhibitionCompleteSchema = z.object({
-  name: z.string().min(2).max(50),
-  description: z.string().optional(),
   startDate: z.string().or(z.date()),
   endDate: z.string().or(z.date()),
+  welcomeImage: z.string().url(),
+  backgroundMedia: z.string().url().optional(),
+  backgroundAudio: z.string().url().optional(),
+  contents: z.array(z.object({
+    languageCode: z.string().min(2).max(2),
+    name: z.string().max(100).optional().default(''),
+    description: z.string().optional().default(''),
+  })),
   gallery: z.string(),
   languageOptions: z.array(languageOptionSchema),
   isFeatured: z.boolean().optional().default(false),
