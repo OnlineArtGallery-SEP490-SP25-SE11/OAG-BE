@@ -12,6 +12,7 @@ import env from '@/utils/validateEnv.util';
 import PayOS from '@payos/node';
 import { injectable } from 'inversify';
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 interface PaymentPurchase {
     amount: number;
     description?: string;
@@ -230,7 +231,7 @@ export class PaymentService {
         try {
             // 1. Generate a unique transactionId based on paymentId to ensure idempotency
             const transactionIdBase = `${paymentId}-${orderCode}`;
-            const transactionIdHash = require('crypto').createHash('md5').update(transactionIdBase).digest('hex');
+            const transactionIdHash = crypto.createHash('md5').update(transactionIdBase).digest('hex');
     
             // 2. Check if transaction already exists with this unique ID
             const existingTransaction = await Transaction.findOne({

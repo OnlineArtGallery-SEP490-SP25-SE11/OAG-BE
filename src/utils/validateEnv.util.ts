@@ -22,6 +22,9 @@ const env = cleanEnv(process.env, {
 	CLOUD_IMG_FOLDER: str(),
 	PAYOS_CLIENT_ID: str(),
 	PAYOS_API_KEY: str(),
-	PAYOS_CHECKSUM_KEY: str()
+	PAYOS_CHECKSUM_KEY: str(),
+	XAI_API_KEY: str({
+		default: 'xai-api-key',
+	}),
 });
 export default env;
