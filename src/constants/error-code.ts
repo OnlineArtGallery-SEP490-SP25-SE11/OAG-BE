@@ -9,17 +9,18 @@ export enum ErrorCode {
 	UNAUTHORIZED = 'unauthorized',
 	INTERNAL_SERVER_ERROR = 'internal_server_error',
 	FORBIDDEN = 'forbidden',
+	
 
 	//Database
 	DATABASE_ERROR = 'database_error',
-
+	NOT_FOUND = 'not_found',
 	//Validation
 	VALIDATION_ERROR = 'validation_error',
 
 	//Event
 	INVALID_EVENT_ID = 'invalid_event_id',
 	
-
+	NOTFOUND = 'notfound',
 	
 	SERVER_ERROR = 'server_error',
 
@@ -33,4 +34,6 @@ export enum ErrorCode {
 	INVALID_PAYMENT_ID = 'invalid_payment_id',
 	PAYMENT_VERIFICATION_ERROR = 'payment_verification_error',
 	PAYMENT_WEBHOOK_ERROR = 'payment_webhook_error',
+
+	//
 }

@@ -9,6 +9,11 @@ import eventRouter from '@/routers/event.router';
 import fileRouter from '@/routers/file.router';
 import interactionRouter from '@/routers/interaction.router';
 import notificationRouter from '@/routers/notification.router';
+
+import galleryRouter from '@/routers/gallery.router';
+import exhibitionRouter from '@/routers/exhibition.router';
+import chatRoute from '@/routers/chat.route';
+
 import paymentRouter from '@/routers/payment.router';
 import userRouter from '@/routers/user.router';
 import bankrequestRouter from './bankrequest.router';
@@ -25,8 +30,11 @@ export default [
 	{ path: '/api/event', router: eventRouter },
 	{ path: '/api/interaction', router: interactionRouter },
 	{ path: '/api/blog-tag', router: blogTagRouter },
-	{ path: '/api/comments', router: commentRoute },
+	{ path: '/api/comments', router: commentRoute},
+	{ path: '/api/chat', router: chatRoute},
 	{ path: '/api/payment', router: paymentRouter },
 	{ path: '/api/artist', router: artistRouter },
+	{ path: '/api/gallery', router: galleryRouter },
+	{ path: '/api/exhibition', router: exhibitionRouter },
 	{ path: '/api/wallet', router: walletRouter },
 	{ path: '/api/bank-request', router: bankrequestRouter }];

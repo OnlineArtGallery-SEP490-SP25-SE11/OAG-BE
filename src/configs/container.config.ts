@@ -4,11 +4,13 @@ import { InteractionController } from '@/controllers/interaction.controller';
 import {
 	IArtworkController,
 	IBlogController,
+	IChatController,
 	ICollectionController,
 	IInteractionController
 } from '@/interfaces/controller.interface';
 import {
 	IBlogService,
+	IChatService,
 	ICollectionService,
 	ICommentService,
 	IInteractionService
@@ -32,7 +34,18 @@ import { ArtworkService } from '@/services/artwork.service.ts';
 import BankRequestService from '@/services/bankrequest.service';
 import { BlogTagService } from "@/services/blog-tag.service";
 import { CollectionService } from '@/services/collection.service.ts';
-import { CommentService } from '@/services/comment.service';
+
+import { CommentService } from "@/services/comment.service";
+import { ChatController } from '@/controllers/chat.controller';
+import { ChatService } from '@/services/chat.service';
+import { GalleryService } from '@/services/gallery.service';
+import { GalleryController } from '@/controllers/gallery.controller';
+import { IGalleryService } from '@/interfaces/service/gallery-service.interface';
+import { IGalleryController } from '@/interfaces/controller/gallery-controller.interface';
+import { IExhibitionService } from '@/interfaces/service/exhibition-service.interface';
+import { IExhibitionController } from '@/interfaces/controller/exhibition-controller.interface';
+import { ExhibitionService } from '@/services/exhibition.service';
+import { ExhibitionController } from '@/controllers/exhibition.controller';
 import { PaymentService } from '@/services/payment.service';
 import WalletService from '@/services/wallet.service';
 import { AiService } from '@/services/ai.service';
@@ -56,6 +69,11 @@ container
 container.bind<ICommentService>(TYPES.CommentService).to(CommentService);
 container.bind<CommentController>(TYPES.CommentController).to(CommentController);
 
+// Chat
+container.bind<IChatService>(TYPES.ChatService).to(ChatService);
+container.bind<ChatController>(TYPES.ChatController).to(ChatController);
+
+
 // ARTWORK
 // container.bind<IArtworkService>(TYPES.ArtworkService).to(ArtworkService);
 container.bind(TYPES.ArtworkService).to(ArtworkService);
@@ -70,6 +88,15 @@ container
 container
 	.bind<ICollectionController>(TYPES.CollectionController)
 	.to(CollectionController);
+
+// GALLERY
+container.bind<IGalleryService>(TYPES.GalleryService).to(GalleryService);
+container.bind<IGalleryController>(TYPES.GalleryController).to(GalleryController);
+
+// EXHIBITION
+container.bind<IExhibitionService>(TYPES.ExhibitionService).to(ExhibitionService);
+container.bind<IExhibitionController>(TYPES.ExhibitionController).to(ExhibitionController);
+
 
 container.bind<PaymentService>(Symbol.for('PaymentService')).to(PaymentService);
 container.bind<PaymentController>(Symbol.for('PaymentController')).to(PaymentController);

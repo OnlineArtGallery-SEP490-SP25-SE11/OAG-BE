@@ -4,6 +4,7 @@ import User from '@/models/user.model.ts';
 import { AiService } from '@/services/ai.service.ts';
 import { inject, injectable } from 'inversify';
 import { FilterQuery, Types } from 'mongoose';
+
 export interface ArtworkQueryOptions {
 	select?: string;
 	title?: string;
@@ -155,6 +156,7 @@ export class ArtworkService {
 		total: number;
 	}> {
 		try {
+			// const query: FilterQuery<typeof Artwork> = { ...options };
 			const { select, ...rest } = options;
 			const query: FilterQuery<typeof Artwork> = { ...rest };
 
@@ -168,6 +170,7 @@ export class ArtworkService {
 					$options: 'i'
 				};
 			}
+
 			if (options.artistName) {
 				const artistQuery = {
 					name: { $regex: options.artistName, $options: 'i' }
@@ -184,7 +187,7 @@ export class ArtworkService {
 
 			// Thực hiện truy vấn
 			const artworkQuery = Artwork.find(query).sort({ createdAt: -1 });
-			
+
 			// Áp dụng phân trang
 			this._applyPagination(artworkQuery, skip, take);
 
@@ -418,6 +421,7 @@ export class ArtworkService {
 			throw error;
 		}
 	}
+
 	async delete(id: string, artistId: string): Promise<boolean> {
 		try {
 			if (!Types.ObjectId.isValid(id)) {
@@ -535,5 +539,20 @@ export class ArtworkService {
 
 			return artworkObj;
 		});
+	}
+
+	async getArtistArtwork(artistId: string): Promise<InstanceType<typeof Artwork>[]> {
+		try {
+			if (!Types.ObjectId.isValid(artistId)) {
+				const errorMessage = 'Invalid artist id';
+				logger.error(errorMessage);
+				throw new Error(errorMessage);
+			}
+			const artworks = await Artwork.find({ artistId }).exec();
+			return artworks;
+		} catch (error) {
+			logger.error(`Error fetching artworks by artist id ${artistId}: ${error}`);
+			throw error;
+		}
 	}
 }

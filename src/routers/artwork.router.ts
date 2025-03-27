@@ -15,6 +15,7 @@ router.get('/', artworkController.get);
 router.get('/artist', roleRequire([Role.ARTIST]), artworkController.getForArtist);
 router.get('/admin',roleRequire([Role.ADMIN]), artworkController.getForAdmin)
 router.post('/admin/:id',roleRequire([Role.ADMIN]), artworkController.reviewArtwork)
+// router.get('/artist', roleRequire([Role.ARTIST]), artworkController.getArtistArtwork);
 router.post(
 	'/',
 	roleRequire([Role.ARTIST]),

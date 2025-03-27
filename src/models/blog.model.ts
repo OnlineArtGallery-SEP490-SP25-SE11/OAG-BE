@@ -1,5 +1,5 @@
 import { Status } from "@/constants/enum";
-import { getModelForClass, modelOptions, prop, type Ref } from "@typegoose/typegoose";
+import { DocumentType, getModelForClass, modelOptions, prop, type Ref } from "@typegoose/typegoose";
 import { Types } from "mongoose";
 import User from "./user.model";
 
@@ -8,7 +8,7 @@ export class Blog {
 	@prop({ required: true })
 	title!: string;
 
-	@prop()
+	@prop({required: false})
 	content?: string;
 
 	@prop({ required: true })
@@ -26,13 +26,13 @@ export class Blog {
 	})
 	status!: Status;
 
-	@prop({ default: 0 })
-	heartCount?: number;
+	@prop({ type: () => [Types.ObjectId], ref: () => User, default: [] })
+ 	hearts!: Types.ObjectId[];
 
 	@prop({ default: 0 })
 	views?: number;
 
-	@prop({ type: () => [String], default: [] })
+	@prop({ type: () => [String], default: [], required: false })
 	tags?: string[];
 
 	static async incrementHeartCount(postId: string) {
@@ -52,9 +52,8 @@ export class Blog {
 	}
 }
 
-export type BlogDocument = Blog & {
-	_id: Types.ObjectId;
+export type BlogDocument = DocumentType<Blog> & {
 	createdAt: Date;
 	updatedAt: Date;
 };
-export default getModelForClass(Blog, { schemaOptions: { timestamps: true } });
+export default getModelForClass(Blog);

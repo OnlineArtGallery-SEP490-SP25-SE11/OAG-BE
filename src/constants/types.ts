@@ -13,7 +13,8 @@ export const TYPES = {
     ICommentService: Symbol.for('ICommentService'),
     CommentService: Symbol.for('CommentService'),
 
-    
+    IChatService: Symbol.for('IChatService'),
+    ChatService: Symbol.for('ChatService'),
 
     IArtistService: Symbol.for('IArtistService'),
     ArtistService: Symbol.for('ArtistService'),
@@ -34,6 +35,9 @@ export const TYPES = {
     IArtistController: Symbol.for('IArtistController'),
     ArtistController: Symbol.for('ArtistController'),
 
+    IChatController: Symbol.for('IChatController'),
+    ChatController: Symbol.for('ChatController'),
+
     // Artwork
     IArtworkService: Symbol.for('IArtworkService'),
     ArtworkService: Symbol.for('ArtworkService'),
@@ -47,4 +51,17 @@ export const TYPES = {
 
     ICollectionController: Symbol.for('ICollectionController'),
     CollectionController: Symbol.for('CollectionController'),
+
+
+    // Gallery
+    IGalleryController: Symbol.for('IGalleryController'),
+    GalleryController: Symbol.for('GalleryController'),
+    IGalleryService: Symbol.for('IGalleryService'),
+    GalleryService: Symbol.for('GalleryService'),
+
+    // Exhibition
+    IExhibitionController: Symbol.for('IExhibitionController'),
+    ExhibitionController: Symbol.for('ExhibitionController'),
+    IExhibitionService: Symbol.for('IExhibitionService'),
+    ExhibitionService: Symbol.for('ExhibitionService')
 }

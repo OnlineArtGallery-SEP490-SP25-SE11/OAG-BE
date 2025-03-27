@@ -23,6 +23,10 @@ export class BlogController implements IBlogController {
 		this.delete = this.delete.bind(this);
 		this.approve = this.approve.bind(this);
 		this.reject = this.reject.bind(this);
+		this.addHeart = this.addHeart.bind(this);
+		this.removeHeart = this.removeHeart.bind(this);
+		// this.getLikes = this.getLikes.bind(this);
+		this.getHeartCount = this.getHeartCount.bind(this);
 	}
 
 	findAll = async (
@@ -37,7 +41,7 @@ export class BlogController implements IBlogController {
 				200,
 				'Get blogs success'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -55,7 +59,7 @@ export class BlogController implements IBlogController {
 				200,
 				'Get blog success'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -74,7 +78,7 @@ export class BlogController implements IBlogController {
 				200,
 				'Get last edited blog success'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -90,12 +94,11 @@ export class BlogController implements IBlogController {
 			const blogData = { ...req.validatedData };
 			const blog = await this._blogService.create(req.userId!, blogData);
 
-			const response = BaseHttpResponse.success(
-				blog,
+			const response = BaseHttpResponse.success({ blog },
 				201,
 				'Create blog success'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -107,8 +110,6 @@ export class BlogController implements IBlogController {
 		next: NextFunction
 	): Promise<any> => {
 		try {
-
-
 			const role = req.userRole!;
 			const blogId = req.params.id;
 			const blogData = req.validatedData;
@@ -119,12 +120,11 @@ export class BlogController implements IBlogController {
 				data: blogData,
 				role
 			});
-			const response = BaseHttpResponse.success(
-				blog,
+			const response = BaseHttpResponse.success({ blog },
 				200,
 				'Update blog success'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -201,7 +201,7 @@ export class BlogController implements IBlogController {
 				200,
 				'Get published blogs success'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -223,7 +223,7 @@ export class BlogController implements IBlogController {
 				200,
 				'Blog approved successfully'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -270,7 +270,7 @@ export class BlogController implements IBlogController {
 				200,
 				'Blog submitted for review successfully'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -284,7 +284,7 @@ export class BlogController implements IBlogController {
 				200,
 				'Blogs retrieved successfully'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
@@ -314,9 +314,78 @@ export class BlogController implements IBlogController {
 				200,
 				'Blogs retrieved successfully'
 			);
-			return res.status(response.statusCode).json(response.data);
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
 	}
+
+	// Like a blog
+	addHeart = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const userId = req.userId;
+			const blogId = req.params.id;
+			if (!userId) {
+				throw new ForbiddenException('Forbidden');
+			}
+			await this._blogService.addHeart(blogId, userId);
+			const response = BaseHttpResponse.success(null, 200, 'Liked successfully');
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	};
+
+	// Unlike a blog
+	removeHeart = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const userId = req.userId;
+			const blogId = req.params.id;
+			if (!userId) {
+				throw new ForbiddenException('Forbidden');
+			}
+			await this._blogService.removeHeart(blogId, userId);
+			const response = BaseHttpResponse.success(null, 200, 'Unliked successfully');
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	};
+
+	// Get like count for a blog
+	getHeartCount = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const blogId = req.params.id;
+			const count = await this._blogService.getHeartCount(blogId);
+			const response = BaseHttpResponse.success({ count }, 200, 'Fetched like count successfully');
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	};
+
+	// ✅ Check if user has liked the blog
+	isHeart = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const userId = req.params.userId;
+			const blogId = req.params.id;
+			const hasLiked = await this._blogService.isHeart(blogId, userId);
+			const response = BaseHttpResponse.success({ hasLiked }, 200, 'Checked successfully');
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	};
+
+	// ✅ Get list of users who liked the blog
+	getHeartUsers = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const blogId = req.params.id;
+			const users = await this._blogService.getHeartUsers(blogId);
+			const response = BaseHttpResponse.success({ users }, 200, 'Fetched users successfully');
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	};
 }
