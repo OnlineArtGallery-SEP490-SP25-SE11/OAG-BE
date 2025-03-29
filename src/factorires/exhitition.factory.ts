@@ -6,13 +6,13 @@ export class ExhibitionFactory {
    * Creates an empty exhibition with minimal required data and sensible defaults
    */
   static createEmpty(
-    galleryId: any, 
-    authorId: any, 
+    galleryId: any,
+    authorId: any,
     name: string = 'Untitled Exhibition'
   ): any {
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + 1);
-    
+
     return {
       gallery: galleryId,
       author: authorId,
@@ -35,10 +35,8 @@ export class ExhibitionFactory {
         likes: [],
         totalTime: 0
       },
-      public: {
-        linkName: '',
-        discovery: false
-      },
+      linkName: '',
+      discovery: false,
       artworkPositions: []
     };
   }
@@ -56,12 +54,11 @@ export class ExhibitionFactory {
       contents: updateData.contents || existingExhibition.contents,
       languageOptions: updateData.languageOptions || existingExhibition.languageOptions,
       result: {
+        visits: 0,
+        likes: [],
+        totalTime: 0,
         ...existingExhibition.result,
         ...updateData.result
-      },
-      public: {
-        ...existingExhibition.public,
-        ...updateData.public
       },
       artworkPositions: updateData.artworkPositions || existingExhibition.artworkPositions
 
@@ -77,7 +74,7 @@ export class ExhibitionFactory {
       exhibitionData.gallery as any,
       exhibitionData.author as any,
     );
-    
+
     // Then update it with provided data
     return this.update(emptyExhibition, exhibitionData);
   }

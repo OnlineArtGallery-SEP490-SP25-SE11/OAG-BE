@@ -12,6 +12,7 @@ export class ExhibitionController implements IExhibitionController {
     this.create = this.create.bind(this);
     this.findAll = this.findAll.bind(this);
     this.findById = this.findById.bind(this);
+    this.findByLinkName = this.findByLinkName.bind(this);
     this.update = this.update.bind(this);
     this.delete = this.delete.bind(this);
   }       
@@ -114,4 +115,20 @@ export class ExhibitionController implements IExhibitionController {
     }
   };
   
+  
+  findByLinkName = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { linkName } = req.params;
+      const exhibition = await this._exhibitionService.findByLinkName(linkName);
+      
+      const response = BaseHttpResponse.success(
+        { exhibition },
+        200,
+        'Exhibition retrieved successfully'
+      );
+      res.status(response.statusCode).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

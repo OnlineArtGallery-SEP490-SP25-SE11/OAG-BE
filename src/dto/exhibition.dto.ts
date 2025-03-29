@@ -19,10 +19,6 @@ const resultSchema = z.object({
   totalTime: z.number().optional().default(0)
 });
 
-const publicSchema = z.object({
-  linkName: z.string().optional().default(''),
-  discovery: z.boolean().optional().default(false)
-});
 
 const artworkPositionSchema = z.object({
   artwork: z.string(),
@@ -51,7 +47,8 @@ const exhibitionCompleteSchema = z.object({
   isFeatured: z.boolean().optional().default(false),
   status: z.nativeEnum(ExhibitionStatus),
   result: resultSchema,
-  public: publicSchema,
+  linkName: z.string(),
+  discovery: z.boolean(),
   artworkPositions: z.array(artworkPositionSchema)
 });
 

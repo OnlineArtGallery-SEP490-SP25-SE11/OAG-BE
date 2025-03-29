@@ -19,6 +19,7 @@ router.post(
 
 router.get('/', exhibitionController.findAll);
 router.get('/:id', exhibitionController.findById);
+router.get('/link/:linkName', exhibitionController.findByLinkName);
 
 router.patch(
   '/:id',

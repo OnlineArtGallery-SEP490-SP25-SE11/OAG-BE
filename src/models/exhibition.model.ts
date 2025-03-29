@@ -16,25 +16,18 @@ class LanguageOption {
 
 class Result {
     @prop({ default: 0 })
-    public visits?: number;
+    public visits!: number;
 
     @prop({ required: false })
-    public likes?: {
+    public likes!: {
         count: number;
         artworkId: string;
     }[];
 
     @prop({ default: 0 })
-    public totalTime?: number; // minutes
+    public totalTime!: number; // minutes
 }
 
-class Public {
-    @prop({ default: '' })
-    public linkName?: string;
-
-    @prop({ default: false })
-    public discovery?: boolean;
-}
 
 class ArtWorkPosition {
     @prop({ ref: () => typeof Artwork, required: true })
@@ -103,7 +96,7 @@ export class Exhibition {
     public languageOptions!: LanguageOption[];
 
     @prop({ default: false })
-    public isFeatured?: boolean;
+    public isFeatured!: boolean;
 
     @prop({
         required: true, type: String,
@@ -116,8 +109,11 @@ export class Exhibition {
     @prop({ required: true, type: () => Result, _id: false })
     public result!: Result;
 
-    @prop({ required: true, type: () => Public, _id: false })
-    public public!: Public;
+    @prop({ default: '' })
+    public linkName!: string;
+
+    @prop({ required: true, default: false })
+    public discovery!: boolean;
 
     @prop({ required: true, type: () => [ArtWorkPosition], _id: false })
     public artworkPositions!: ArtWorkPosition[];
