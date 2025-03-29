@@ -12,7 +12,7 @@ class Report {
     @prop({ refPath: "reportedType", required: true })
     public refId!: Ref<Blog | typeof Artwork>; 
 
-    @prop({ required: true, enum: ['BLOG', 'ARTWORK','USER'] })
+    @prop({ required: true, enum: ['BLOG', 'ARTWORK','USER','COMMENT'] })
     public refType!: string;
 
     @prop({required: true, ref: () => User})

@@ -12,9 +12,11 @@ export class CollectionController {
 	) {
 		this.add = this.add.bind(this);
 		this.update = this.update.bind(this);
-		this.get = this.get.bind(this);
+		this.getById = this.getById.bind(this);
+		this.getByUserId = this.getByUserId.bind(this);
 		this.delArt = this.delArt.bind(this);
 		this.delCollection = this.delCollection.bind(this);
+		this.getByOtherUserId = this.getByOtherUserId.bind(this);
 	}
 
 	async add(req: Request, res: Response, next: NextFunction): Promise<any> {
@@ -41,10 +43,10 @@ export class CollectionController {
 		}
 	}
 
-	async get(req: Request, res: Response, next: NextFunction): Promise<any> {
+	async getById(req: Request, res: Response, next: NextFunction): Promise<any> {
 		try {
-			const { id } = req.query;
-			const collection = await this._collectionService.get(id as string);
+			const { id } = req.params;
+			const collection = await this._collectionService.getById(id as string);
 			const response = BaseHttpResponse.success(
 				collection,
 				200,
@@ -75,17 +77,37 @@ export class CollectionController {
 		}
 	}
 
+	async getByOtherUserId(req: Request, res: Response, next: NextFunction): Promise<any> {
+		try{
+			const  userId = req.query.userId as string;
+			if(!userId){
+				throw new Error('User not found');
+			}
+			const collection = await this._collectionService.getByUserId(userId);
+			const response = BaseHttpResponse.success(
+				collection,
+				200,
+				'Get collection success'
+			);
+			return res.status(response.statusCode).json(response);
+		}
+		catch(error){
+			next(error);
+		}
+	}
+
+
 	async update(
 		req: Request,
 		res: Response,
 		next: NextFunction
 	): Promise<any> {
 		try {
-			const { id, artId } = req.body;
+			const { id } = req.params;
+			const {artId } = req.body;
 
-			if (!id) {
-				throw new Error('Collection not found');
-			}
+			console.log('artId', artId);
+			console.log('id', id);
 
 			const updatedCollection = await this._collectionService.update(
 				id,

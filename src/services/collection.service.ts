@@ -40,7 +40,7 @@ export class CollectionService {
 		}
 	}
 
-	async get(
+	async getById(
 		id?: string
 	): Promise<
 		InstanceType<typeof Collection> | InstanceType<typeof Collection>[]
@@ -55,13 +55,19 @@ export class CollectionService {
 			return Collection.find();
 		}
 	}
-
+	// get my collections
 	async getByUserId(userId: string): Promise<InstanceType<typeof Collection>[]> {
 		try{
 			if(!userId){
 				throw new Error('User not found');
 			}
-			const collections = await Collection.find({ userId });
+			const collections = await Collection.find({ userId })
+			.populate({
+				path: 'artworks',
+				select: 'title url',
+				model: 'Artwork' // Explicitly specify the model name
+			})
+			.exec();
 			if(!collections){
 				throw new Error('Collection not found');
 			}
@@ -72,6 +78,23 @@ export class CollectionService {
 			throw error;
 		}
 	}
+	// //get collection of others
+	// async getByOtherUserId(userId: string): Promise<InstanceType<typeof Collection>[]> {
+	// 	try{
+	// 		if(!userId){
+	// 			throw new Error('User not found');
+	// 		}
+	// 		const collections = await Collection.find({ userId });
+	// 		if(!collections){
+	// 			throw new Error('Collection not found');
+	// 		}
+	// 		return collections;
+	// 	}
+	// 	catch(error){
+	// 		logger.error(error);
+	// 		throw error;
+	// 	}
+	// }
 	// add artwork to collection or my favorite
 	async update(
 		id: string,
