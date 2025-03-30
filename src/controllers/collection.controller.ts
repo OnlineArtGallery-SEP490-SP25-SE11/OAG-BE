@@ -127,15 +127,8 @@ export class CollectionController {
 
 	async delArt(req: Request, res: Response, next: NextFunction): Promise<any> {
 		try {
-			const { id, artId } = req.body;
-
-			if (!id) {
-				throw new Error('Collection ID is required');
-			}
-
-			if (!artId) {
-				throw new Error('Artwork ID is required');
-			}
+			const { id } = req.params;
+			const {artId } = req.body;
 
 			const updatedCollection = await this._collectionService.delArt(id, artId);
 			const response = BaseHttpResponse.success(

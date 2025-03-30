@@ -12,6 +12,6 @@ router.get('/', roleRequire(), colleciontController.getByUserId);
 router.get('/other', roleRequire(), colleciontController.getByOtherUserId);
 router.get('/:id', roleRequire(), colleciontController.getById);
 router.put('/:id', roleRequire(), colleciontController.update);
-router.delete('/', roleRequire(), colleciontController.delArt);
-router.delete('/:id', roleRequire(), colleciontController.delCollection);
+router.delete('/delete-art/:id', roleRequire(), colleciontController.delArt);
+router.delete('/delete-collection/:id', roleRequire(), colleciontController.delCollection);
 export default router;

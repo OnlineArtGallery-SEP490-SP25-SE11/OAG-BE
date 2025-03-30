@@ -138,7 +138,7 @@ export class CollectionService {
 		}
 	}
 	// delete artwork from collection or my favorite
-	async delArt(id: string, artId: string): Promise<InstanceType<typeof Collection>> {
+	async delArt(id: string, artIdInput: string | string[]): Promise<InstanceType<typeof Collection>> {
 		try {
 			if (!id) {
 				throw new Error('Collection not found');
@@ -151,12 +151,21 @@ export class CollectionService {
 			// Ensure artworks array exists
 			collection.artworks = collection.artworks || [];
 			
-			// Filter out the artwork to be removed
-			collection.artworks = collection.artworks.filter(
-				(existingArt) => 
-					!(existingArt instanceof Types.ObjectId && 
-					existingArt.toString() === artId)
-			);
+			// Handle both single string and array input
+			const artIds = Array.isArray(artIdInput) ? artIdInput : [artIdInput];
+			
+			// Log for debugging
+			console.log("Collection before:", collection.artworks);
+			console.log("Attempting to remove artwork IDs:", artIds);
+			
+			// Filter out the artworks to be removed - using string comparison
+			collection.artworks = collection.artworks.filter(existingArt => {
+				const existingArtString = existingArt.toString();
+				return !artIds.includes(existingArtString);
+			});
+			
+			// Log after filtering
+			console.log("Collection after filtering:", collection.artworks);
 			
 			// Save the updated collection
 			await collection.save();
