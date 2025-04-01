@@ -1,24 +1,28 @@
-import { Container } from 'inversify';
-import 'reflect-metadata';
 import { TYPES } from '@/constants/types';
 import { BlogController } from '@/controllers/blog.controller';
 import { InteractionController } from '@/controllers/interaction.controller';
 import {
 	IArtworkController,
 	IBlogController,
+	IChatController,
 	ICollectionController,
 	IInteractionController
 } from '@/interfaces/controller.interface';
 import {
 	IBlogService,
+	IChatService,
 	ICollectionService,
 	ICommentService,
 	IInteractionService
 } from '@/interfaces/service.interface';
 import { BlogService } from '@/services/blog.service';
 import { InteractionService } from '@/services/interaction.service';
+import { Container } from 'inversify';
+import 'reflect-metadata';
 
 import { ArtworkController } from '@/controllers/artwork.controller';
+// import {  } from '@/interfaces/controller.interface';
+import BankRequestController from '@/controllers/bankrequest.controller';
 import { BlogTagController } from "@/controllers/blog-tag.controller";
 import { CollectionController } from '@/controllers/collection.controller.ts';
 import { CommentController } from '@/controllers/comment.controller';
@@ -30,7 +34,10 @@ import { ArtworkService } from '@/services/artwork.service.ts';
 import BankRequestService from '@/services/bankrequest.service';
 import { BlogTagService } from "@/services/blog-tag.service";
 import { CollectionService } from '@/services/collection.service.ts';
-import { CommentService } from '@/services/comment.service';
+
+import { CommentService } from "@/services/comment.service";
+import { ChatController } from '@/controllers/chat.controller';
+import { ChatService } from '@/services/chat.service';
 import { GalleryService } from '@/services/gallery.service';
 import { GalleryController } from '@/controllers/gallery.controller';
 import { IGalleryService } from '@/interfaces/service/gallery-service.interface';
@@ -41,8 +48,7 @@ import { ExhibitionService } from '@/services/exhibition.service';
 import { ExhibitionController } from '@/controllers/exhibition.controller';
 import { PaymentService } from '@/services/payment.service';
 import WalletService from '@/services/wallet.service';
-import BankRequestController from '@/controllers/bankrequest.controller';
-
+import { AiService } from '@/services/ai.service';
 const container = new Container();
 
 // Services
@@ -62,6 +68,11 @@ container
 
 container.bind<ICommentService>(TYPES.CommentService).to(CommentService);
 container.bind<CommentController>(TYPES.CommentController).to(CommentController);
+
+// Chat
+container.bind<IChatService>(TYPES.ChatService).to(ChatService);
+container.bind<ChatController>(TYPES.ChatController).to(ChatController);
+
 
 // ARTWORK
 // container.bind<IArtworkService>(TYPES.ArtworkService).to(ArtworkService);
@@ -93,4 +104,5 @@ container.bind(Symbol.for('WalletService')).to(WalletService);
 container.bind(Symbol.for('WalletController')).to(WalletController);
 container.bind(Symbol.for('BankRequestService')).to(BankRequestService);
 container.bind(Symbol.for('BankRequestController')).to(BankRequestController);
+container.bind(Symbol.for('AiService')).to(AiService);
 export default container;

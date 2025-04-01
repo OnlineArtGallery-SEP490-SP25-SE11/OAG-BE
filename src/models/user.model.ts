@@ -10,6 +10,7 @@ import {
 import bcrypt from 'bcryptjs';
 import { PremiumSubscriptionModel } from './premium.model';
 import { Role } from '@/constants/enum';
+import mongoose, { Types } from 'mongoose';
 // userSchema.pre("updateOne", async function (next) {
 //   const update = this.getUpdate() as mongoose.UpdateQuery<IUser>;
 //   if (!update) {
@@ -155,6 +156,12 @@ class User {
 			website?: string;
 		};
 	};
+
+	@prop({ type: () => [Types.ObjectId], ref: 'User', default: [] })
+	following!: Types.ObjectId[];
+
+	@prop({ type: () => [Types.ObjectId], ref: 'User', default: [] })
+	followers!: Types.ObjectId[];
 }
 
 const UserModel = getModelForClass(User, { schemaOptions: { timestamps: true } });
