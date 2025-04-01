@@ -1,4 +1,4 @@
-import { getModelForClass, modelOptions, prop, DocumentType, type Ref, Severity } from "@typegoose/typegoose";
+import { getModelForClass, modelOptions, prop, DocumentType, type Ref, Severity, pre } from "@typegoose/typegoose";
 import User from "./user.model";
 import Artwork from "./artwork.model";
 import { ExhibitionStatus } from "@/constants/enum";
@@ -37,31 +37,54 @@ class ArtWorkPosition {
     public positionIndex!: number;
 }
 
+
 class Content {
     @prop({ required: true, trim: true, minlength: 2, maxlength: 2 })
     public languageCode!: string;
 
-    @prop({
-        required: false,
-        trim: true,
-        maxlength: 100,
-        default: '' 
-    })
+    @prop({ trim: true, maxlength: 100, default: '' })
     public name!: string;
 
-    @prop({
-        required: false,
-        default: '' 
-    })
+    @prop({ default: '' })
     public description!: string;
+}
+
+class Ticket {
+    @prop({ required: true, default: false })
+    public requiresPayment!: boolean;
+
+    @prop({ 
+        default: 0,
+        validate: {
+            validator: function(this: Ticket, price: number) {
+                if (this.requiresPayment) {
+                    return price > 0;
+                }
+                return true;
+            },
+            message: 'Price must be greater than 0 when payment is required'
+        }
+    })
+    public price!: number;
+
+    @prop({ ref: () => User, default: [] })
+    public registeredUsers!: Ref<typeof User>[];
 }
 
 @modelOptions({
     options: {
         allowMixed: Severity.ALLOW
+    },
+    schemaOptions: {
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true }
     }
 })
-@modelOptions({ schemaOptions: {} })
+@pre<Exhibition>('validate', function() {
+    if (this.endDate <= this.startDate) {
+        throw new Error('End date must be after start date');
+    }
+})
 export class Exhibition {
     @prop({
         type: () => [Content],
@@ -118,6 +141,10 @@ export class Exhibition {
     @prop({ required: true, type: () => [ArtWorkPosition], _id: false })
     public artworkPositions!: ArtWorkPosition[];
 
+    @prop({ type: () => Ticket, _id: false, required: true, default: () => ({}) })
+    public ticket!: Ticket;
+
+
     public getContent(languageCode: string) {
         return this.contents.find(content => content.languageCode === languageCode);
     }
@@ -126,6 +153,8 @@ export class Exhibition {
         const defaultLang = this.languageOptions.find(lang => lang.isDefault)?.code || 'en';
         return this.getContent(defaultLang);
     }
+
+
 }
 
 

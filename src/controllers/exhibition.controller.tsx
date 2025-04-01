@@ -23,6 +23,7 @@ export class ExhibitionController implements IExhibitionController {
         gallery: req.validatedData.gallery,
         author: req.userId!,
       });
+      // TODO: check if gallery is premium model, then check is artist is premium
       
       const response = BaseHttpResponse.success(
         exhibition,

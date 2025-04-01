@@ -25,10 +25,21 @@ const artworkPositionSchema = z.object({
   positionIndex: z.number()
 });
 
+const ticketSchema = z.object({
+  requiresPayment: z.boolean().default(false),
+  price: z.number().default(0),
+  registeredUsers: z.array(z.string()).default([]),
+  // currency: z.string().optional(),
+});
+
+
+
 // Minimal schema for initial creation - only requires gallery ID
 export const createEmptyExhibitionSchema = z.object({
   gallery: z.string(),
 });
+
+
 
 // Complete schema for exhibitions with all possible fields
 const exhibitionCompleteSchema = z.object({
@@ -39,8 +50,8 @@ const exhibitionCompleteSchema = z.object({
   backgroundAudio: z.string().url().optional(),
   contents: z.array(z.object({
     languageCode: z.string().min(2).max(2),
-    name: z.string().max(100).optional().default(''),
-    description: z.string().optional().default(''),
+    name: z.string().max(100).default(''),
+    description: z.string().default(''),
   })),
   gallery: z.string(),
   languageOptions: z.array(languageOptionSchema),
@@ -49,7 +60,8 @@ const exhibitionCompleteSchema = z.object({
   result: resultSchema,
   linkName: z.string(),
   discovery: z.boolean(),
-  artworkPositions: z.array(artworkPositionSchema)
+  artworkPositions: z.array(artworkPositionSchema),
+  ticket: ticketSchema,
 });
 
 // Update schema - all fields optional
