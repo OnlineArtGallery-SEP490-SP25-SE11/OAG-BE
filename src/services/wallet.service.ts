@@ -124,12 +124,15 @@ class WalletService {
             if (!amount || amount <= 0) {
                 throw new BadRequestException('Amount must be a positive number');
             }
+
             // Atomic operation: find wallet and update balance in one step if sufficient funds exist
             const wallet = await Wallet.findOneAndUpdate(
                 { userId, balance: { $gte: amount } },
                 { $inc: { balance: -amount } },
                 { new: true }
             );
+
+
             // Handle insufficient balance case
             if (!wallet) {
                 const originalWallet = await Wallet.findOne({ userId });
@@ -141,18 +144,28 @@ class WalletService {
                     message: `Insufficient balance. Available: ${originalWallet.balance}`
                 };
             }
+
+            console.log('wallet', wallet, 'userId', userId, 'amount', amount, 'description', description)
+
+            
+            
             const transaction = await Transaction.create({
                 walletId: wallet._id,
                 userId,
                 amount,
                 type: 'PAYMENT',
-                status: 'COMPLETED',
-                description: description || `Payment ${amount}`
+                status: 'PAID',
+                description: description || `Payment ${amount}`,
+                orderCode: Date.now()
             });
+
+            console.log('cac1')
+
 
             if (callback) {
                 callback();
             }
+
 
             logger.info('Payment completed successfully:', {
                 userId,
@@ -165,9 +178,10 @@ class WalletService {
                 status: 'SUCCESS',
                 message: 'Payment successful',
             };
+            
         } catch (error) {
             logger.error('Error processing payment:', error);
-
+            console.log('error', error)
             if (error instanceof BadRequestException) {
                 throw error;
             }

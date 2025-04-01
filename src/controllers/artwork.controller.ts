@@ -8,6 +8,7 @@ import { inject, injectable } from 'inversify';
 export class ArtworkController {
 	constructor(
 		@inject(TYPES.ArtworkService)
+		
 		private readonly _artworkService: ArtworkService
 	) {
 		this.get = this.get.bind(this);
@@ -17,6 +18,7 @@ export class ArtworkController {
 		this.delete = this.delete.bind(this);
 		this.getCategory = this.getCategory.bind(this);
 		this.getArtistArtwork = this.getArtistArtwork.bind(this);
+		this.purchase = this.purchase.bind(this);
 	}
 
 	async add(req: Request, res: Response, next: NextFunction): Promise<any> {
@@ -207,6 +209,26 @@ export class ArtworkController {
 		}
 	}
 
+	async purchase(req: Request, res: Response, next: NextFunction): Promise<any> {
+		try {
+			const { id } = req.params;
+			const userId = req.userId;
+			
+			if (!userId) {
+				throw new Error('User not authenticated');
+			}
 
+			const result = await this._artworkService.purchase(id, userId);
+			
+			const response = BaseHttpResponse.success(
+				result,
+				200,
+				'Purchase artwork success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
 
 }

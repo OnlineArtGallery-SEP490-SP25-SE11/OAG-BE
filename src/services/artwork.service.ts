@@ -1,8 +1,12 @@
 import logger from '@/configs/logger.config';
 import Artwork from '@/models/artwork.model';
 import User from '@/models/user.model.ts';
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { FilterQuery, Types } from 'mongoose';
+import Wallet from '@/models/wallet.model';
+import  container  from '@/configs/container.config';
+import WalletService from '@/services/wallet.service';
+import { TYPES } from '@/constants/types';
 
 export interface ArtworkQueryOptions {
 	select?: string;
@@ -26,6 +30,11 @@ export class ArtworkService {
 	/**
 	 * Thêm artwork mới.
 	 */
+
+	constructor(
+		@inject(TYPES.WalletService) private walletService: WalletService
+	) { }
+
 	async add(
 		title: string,
 		description: string,
@@ -283,6 +292,47 @@ export class ArtworkService {
 			return artworks;
 		} catch (error) {
 			logger.error(`Error fetching artworks by artist id ${artistId}: ${error}`);
+			throw error;
+		}
+	}
+
+	async purchase(artworkId: string, userId: string): Promise<{url: string}> {
+		try {
+			// Kiểm tra artwork có tồn tại và đang bán không
+			const artwork = await Artwork.findOne({
+				_id: artworkId,
+				status: 'selling'
+			});
+
+			if (!artwork) {
+				throw new Error('Artwork not found or not available for purchase');
+			}
+
+			// Lấy ví của người mua
+			const wallet = await Wallet.findOne({ userId });
+			if (!artwork.price) {
+				throw new Error('Artwork price is not set');
+			}
+			if (!wallet || wallet.balance < artwork.price) {
+				throw new Error('Insufficient balance');
+			}
+
+			console.log('artwork.url', artwork.url)
+
+			// Thực hiện thanh toán
+			await this.walletService.payment(
+				userId,
+				artwork.price || 0,
+				`Purchase artwork: ${artwork.title}`
+			);
+
+
+			return {
+				url: artwork.url
+			};
+
+		} catch (error) {
+			logger.error(`Error purchasing artwork: ${error}`);
 			throw error;
 		}
 	}

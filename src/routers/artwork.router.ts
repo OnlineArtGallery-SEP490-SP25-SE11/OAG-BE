@@ -23,4 +23,9 @@ router.get('/categories', artworkController.getCategory);
 router.get('/:id', artworkController.getById);
 router.put('/:id', roleRequire([Role.ARTIST]), artworkController.update);
 router.delete('/:id', roleRequire([Role.ARTIST]), artworkController.delete);
+router.post(
+	'/:id/purchase',
+	roleRequire([Role.USER, Role.ARTIST]),
+	artworkController.purchase
+);
 export default router;

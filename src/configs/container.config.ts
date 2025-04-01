@@ -74,11 +74,8 @@ container.bind<ChatController>(TYPES.ChatController).to(ChatController);
 
 
 // ARTWORK
-// container.bind<IArtworkService>(TYPES.ArtworkService).to(ArtworkService);
-container.bind(TYPES.ArtworkService).to(ArtworkService);
-container
-	.bind<IArtworkController>(TYPES.ArtworkController)
-	.to(ArtworkController);
+container.bind(Symbol.for('ArtworkService')).to(ArtworkService);
+container.bind(Symbol.for('ArtworkController')).to(ArtworkController);
 
 // COLLECTION
 container
