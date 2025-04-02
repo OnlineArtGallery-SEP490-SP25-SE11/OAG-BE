@@ -12,6 +12,8 @@ export interface ArtworkQueryOptions {
 	status?: string;
 	description?: string;
 	artistName?: string;
+	sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
 }
 
 export interface ArtworkUpdateOptions {
@@ -157,7 +159,7 @@ export class ArtworkService {
 	}> {
 		try {
 			// const query: FilterQuery<typeof Artwork> = { ...options };
-			const { select, ...rest } = options;
+			const { select, sortBy, sortOrder, ...rest } = options;
 			const query: FilterQuery<typeof Artwork> = { ...rest };
 
 			// Xử lý các điều kiện tìm kiếm
@@ -185,17 +187,23 @@ export class ArtworkService {
 			// Áp dụng bộ lọc dựa trên quyền hạn người dùng
 			this._applyPermissionFilters(query, userContext);
 
+			let sortOptions: Record<string, 1 | -1> = { createdAt: -1 }; // Default sort
+        
+        if (sortBy) {
+            // Ensure sortBy is a valid field to prevent injection attacks
+            const validSortFields = ['title', 'price', 'createdAt', 'status', 'category'];
+            if (validSortFields.includes(sortBy)) {
+                sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+            }
+        }
 			// Thực hiện truy vấn
-			const artworkQuery = Artwork.find(query).sort({ createdAt: -1 });
-
+			const artworkQuery = Artwork.find(query).sort(sortOptions);
 			// Áp dụng phân trang
 			this._applyPagination(artworkQuery, skip, take);
-
 			// Chọn các trường cần lấy nếu được chỉ định
 			if (select) {
 				artworkQuery.select(select);
 			}
-
 			// Thêm populate để lấy thông tin artist
 			artworkQuery.populate({
 				path: 'artistId',
