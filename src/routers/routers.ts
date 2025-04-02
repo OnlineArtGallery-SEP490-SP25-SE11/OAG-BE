@@ -18,6 +18,8 @@ import paymentRouter from '@/routers/payment.router';
 import userRouter from '@/routers/user.router';
 import bankrequestRouter from './bankrequest.router';
 import walletRouter from './wallet.router';
+import reportRouter from '@/routers/report.router';
+
 export default [
 	{ path: '/api/auth', router: authRouter },
 	{ path: '/api/user', router: userRouter },
@@ -33,8 +35,10 @@ export default [
 	{ path: '/api/comments', router: commentRoute},
 	{ path: '/api/chat', router: chatRoute},
 	{ path: '/api/payment', router: paymentRouter },
+	{ path: '/api/report', router: reportRouter },
 	{ path: '/api/artist', router: artistRouter },
 	{ path: '/api/gallery', router: galleryRouter },
 	{ path: '/api/exhibition', router: exhibitionRouter },
 	{ path: '/api/wallet', router: walletRouter },
-	{ path: '/api/bank-request', router: bankrequestRouter }];
+	{ path: '/api/bank-request', router: bankrequestRouter }
+];

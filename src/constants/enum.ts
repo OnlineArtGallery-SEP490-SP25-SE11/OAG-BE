@@ -15,6 +15,7 @@ export enum ExhibitionStatus {
 	PRIVATE = 'PRIVATE',
 	REJECTED = 'REJECTED'
 }
+
 export enum InteractionType {
 	HEART = 'HEART'
 }
@@ -31,3 +32,22 @@ export enum EventStatus {
 	COMPLETED = 'COMPLETED',
 }
 
+export enum ReasonReport {
+	INAPPROPRIATE = 'INAPPROPRIATE',
+	COPYRIGHT = 'COPYRIGHT',
+	HARASSMENT = 'HARASSMENT',
+	SPAM = 'SPAM',
+	Other = 'Other',
+}
+
+export enum ReportStatus {
+	PENDING = 'PENDING',
+	DISMISSED = 'DISMISSED',
+	RESOLVED = 'RESOLVED',
+}
+
+//Ban/unban user, warning
+export enum actionReport{
+	BAN = 'BAN',
+	WARNING = 'WARNING',
+}
