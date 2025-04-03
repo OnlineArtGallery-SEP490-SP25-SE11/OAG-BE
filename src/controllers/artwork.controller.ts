@@ -21,6 +21,7 @@ export class ArtworkController {
         this.reviewArtwork = this.reviewArtwork.bind(this);
 		this.getArtistArtwork = this.getArtistArtwork.bind(this);
 		this.purchase = this.purchase.bind(this);
+		this.downloadArtwork = this.downloadArtwork.bind(this);
 	}
 
     async add(req: Request, res: Response, next: NextFunction): Promise<any> {
@@ -329,6 +330,41 @@ export class ArtworkController {
 				'Purchase artwork success'
 			);
 			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async downloadArtwork(req: Request, res: Response, next: NextFunction): Promise<any> {
+		try {
+			const { id } = req.params;
+			const userId = req.userId;
+			
+			if (!userId) {
+				throw new Error('User not authenticated');
+			}
+			
+			// Kiểm tra quyền truy cập trước khi cho phép tải xuống
+			const hasAccess = await this._artworkService.verifyDownloadAccess(id, userId);
+			
+			if (!hasAccess) {
+				return res.status(403).json(
+					BaseHttpResponse.error('Unauthorized access to download this artwork', 403)
+				);
+			}
+			
+			// Lấy thông tin artwork
+			const artwork = await this._artworkService.getById(id);
+			
+			// Tạo tên file phù hợp
+			const fileName = artwork.title.replace(/\s+/g, '_') + '.jpg';
+			
+			// Thiết lập header để tải xuống
+			res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+			
+			// Chuyển hướng đến URL của file để tải xuống
+			res.redirect(artwork.url);
+			
 		} catch (error) {
 			next(error);
 		}
