@@ -22,6 +22,7 @@ export class ArtworkController {
 		this.getArtistArtwork = this.getArtistArtwork.bind(this);
 		this.purchase = this.purchase.bind(this);
 		this.downloadArtwork = this.downloadArtwork.bind(this);
+		this.checkPurchaseStatus = this.checkPurchaseStatus.bind(this);
 	}
 
     async add(req: Request, res: Response, next: NextFunction): Promise<any> {
@@ -377,6 +378,29 @@ export class ArtworkController {
 			// Chuyển hướng đến URL của file để tải xuống
 			res.redirect(artwork.url);
 			
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async checkPurchaseStatus(req: Request, res: Response, next: NextFunction): Promise<any> {
+		try {
+			const { id } = req.params;
+			const userId = req.userId;
+			
+			if (!userId) {
+				throw new Error('Người dùng chưa đăng nhập');
+			}
+			
+			const hasPurchased = await this._artworkService.hasPurchased(id, userId);
+			
+			const response = BaseHttpResponse.success(
+				{ hasPurchased },
+				200,
+				'Kiểm tra trạng thái mua tranh thành công'
+			);
+			
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}

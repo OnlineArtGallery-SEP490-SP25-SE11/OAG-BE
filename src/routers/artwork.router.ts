@@ -31,5 +31,6 @@ router.post(
 	roleRequire([Role.USER, Role.ARTIST]),
 	artworkController.purchase
 );
+router.get('/:id/check-purchased', roleRequire([Role.USER, Role.ARTIST]), artworkController.checkPurchaseStatus);
 // router.get('/download/:id',roleRequire([Role.USER, Role.ARTIST]), artworkController.downloadArtwork);
 export default router;
