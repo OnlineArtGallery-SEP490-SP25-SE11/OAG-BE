@@ -5,13 +5,16 @@ import {
 	prop,
 	type Ref
 } from '@typegoose/typegoose';
-
+import User from './user.model';
 @modelOptions({
 	schemaOptions: {
 		timestamps: true
 	}
 })
 class Collection {
+	@prop({ ref: () => User, required: true, index: true })
+	userId!: Ref<typeof User>;
+
 	@prop({
 		type: () => String,
 		required: true

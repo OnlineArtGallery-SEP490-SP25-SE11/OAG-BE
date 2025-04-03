@@ -142,6 +142,8 @@ class User {
 	@prop({ ref: () => PremiumSubscriptionModel })
 	premiumSubscription?: Ref<typeof PremiumSubscriptionModel>;
 
+	@prop({ default: false })
+	isBanned!: boolean;
 	@prop({ type: () => String })
 	address?: string;
 

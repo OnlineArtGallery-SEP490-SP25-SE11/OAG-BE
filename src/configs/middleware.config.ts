@@ -5,6 +5,7 @@ import {
 	UnauthorizedException
 } from '@/exceptions/http-exception';
 import AuthService from '@/services/auth.service';
+import User from '@/models/user.model';
 
 async function authMiddleware(req: Request, res: Response, next: NextFunction) {
 	try {
@@ -49,6 +50,35 @@ function roleRequire(roles?: string | string[]) {
 			next();
 		});
 	};
+}
+
+export function permanentBan() {
+    return async (req: Request, res: Response, next: NextFunction) => {
+        authMiddleware(req, res, async (err) => {
+            if (err) { return next(err); }
+            
+            try {
+                // Lấy userId từ request (được thiết lập bởi authMiddleware)
+                const userId = req.userId;
+                
+                // Truy vấn người dùng từ database và kiểm tra trạng thái bị cấm
+                const user = await User.findById(userId);
+                if (!user) {
+                    return next(new UnauthorizedException('User not found'));
+                }
+                // Kiểm tra nếu người dùng bị cấm
+				console.log(user);
+                if (user.isBanned) {
+					return next(new ForbiddenException('User is limited some function'));
+                }
+                // Người dùng không bị cấm, tiếp tục đến middleware tiếp theo
+                next();
+            } catch (error) {
+                logger.error('Error checking ban status:', error);
+                return next(new ForbiddenException('Error checking user status'));
+            }
+        });
+    };
 }
 
 // export { authMiddleware };

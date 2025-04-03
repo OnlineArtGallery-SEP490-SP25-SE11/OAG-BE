@@ -1,5 +1,5 @@
 import { ExhibitionDocument } from '@/models/exhibition.model';
-import { CreateExhibitionDto, UpdateExhibitionDto } from '@/dto/exhibition.dto';
+import { CreateEmptyExhibitionDto, UpdateExhibitionDto } from '@/dto/exhibition.dto';
 
 export interface PaginatedExhibitionResponse {
   exhibitions: ExhibitionDocument[];
@@ -22,8 +22,9 @@ export interface ExhibitionQueryOptions {
 }
 
 export interface IExhibitionService {
-  create(data: CreateExhibitionDto): Promise<ExhibitionDocument>;
+  create(data: CreateEmptyExhibitionDto): Promise<ExhibitionDocument>;
   findById(id: string): Promise<ExhibitionDocument | null>;
+  findByLinkName(linkName: string): Promise<ExhibitionDocument | null>;
   findAll(options?: ExhibitionQueryOptions): Promise<PaginatedExhibitionResponse>;
   update(id: string, data: UpdateExhibitionDto): Promise<ExhibitionDocument | null>;
   delete(id: string): Promise<ExhibitionDocument | null>;

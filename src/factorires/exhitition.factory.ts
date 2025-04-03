@@ -6,21 +6,25 @@ export class ExhibitionFactory {
    * Creates an empty exhibition with minimal required data and sensible defaults
    */
   static createEmpty(
-    galleryId: any, 
-    authorId: any, 
+    galleryId: any,
+    authorId: any,
     name: string = 'Untitled Exhibition'
   ): any {
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + 1);
-    
+
     return {
-      name,
       gallery: galleryId,
       author: authorId,
       startDate: new Date(),
       endDate,
       status: ExhibitionStatus.DRAFT,
       isFeatured: false,
+      contents: [{
+        languageCode: 'en',
+        name: name,
+        description: ''
+      }],
       languageOptions: [{
         name: 'EN',
         code: 'en',
@@ -31,10 +35,8 @@ export class ExhibitionFactory {
         likes: [],
         totalTime: 0
       },
-      public: {
-        linkName: '',
-        discovery: false
-      },
+      linkName: '',
+      discovery: false,
       artworkPositions: []
     };
   }
@@ -49,14 +51,17 @@ export class ExhibitionFactory {
     return {
       ...existingExhibition,
       ...updateData,
-      result: updateData.result ? {
+      contents: updateData.contents || existingExhibition.contents,
+      languageOptions: updateData.languageOptions || existingExhibition.languageOptions,
+      result: {
+        visits: 0,
+        likes: [],
+        totalTime: 0,
         ...existingExhibition.result,
         ...updateData.result
-      } : existingExhibition.result,
-      public: updateData.public ? {
-        ...existingExhibition.public,
-        ...updateData.public
-      } : existingExhibition.public
+      },
+      artworkPositions: updateData.artworkPositions || existingExhibition.artworkPositions
+
     };
   }
 
@@ -68,9 +73,8 @@ export class ExhibitionFactory {
     const emptyExhibition = this.createEmpty(
       exhibitionData.gallery as any,
       exhibitionData.author as any,
-      exhibitionData.name
     );
-    
+
     // Then update it with provided data
     return this.update(emptyExhibition, exhibitionData);
   }
