@@ -324,8 +324,20 @@ export class ArtworkController {
 
 			const result = await this._artworkService.purchase(id, userId);
 			
+			// Lấy thông tin artwork để tính toán hoa hồng (để hiển thị)
+			const artwork = await this._artworkService.getById(id);
+			const commissionRate = 0.03;
+			const commissionAmount = (artwork.price || 0) * commissionRate;
+			const artistAmount = (artwork.price || 0) - commissionAmount;
+			
 			const response = BaseHttpResponse.success(
-				result,
+				{
+					...result,
+					price: artwork.price,
+					artistAmount,
+					commissionAmount,
+					commissionRate: "3%"
+				},
 				200,
 				'Purchase artwork success'
 			);

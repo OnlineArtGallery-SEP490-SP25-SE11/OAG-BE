@@ -9,6 +9,7 @@ import container from '@/configs/container.config';
 import WalletService from '@/services/wallet.service';
 import { TYPES } from '@/constants/types';
 import ArtworkWarehouseModel from '@/models/artwork-warehouse.model';
+import Transaction from '@/models/transaction.model';
 
 export interface ArtworkQueryOptions {
 	select?: string;
@@ -591,6 +592,41 @@ export class ArtworkService {
 				artwork.price || 0,
 				`Purchase artwork: ${artwork.title}`
 			);
+
+			// Tính toán phí hoa hồng 3%
+			const commissionRate = 0.03;
+			const commissionAmount = artwork.price * commissionRate;
+			const artistAmount = artwork.price - commissionAmount;
+			
+			// Cộng tiền vào ví của artist (đã trừ hoa hồng)
+			let artistWallet = await Wallet.findOne({ userId: artwork.artistId });
+			if (!artistWallet) {
+				artistWallet = await Wallet.create({
+					userId: artwork.artistId,
+					balance: 0
+				});
+			}
+
+			// Sử dụng phương thức addFunds mới
+			await this.walletService.addFunds(artistWallet._id?.toString(), artistAmount, {
+				userId: artwork.artistId?.toString() || '',
+				type: 'SALE',
+				status: 'PAID',
+				description: `Sold artwork: ${artwork.title} (after 3% commission)`,
+				orderCode: Date.now().toString()
+			});
+			
+			// Tạo transaction ghi nhận phí hoa hồng
+			await Transaction.create({
+				walletId: artistWallet._id,
+				userId: artwork.artistId,
+				amount: commissionAmount,
+				type: 'COMMISSION',
+				status: 'PAID',
+				description: `Commission fee (3%) for artwork: ${artwork.title}`,
+				commissionRate: commissionRate,
+				orderCode: Date.now()
+			});
 
 			// Cập nhật trạng thái artwork sau khi mua thành công
 			await Artwork.findByIdAndUpdate(

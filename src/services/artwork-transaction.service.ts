@@ -63,29 +63,36 @@ export class ArtworkTransactionService {
             }
 
             try {
-                // Cộng tiền vào ví của artist
+                // Tính toán phí hoa hồng 3%
+                const commissionRate = 0.03;
+                const commissionAmount = artwork.price * commissionRate;
+                const artistAmount = artwork.price - commissionAmount;
+                
+                // Cộng tiền vào ví của artist (đã trừ hoa hồng)
                 let artistWallet = await Wallet.findOne({ userId: artwork.artistId });
                 if (!artistWallet) {
                     artistWallet = await Wallet.create({
                         userId: artwork.artistId,
-                        balance: artwork.price
+                        balance: 0
                     });
-                } else {
-                    artistWallet = await Wallet.findOneAndUpdate(
-                        { _id: artistWallet._id },
-                        { $inc: { balance: artwork.price } },
-                        { new: true }
-                    );
                 }
 
-                // Tạo transaction cho artist
-                await Transaction.create({
-                    walletId: Wallet,
-                    userId: artwork.artistId,
-                    amount: artwork.price,
+                // Sử dụng phương thức addFunds mới
+                await this.walletService.addFunds(artistWallet?._id.toString(), artistAmount, {
+                    userId: artwork.artistId.toString(),
                     type: 'SALE',
-                    status: 'COMPLETED',
-                    description: `Sold artwork: ${artwork.title}`
+                    status: 'PAID',
+                    description: `Sold artwork: ${artwork.title} (after 3% commission)`
+                });
+                
+                // Tạo transaction ghi nhận phí hoa hồng
+                await Transaction.create({
+                    walletId: artistWallet._id,
+                    userId: artwork.artistId,
+                    amount: commissionAmount,
+                    type: 'COMMISSION',
+                    status: 'PAID',
+                    description: `Commission fee (3%) for artwork: ${artwork.title}`
                 });
 
                 // Cập nhật artwork
@@ -105,7 +112,9 @@ export class ArtworkTransactionService {
                         ...(updatedArtwork as any),
                         downloadUrl: artwork.url
                     },
-                    transaction: paymentResult.transaction
+                    artistAmount: artistAmount,
+                    commissionAmount: commissionAmount,
+                    commissionRate: commissionRate
                 };
 
             } catch (error) {
