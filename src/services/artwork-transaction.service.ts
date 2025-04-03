@@ -99,7 +99,6 @@ export class ArtworkTransactionService {
                 const updatedArtwork = await Artwork.findByIdAndUpdate(
                     artworkId,
                     { 
-                        status: 'sold',
                         $addToSet: { buyers: buyerId }
                     },
                     { new: true }
