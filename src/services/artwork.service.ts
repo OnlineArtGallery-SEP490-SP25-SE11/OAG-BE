@@ -1,9 +1,15 @@
 import logger from '@/configs/logger.config';
 import Artwork from '@/models/artwork.model';
-import User from '@/models/user.model.ts';
-import { AiService } from '@/services/ai.service.ts';
+import User from '@/models/user.model';
+import { AiService } from '@/services/ai.service';
 import { inject, injectable } from 'inversify';
 import { FilterQuery, Types } from 'mongoose';
+import Wallet from '@/models/wallet.model';
+import container from '@/configs/container.config';
+import WalletService from '@/services/wallet.service';
+import { TYPES } from '@/constants/types';
+import ArtworkWarehouseModel from '@/models/artwork-warehouse.model';
+import Transaction from '@/models/transaction.model';
 
 export interface ArtworkQueryOptions {
 	select?: string;
@@ -37,13 +43,16 @@ export interface ArtworkUpdateOptions {
 
 @injectable()
 export class ArtworkService {
-	constructor(
-		@inject(Symbol.for('AiService')) private readonly aiService: AiService
-	) {}
 
 	/**
 	 * Thêm artwork mới.
-	 */
+	*/
+	
+	constructor(
+		@inject(TYPES.WalletService) private walletService: WalletService,
+		@inject(Symbol.for('AiService')) private readonly aiService: AiService
+	) { }
+
 	async add(
 		title: string,
 		description: string,
@@ -552,6 +561,120 @@ export class ArtworkService {
 			return artworks;
 		} catch (error) {
 			logger.error(`Error fetching artworks by artist id ${artistId}: ${error}`);
+			throw error;
+		}
+	}
+
+	async purchase(artworkId: string, userId: string): Promise<{url: string, fileName: string}> {
+		try {
+			// Kiểm tra artwork có tồn tại và đang bán không
+			const artwork = await Artwork.findOne({
+				_id: artworkId,
+				status: 'selling'
+			});
+
+			if (!artwork) {
+				throw new Error('Artwork not found or not available for purchase');
+			}
+
+			// Lấy ví của người mua
+			const wallet = await Wallet.findOne({ userId });
+			if (!artwork.price) {
+				throw new Error('Artwork price is not set');
+			}
+			if (!wallet || wallet.balance < artwork.price) {
+				throw new Error('Insufficient balance');
+			}
+
+			// Thực hiện thanh toán
+			await this.walletService.payment(
+				userId,
+				artwork.price || 0,
+				`Purchase artwork: ${artwork.title}`
+			);
+
+			// Tính toán phí hoa hồng 3%
+			const commissionRate = 0.03;
+			const commissionAmount = artwork.price * commissionRate;
+			const artistAmount = artwork.price - commissionAmount;
+			
+			// Cộng tiền vào ví của artist (đã trừ hoa hồng)
+			let artistWallet = await Wallet.findOne({ userId: artwork.artistId });
+			if (!artistWallet) {
+				artistWallet = await Wallet.create({
+					userId: artwork.artistId,
+					balance: 0
+				});
+			}
+
+			// Sử dụng phương thức addFunds mới
+			await this.walletService.addFunds(artistWallet._id?.toString(), artistAmount, {
+				userId: artwork.artistId?.toString() || '',
+				type: 'SALE',
+				status: 'PAID',
+				description: `Sold artwork: ${artwork.title} (after 3% commission)`,
+				orderCode: Date.now().toString()
+			});
+			
+			// Tạo transaction ghi nhận phí hoa hồng
+			await Transaction.create({
+				walletId: artistWallet._id,
+				userId: artwork.artistId,
+				amount: commissionAmount,
+				type: 'COMMISSION',
+				status: 'PAID',
+				description: `Commission fee (3%) for artwork: ${artwork.title}`,
+				commissionRate: commissionRate,
+				orderCode: Date.now()
+			});
+
+			// Cập nhật trạng thái artwork sau khi mua thành công
+			await Artwork.findByIdAndUpdate(
+				artworkId,
+				{ 
+					$addToSet: { buyers: userId },
+					status: 'sold'
+				}
+			);
+
+			// Thêm tranh vào kho của người dùng
+			await ArtworkWarehouseModel.create({
+				userId,
+				artworkId,
+				purchasedAt: new Date(),
+				downloadCount: 0
+			});
+
+			// Lấy tên file từ url
+			const fileName = artwork.title.replace(/\s+/g, '_') + '.jpg';
+
+			return {
+				url: artwork.url,
+				fileName: fileName
+			};
+		} catch (error) {
+			logger.error(`Error purchasing artwork: ${error}`);
+			throw error;
+		}
+	}
+
+	async verifyDownloadAccess(artworkId: string, userId: string): Promise<boolean> {
+		try {
+			const artwork = await this.getById(artworkId);
+			
+			if (!artwork) {
+				throw new Error('Artwork not found');
+			}
+			
+			// Cho phép người dùng tải xuống nếu:
+			// 1. Họ là artist của artwork, hoặc
+			// 2. Họ đã mua artwork này
+			const isArtist = artwork.artistId?.toString() === userId;
+			const hasPurchased = artwork.buyers?.includes(userId);
+			
+			return isArtist || hasPurchased || false;
+		} catch (error) {
+			logger.error(`Error verifying download access: ${error}`);
 			throw error;
 		}
 	}
