@@ -26,7 +26,7 @@ export class ExhibitionController implements IExhibitionController {
       // TODO: check if gallery is premium model, then check is artist is premium
       
       const response = BaseHttpResponse.success(
-        exhibition,
+        {exhibition},
         201,
         'Exhibition created successfully'
       );

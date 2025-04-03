@@ -27,6 +27,7 @@ export class ExhibitionService implements IExhibitionService {
             return exhibition;
         } catch (error) {
             logger.error('Error creating exhibition:', error);
+            console.log(error, 'cac');
             if (error instanceof BadRequestException) {
                 throw error;
             }
@@ -184,7 +185,7 @@ export class ExhibitionService implements IExhibitionService {
             
             return exhibition;
         } catch (error) {
-            logger.error(`Error updating exhibition ${id}:`, error);
+            // logger.error(`Error updating exhibition ${id}:`, error);
             if (error instanceof Error.ValidationError) {
                 throw new BadRequestException(
                     'Invalid exhibition data',
