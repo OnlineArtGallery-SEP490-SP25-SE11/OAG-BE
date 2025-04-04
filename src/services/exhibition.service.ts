@@ -27,7 +27,6 @@ export class ExhibitionService implements IExhibitionService {
             return exhibition;
         } catch (error) {
             logger.error('Error creating exhibition:', error);
-            console.log(error, 'cac');
             if (error instanceof BadRequestException) {
                 throw error;
             }

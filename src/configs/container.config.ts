@@ -81,10 +81,10 @@ container.bind(Symbol.for('ArtworkController')).to(ArtworkController);
 
 // COLLECTION
 container
-	.bind<ICollectionService>(TYPES.CollectionService)
+	.bind<CollectionService>(TYPES.CollectionService)
 	.to(CollectionService);
 container
-	.bind<ICollectionController>(TYPES.CollectionController)
+	.bind<CollectionController>(TYPES.CollectionController)
 	.to(CollectionController);
 
 // GALLERY
