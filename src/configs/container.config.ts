@@ -49,6 +49,7 @@ import { ExhibitionController } from '@/controllers/exhibition.controller';
 import { PaymentService } from '@/services/payment.service';
 import WalletService from '@/services/wallet.service';
 import { AiService } from '@/services/ai.service';
+import { ArtworkWarehouseController } from '@/controllers/artwork-warehouse.controller';
 const container = new Container();
 
 // Services
@@ -75,11 +76,8 @@ container.bind<ChatController>(TYPES.ChatController).to(ChatController);
 
 
 // ARTWORK
-// container.bind<IArtworkService>(TYPES.ArtworkService).to(ArtworkService);
-container.bind(TYPES.ArtworkService).to(ArtworkService);
-container
-	.bind<IArtworkController>(TYPES.ArtworkController)
-	.to(ArtworkController);
+container.bind(Symbol.for('ArtworkService')).to(ArtworkService);
+container.bind(Symbol.for('ArtworkController')).to(ArtworkController);
 
 // COLLECTION
 container
@@ -105,4 +103,5 @@ container.bind(Symbol.for('WalletController')).to(WalletController);
 container.bind(Symbol.for('BankRequestService')).to(BankRequestService);
 container.bind(Symbol.for('BankRequestController')).to(BankRequestController);
 container.bind(Symbol.for('AiService')).to(AiService);
+container.bind<ArtworkWarehouseController>(TYPES.ArtworkWarehouseController).to(ArtworkWarehouseController);
 export default container;

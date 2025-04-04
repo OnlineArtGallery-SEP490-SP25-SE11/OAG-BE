@@ -130,7 +130,8 @@ class AuthService {
 	 */
 	async generateTokens(
 		userId: string,
-		role: string[]
+		role: string[],
+		isBanned?: boolean
 	): Promise<{ accessToken: string; refreshToken: string }> {
 		//delete old refresh token
 		await RefreshToken.deleteMany({ userId });
@@ -143,7 +144,8 @@ class AuthService {
 		const accessToken = jwt.sign(
 			{
 				id: userId,
-				role
+				role,
+				isBanned
 			},
 			env.JWT_SECRET,
 			{
@@ -156,7 +158,8 @@ class AuthService {
 		const refreshToken = jwt.sign(
 			{
 				id: userId,
-				role
+				role,
+				isBanned
 			},
 			env.REFRESH_TOKEN_SECRET,
 			{

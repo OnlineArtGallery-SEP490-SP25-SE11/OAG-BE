@@ -49,6 +49,18 @@ class UserService {
 			logger.error(`Update profile failed!, ${err.message}`);
 			throw new Error(`Update profile failed!, ${err.message}`);
 		}
+	} 
+
+	//admin function user
+	async getAllUser(): Promise<InstanceType<typeof User>[]> {
+		try {
+			const users = await User.find();
+			return users;
+		}
+		catch{
+			logger.error(`Get all user failed!`);
+			throw new Error(`Get all user failed!`);
+		}
 	}
 
 	async updateAvatar(

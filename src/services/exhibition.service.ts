@@ -184,7 +184,7 @@ export class ExhibitionService implements IExhibitionService {
             
             return exhibition;
         } catch (error) {
-            logger.error(`Error updating exhibition ${id}:`, error);
+            // logger.error(`Error updating exhibition ${id}:`, error);
             if (error instanceof Error.ValidationError) {
                 throw new BadRequestException(
                     'Invalid exhibition data',

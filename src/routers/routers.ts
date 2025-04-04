@@ -4,7 +4,7 @@ import authRouter from '@/routers/auth.router';
 import blogTagRouter from '@/routers/blog-tag.router';
 import blogRouter from '@/routers/blog.router';
 import collectionRouter from '@/routers/collection.router';
-import commentRoute from '@/routers/comment.route';
+import commentRoute from '@/routers/comment.router';
 import eventRouter from '@/routers/event.router';
 import fileRouter from '@/routers/file.router';
 import interactionRouter from '@/routers/interaction.router';
@@ -12,12 +12,15 @@ import notificationRouter from '@/routers/notification.router';
 
 import galleryRouter from '@/routers/gallery.router';
 import exhibitionRouter from '@/routers/exhibition.router';
-import chatRoute from '@/routers/chat.route';
+import chatRoute from '@/routers/chat.router';
 
 import paymentRouter from '@/routers/payment.router';
 import userRouter from '@/routers/user.router';
 import bankrequestRouter from './bankrequest.router';
 import walletRouter from './wallet.router';
+import artworkWarehouseRouter from './artwork-warehouse.router';
+import reportRouter from '@/routers/report.router';
+
 export default [
 	{ path: '/api/auth', router: authRouter },
 	{ path: '/api/user', router: userRouter },
@@ -33,8 +36,11 @@ export default [
 	{ path: '/api/comments', router: commentRoute},
 	{ path: '/api/chat', router: chatRoute},
 	{ path: '/api/payment', router: paymentRouter },
+	{ path: '/api/report', router: reportRouter },
 	{ path: '/api/artist', router: artistRouter },
 	{ path: '/api/gallery', router: galleryRouter },
 	{ path: '/api/exhibition', router: exhibitionRouter },
 	{ path: '/api/wallet', router: walletRouter },
+	{ path: '/api/artwork-warehouse', router: artworkWarehouseRouter },
 	{ path: '/api/bank-request', router: bankrequestRouter }];
+	

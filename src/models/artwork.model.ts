@@ -104,6 +104,12 @@ class Artwork {
 		description?: string;
 		metadata?: Record<string, any>;
 	};
+
+	@prop({
+		type: () => [String],
+		default: []
+	})
+	public buyers?: string[];
 }
 
 export default getModelForClass(Artwork, {
