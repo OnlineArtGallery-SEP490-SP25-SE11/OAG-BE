@@ -19,6 +19,7 @@ import userRouter from '@/routers/user.router';
 import bankrequestRouter from './bankrequest.router';
 import walletRouter from './wallet.router';
 import reportRouter from '@/routers/report.router';
+import albumRouter from '@/routers/album.router';
 
 export default [
 	{ path: '/api/auth', router: authRouter },
@@ -40,5 +41,7 @@ export default [
 	{ path: '/api/gallery', router: galleryRouter },
 	{ path: '/api/exhibition', router: exhibitionRouter },
 	{ path: '/api/wallet', router: walletRouter },
-	{ path: '/api/bank-request', router: bankrequestRouter }
+	{ path: '/api/bank-request', router: bankrequestRouter },
+	{ path: '/api/album', router: albumRouter },
+
 ];

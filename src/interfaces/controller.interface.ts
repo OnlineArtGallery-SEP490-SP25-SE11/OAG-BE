@@ -74,6 +74,18 @@ export interface ICollectionController {
     update(req: Request, res: Response, next: NextFunction): Promise<any>;
     get(req: Request, res: Response, next: NextFunction): Promise<any>;
 }
+
+export interface IAlbumController{
+    add(req: Request, res: Response, next: NextFunction): Promise<any>;
+    update(req: Request, res: Response, next: NextFunction): Promise<any>;
+    get(req: Request, res: Response, next: NextFunction): Promise<any>;
+    getByUserId(req: Request, res: Response, next: NextFunction): Promise<any>;
+    getByOtherUserId(req: Request, res: Response, next: NextFunction): Promise<any>;
+    getById(req: Request, res: Response, next: NextFunction): Promise<any>;
+    delArt(req: Request, res: Response, next: NextFunction): Promise<any>;
+    delCollection(req: Request, res: Response, next: NextFunction): Promise<any>;
+}
+
 export interface IChatController {
   createChat(req: Request, res: Response, next: NextFunction): Promise<Response>;
   getChatHistory(req: Request, res: Response, next: NextFunction): Promise<Response>;
