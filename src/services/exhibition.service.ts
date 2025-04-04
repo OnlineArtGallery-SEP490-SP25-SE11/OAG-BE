@@ -30,7 +30,7 @@ export class ExhibitionService implements IExhibitionService {
             console.log(error, 'cac');
             if (error instanceof BadRequestException) {
                 throw error;
-            }
+            }   
             if (error instanceof Error.ValidationError) {
                 throw new BadRequestException(
                     'Invalid exhibition data',
