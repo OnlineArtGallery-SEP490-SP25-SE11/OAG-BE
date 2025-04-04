@@ -6,11 +6,11 @@ import { inject, injectable } from 'inversify';
 import { FilterQuery, Types } from 'mongoose';
 import NotificationService from '@/services/notification.service';
 import Wallet from '@/models/wallet.model';
-import container from '@/configs/container.config';
 import WalletService from '@/services/wallet.service';
 import { TYPES } from '@/constants/types';
 import ArtworkWarehouseModel from '@/models/artwork-warehouse.model';
 import Transaction from '@/models/transaction.model';
+import { BadRequestException } from '@/exceptions/http-exception';
 
 export interface ArtworkQueryOptions {
 	select?: string;
@@ -699,6 +699,16 @@ export class ArtworkService {
 				throw new Error('Artwork not found or not available for purchase');
 			}
 
+			// Kiểm tra xem người dùng đã mua artwork này chưa
+			if (artwork.buyers?.includes(userId)) {
+				// Người dùng đã mua tranh này rồi
+				const fileName = artwork.title.replace(/\s+/g, '_') + '.jpg';
+				return {
+					url: artwork.url,
+					fileName: fileName
+				};
+			}
+
 			// Lấy ví của người mua
 			const wallet = await Wallet.findOne({ userId });
 			if (!artwork.price) {
@@ -750,12 +760,12 @@ export class ArtworkService {
 				orderCode: Date.now()
 			});
 
-			// Cập nhật trạng thái artwork sau khi mua thành công
+			// Cập nhật danh sách người mua mà KHÔNG thay đổi trạng thái
 			await Artwork.findByIdAndUpdate(
 				artworkId,
 				{ 
-					$addToSet: { buyers: userId },
-					status: 'sold'
+					$addToSet: { buyers: userId }
+					// Không thay đổi status thành 'sold' nữa
 				}
 			);
 
@@ -797,6 +807,54 @@ export class ArtworkService {
 			return isArtist || hasPurchased || false;
 		} catch (error) {
 			logger.error(`Error verifying download access: ${error}`);
+			throw error;
+		}
+	}
+
+	/**
+	 * Kiểm tra xem người dùng đã mua tranh hay chưa
+	 * @param artworkId ID của tranh
+	 * @param userId ID của người dùng
+	 * @returns true nếu người dùng đã mua tranh, false nếu chưa
+	 */
+	async hasPurchased(artworkId: string, userId: string): Promise<boolean> {
+		try {
+			if (!Types.ObjectId.isValid(artworkId)) {
+				throw new BadRequestException('ID tranh không hợp lệ');
+			}
+			
+			if (!Types.ObjectId.isValid(userId)) {
+				throw new BadRequestException('ID người dùng không hợp lệ');
+			}
+			
+			// Kiểm tra trong danh sách buyers của artwork
+			const artwork = await Artwork.findById(artworkId);
+			
+			if (!artwork) {
+				throw new BadRequestException('Không tìm thấy tranh');
+			}
+			
+			// Kiểm tra nếu người dùng là artist của tranh
+			if (artwork.artistId?.toString() === userId) {
+				return true; // Artist luôn có quyền truy cập tranh của mình
+			}
+			
+			// Kiểm tra nếu người dùng đã mua tranh
+			const hasBought = artwork.buyers?.includes(userId) || false;
+			
+			// Kiểm tra thêm trong kho tranh của người dùng
+			if (!hasBought) {
+				const artworkInWarehouse = await ArtworkWarehouseModel.findOne({
+					artworkId,
+					userId
+				});
+				
+				return !!artworkInWarehouse;
+			}
+			
+			return hasBought;
+		} catch (error) {
+			logger.error(`Lỗi khi kiểm tra quyền sở hữu tranh: ${error}`);
 			throw error;
 		}
 	}
