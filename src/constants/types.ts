@@ -63,5 +63,11 @@ export const TYPES = {
     IExhibitionController: Symbol.for('IExhibitionController'),
     ExhibitionController: Symbol.for('ExhibitionController'),
     IExhibitionService: Symbol.for('IExhibitionService'),
-    ExhibitionService: Symbol.for('ExhibitionService')
+    ExhibitionService: Symbol.for('ExhibitionService'),
+
+    // cccd
+    ICCCDService: Symbol.for('ICCCDService'),
+    CCCDService: Symbol.for('CCCDService'),
+    ICCCDController: Symbol.for('ICCCDController'),
+    CCCDController: Symbol.for('CCCDController'),
 }

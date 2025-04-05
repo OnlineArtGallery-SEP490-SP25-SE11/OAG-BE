@@ -142,8 +142,8 @@ class User {
 	@prop({ ref: () => PremiumSubscriptionModel })
 	premiumSubscription?: Ref<typeof PremiumSubscriptionModel>;
 
-	@prop({ type: () => String })
-	address?: string;
+	@prop({ type: Boolean, default: false })
+	isRequestBecomeArtist!: boolean;
 
 	@prop({ type: () => Object })
 	artistProfile?: {

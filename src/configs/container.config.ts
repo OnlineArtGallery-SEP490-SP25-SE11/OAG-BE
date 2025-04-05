@@ -12,6 +12,7 @@ import {
 } from '@/interfaces/controller.interface';
 import {
 	IBlogService,
+	ICCCDService,
 	IChatService,
 	ICollectionService,
 	ICommentService,
@@ -47,6 +48,8 @@ import { ExhibitionController } from '@/controllers/exhibition.controller';
 import { PaymentService } from '@/services/payment.service';
 import WalletService from '@/services/wallet.service';
 import BankRequestController from '@/controllers/bankrequest.controller';
+import { CCCDController } from '@/controllers/cccd.controller';
+import { CCCDService } from '@/services/cccd.service';
 
 const container = new Container();
 
@@ -67,6 +70,10 @@ container
 
 container.bind<ICommentService>(TYPES.CommentService).to(CommentService);
 container.bind<CommentController>(TYPES.CommentController).to(CommentController);
+
+// cccd
+container.bind<ICCCDService>(TYPES.CCCDService).to(CCCDService);
+container.bind<CCCDController>(TYPES.CCCDController).to(CCCDController);
 
 // Chat
 container.bind<IChatService>(TYPES.ChatService).to(ChatService);
@@ -103,4 +110,5 @@ container.bind(Symbol.for('WalletService')).to(WalletService);
 container.bind(Symbol.for('WalletController')).to(WalletController);
 container.bind(Symbol.for('BankRequestService')).to(BankRequestService);
 container.bind(Symbol.for('BankRequestController')).to(BankRequestController);
+
 export default container;
