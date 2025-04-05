@@ -1,5 +1,3 @@
-import { Container } from 'inversify';
-import 'reflect-metadata';
 import { TYPES } from '@/constants/types';
 import { BlogController } from '@/controllers/blog.controller';
 import { InteractionController } from '@/controllers/interaction.controller';
@@ -20,10 +18,15 @@ import {
 } from '@/interfaces/service.interface';
 import { BlogService } from '@/services/blog.service';
 import { InteractionService } from '@/services/interaction.service';
+import { Container } from 'inversify';
+import 'reflect-metadata';
 
 import { ArtworkController } from '@/controllers/artwork.controller';
+// import {  } from '@/interfaces/controller.interface';
+import BankRequestController from '@/controllers/bankrequest.controller';
 import { BlogTagController } from "@/controllers/blog-tag.controller";
 import { CollectionController } from '@/controllers/collection.controller.ts';
+import { CommentController } from '@/controllers/comment.controller';
 import { PaymentController } from '@/controllers/payment.controller';
 import WalletController from '@/controllers/wallet.controller';
 import { IBlogTagController } from "@/interfaces/controller.interface";
@@ -33,7 +36,6 @@ import BankRequestService from '@/services/bankrequest.service';
 import { BlogTagService } from "@/services/blog-tag.service";
 import { CollectionService } from '@/services/collection.service.ts';
 
-import { CommentController } from "@/controllers/comment.controller";
 import { CommentService } from "@/services/comment.service";
 import { ChatController } from '@/controllers/chat.controller';
 import { ChatService } from '@/services/chat.service';
@@ -47,10 +49,10 @@ import { ExhibitionService } from '@/services/exhibition.service';
 import { ExhibitionController } from '@/controllers/exhibition.controller';
 import { PaymentService } from '@/services/payment.service';
 import WalletService from '@/services/wallet.service';
-import BankRequestController from '@/controllers/bankrequest.controller';
+import { AiService } from '@/services/ai.service';
+import { ArtworkWarehouseController } from '@/controllers/artwork-warehouse.controller';
 import { CCCDController } from '@/controllers/cccd.controller';
 import { CCCDService } from '@/services/cccd.service';
-
 const container = new Container();
 
 // Services
@@ -81,18 +83,15 @@ container.bind<ChatController>(TYPES.ChatController).to(ChatController);
 
 
 // ARTWORK
-// container.bind<IArtworkService>(TYPES.ArtworkService).to(ArtworkService);
-container.bind(TYPES.ArtworkService).to(ArtworkService);
-container
-	.bind<IArtworkController>(TYPES.ArtworkController)
-	.to(ArtworkController);
+container.bind(Symbol.for('ArtworkService')).to(ArtworkService);
+container.bind(Symbol.for('ArtworkController')).to(ArtworkController);
 
 // COLLECTION
 container
-	.bind<ICollectionService>(TYPES.CollectionService)
+	.bind<CollectionService>(TYPES.CollectionService)
 	.to(CollectionService);
 container
-	.bind<ICollectionController>(TYPES.CollectionController)
+	.bind<CollectionController>(TYPES.CollectionController)
 	.to(CollectionController);
 
 // GALLERY
@@ -111,4 +110,6 @@ container.bind(Symbol.for('WalletController')).to(WalletController);
 container.bind(Symbol.for('BankRequestService')).to(BankRequestService);
 container.bind(Symbol.for('BankRequestController')).to(BankRequestController);
 
+container.bind(Symbol.for('AiService')).to(AiService);
+container.bind<ArtworkWarehouseController>(TYPES.ArtworkWarehouseController).to(ArtworkWarehouseController);
 export default container;

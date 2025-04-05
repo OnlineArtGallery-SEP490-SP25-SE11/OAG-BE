@@ -12,6 +12,7 @@ export class ExhibitionController implements IExhibitionController {
     this.create = this.create.bind(this);
     this.findAll = this.findAll.bind(this);
     this.findById = this.findById.bind(this);
+    this.findByLinkName = this.findByLinkName.bind(this);
     this.update = this.update.bind(this);
     this.delete = this.delete.bind(this);
   }       
@@ -22,9 +23,10 @@ export class ExhibitionController implements IExhibitionController {
         gallery: req.validatedData.gallery,
         author: req.userId!,
       });
+      // TODO: check if gallery is premium model, then check is artist is premium
       
       const response = BaseHttpResponse.success(
-        exhibition,
+        {exhibition},
         201,
         'Exhibition created successfully'
       );
@@ -74,7 +76,7 @@ export class ExhibitionController implements IExhibitionController {
       );
       
       const response = BaseHttpResponse.success(
-        exhibition,
+        {exhibition},
         200,
         'Exhibition updated successfully'
       );
@@ -104,7 +106,7 @@ export class ExhibitionController implements IExhibitionController {
       const exhibition = await this._exhibitionService.findById(req.params.id);
       
       const response = BaseHttpResponse.success(
-        exhibition,
+        {exhibition},
         200,
         'Exhibition retrieved successfully'
       );
@@ -114,4 +116,20 @@ export class ExhibitionController implements IExhibitionController {
     }
   };
   
+  
+  findByLinkName = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { linkName } = req.params;
+      const exhibition = await this._exhibitionService.findByLinkName(linkName);
+      
+      const response = BaseHttpResponse.success(
+        { exhibition },
+        200,
+        'Exhibition retrieved successfully'
+      );
+      res.status(response.statusCode).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

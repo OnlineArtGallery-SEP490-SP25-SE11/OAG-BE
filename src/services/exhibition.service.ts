@@ -18,12 +18,10 @@ export class ExhibitionService implements IExhibitionService {
             if (!galleryExists) {
                 throw new BadRequestException('Gallery not found', ErrorCode.NOT_FOUND);
             }
-            
             // Use factory to create exhibition object
             const exhibitionData = ExhibitionFactory.createEmpty(
                 data.gallery,
                 data.author,
-                data.name || 'Untitled'
             );
             const exhibition = await ExhibitionModel.create(exhibitionData);
             return exhibition;
@@ -58,7 +56,11 @@ export class ExhibitionService implements IExhibitionService {
                     select: 'name email image',
                     model: 'User'
                 })
-                .populate('gallery');
+                .populate('gallery')
+                .populate({
+                    path: 'artworkPositions.artwork',
+                    model: 'Artwork'
+                });
                 
             if (!exhibition) {
                 throw new NotFoundException('Exhibition not found', ErrorCode.NOT_FOUND);
@@ -104,6 +106,10 @@ export class ExhibitionService implements IExhibitionService {
                         model: 'User'
                     })
                     .populate('gallery')
+                    .populate({
+                        path: 'artworkPositions.artwork',
+                        model: 'Artwork'
+                    })
                     .sort(sort)
                     .skip(skip)
                     .limit(limit),
@@ -137,6 +143,15 @@ export class ExhibitionService implements IExhibitionService {
             if (!Types.ObjectId.isValid(id)) {
                 throw new BadRequestException('Invalid exhibition ID format');
             }
+
+            // validate linkName uniqueness
+            if (data.linkName) {
+                
+                const existingExhibitionWithLinkName = await ExhibitionModel.findOne({ linkName: data.linkName });
+                if (existingExhibitionWithLinkName && existingExhibitionWithLinkName.id !== id) {
+                    throw new BadRequestException('Link name has been used', ErrorCode.VALIDATION_ERROR);
+                }
+            }
             
             // First find the existing exhibition
             const existingExhibition = await ExhibitionModel.findById(id);
@@ -161,11 +176,15 @@ export class ExhibitionService implements IExhibitionService {
                 select: 'name email image',
                 model: 'User'
             })
-            .populate('gallery');
+            .populate('gallery')
+            .populate({
+                path: 'artworkPositions.artwork',
+                model: 'Artwork'
+            });
             
             return exhibition;
         } catch (error) {
-            logger.error(`Error updating exhibition ${id}:`, error);
+            // logger.error(`Error updating exhibition ${id}:`, error);
             if (error instanceof Error.ValidationError) {
                 throw new BadRequestException(
                     'Invalid exhibition data',
@@ -204,6 +223,42 @@ export class ExhibitionService implements IExhibitionService {
             }
             throw new InternalServerErrorException(
                 'Error deleting exhibition',
+                ErrorCode.DATABASE_ERROR
+            );
+        }
+    }
+
+
+    async findByLinkName(linkName: string): Promise<ExhibitionDocument | null> {
+        try {
+            if (!linkName || typeof linkName !== 'string') {
+                throw new BadRequestException('Invalid link name format');
+            }
+
+            const exhibition = await ExhibitionModel.findOne({ linkName })
+                .populate({
+                    path: 'author',
+                    select: 'name email image',
+                    model: 'User'
+                })
+                .populate('gallery')
+                .populate({
+                    path: 'artworkPositions.artwork',
+                    model: 'Artwork'
+                });
+                
+            if (!exhibition) {
+                throw new NotFoundException('Exhibition not found', ErrorCode.NOT_FOUND);
+            }
+            return exhibition;
+        } catch (error) {
+            logger.error('Error finding exhibition by link name:', error);
+            if (error instanceof BadRequestException ||
+                error instanceof NotFoundException) {
+                throw error;
+            }
+            throw new InternalServerErrorException(
+                'Error finding exhibition by link name',
                 ErrorCode.DATABASE_ERROR
             );
         }
