@@ -95,4 +95,40 @@ router.get('/following', roleRequire(), async (req: Request, res: Response) => {
     }
 });
 
+// Gửi yêu cầu "Become Artist"
+router.post('/request-become-artist', roleRequire(), async (req: Request, res: Response) => {
+    try {
+        const userId = req.userId as string;
+        const response = await UserService.requestBecomeArtist(userId);
+        res.status(200).json(response);
+    } catch (err: any) {
+        logger.error(err.message);
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// Admin duyệt yêu cầu "Become Artist"
+router.post('/approve-become-artist/:userId', roleRequire(['admin']), async (req: Request, res: Response) => {
+    try {
+        const userId = req.params.userId;
+        const response = await UserService.approveBecomeArtist(userId);
+        res.status(200).json(response);
+    } catch (err: any) {
+        logger.error(err.message);
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// Lấy danh sách user gửi yêu cầu "Become Artist"
+router.get('/pending-become-artist', roleRequire(['admin']), async (_req: Request, res: Response) => {
+    try {
+        const users = await UserService.getPendingArtistRequests();
+        res.status(200).json({ users });
+    } catch (err: any) {
+        logger.error(err.message);
+        res.status(500).json({ message: err.message });
+    }
+});
+
+
 export default router;
