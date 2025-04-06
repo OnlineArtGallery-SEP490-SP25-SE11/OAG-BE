@@ -58,12 +58,6 @@ export interface ICollectionService {
 
 }
 
-export interface IAlbumService{
-	add(): Promise<InstanceType<typeof Album>>;
-	get(): Promise<InstanceType<typeof Album>[]>;
-	update(): Promise<InstanceType<typeof Album>>;
-}
-
 export interface IBlogTagService {
 	createTag(name: string): Promise<BlogTag>;
 	getTags(): Promise<BlogTag[]>;

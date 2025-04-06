@@ -10,16 +10,18 @@ export class CollectionController {
 		@inject(TYPES.CollectionService)
 		private readonly _collectionService: CollectionService
 	) {
-		this.add = this.add.bind(this);
+		this.addInUser = this.addInUser.bind(this);
+		this.addInArtist = this.addInArtist.bind(this);
 		this.update = this.update.bind(this);
 		this.getById = this.getById.bind(this);
 		this.getByUserId = this.getByUserId.bind(this);
+		this.getByArtistId = this.getByArtistId.bind(this);
 		this.delArt = this.delArt.bind(this);
 		this.delCollection = this.delCollection.bind(this);
 		this.getByOtherUserId = this.getByOtherUserId.bind(this);
 	}
 
-	async add(req: Request, res: Response, next: NextFunction): Promise<any> {
+	async addInUser(req: Request, res: Response, next: NextFunction): Promise<any> {
 		try {
 			const { title, description, artworks } = req.body;
 			const userId = req.userId;
@@ -28,6 +30,32 @@ export class CollectionController {
 			}
 			const collection = await this._collectionService.add(
 				userId,
+				false, // Set isArtist to false for user collections
+				title,
+				description,
+				artworks
+			);
+			const response = BaseHttpResponse.success(
+				collection,
+				201,
+				'Add collection success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async addInArtist(req: Request, res: Response, next: NextFunction): Promise<any> {
+		try {
+			const { title, description, artworks } = req.body;
+			const userId = req.userId;
+			if (!userId) {
+				throw new Error('User not found');
+			}
+			const collection = await this._collectionService.add(
+				userId,
+				true, // Set isArtist to false for user collections
 				title,
 				description,
 				artworks
@@ -65,6 +93,25 @@ export class CollectionController {
 				throw new Error('User not found');
 			}
 			const collection = await this._collectionService.getByUserId(userId);
+			const response = BaseHttpResponse.success(
+				collection,
+				200,
+				'Get collection success'
+			);
+			return res.status(response.statusCode).json(response);
+		}
+		catch(error){
+			next(error);
+		}
+	}
+
+	async getByArtistId(req: Request, res: Response, next: NextFunction): Promise<any> {
+		try{
+			const userId = req.userId;
+			if(!userId){
+				throw new Error('User not found');
+			}
+			const collection = await this._collectionService.getByArtistId(userId);
 			const response = BaseHttpResponse.success(
 				collection,
 				200,
