@@ -54,7 +54,7 @@ class Artwork {
 	public url!: string;
 
 	@prop({
-		enum: ['available', 'sold', 'hidden', 'selling'],
+		enum: ['available', 'hidden', 'selling'],
 		required: true
 	})
 	public status!: string; // enum 'available, sold, hidden, selling'
@@ -104,6 +104,12 @@ class Artwork {
 		description?: string;
 		metadata?: Record<string, any>;
 	};
+
+	@prop({
+		type: () => [String],
+		default: []
+	})
+	public buyers?: string[];
 }
 
 export default getModelForClass(Artwork, {

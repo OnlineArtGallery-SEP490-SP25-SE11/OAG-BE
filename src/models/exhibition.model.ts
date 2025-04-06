@@ -94,8 +94,8 @@ export class Exhibition {
     })
     public contents!: Content[];
 
-    @prop({ required: true })
-    public welcomeImage!: string;
+    @prop({ required: false })
+    public welcomeImage?: string;
 
     @prop({ required: false })
     public backgroundMedia?: string;

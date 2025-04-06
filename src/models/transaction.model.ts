@@ -21,10 +21,11 @@ class Transaction {
     public amount!: number;
 
     @prop({
-        enum: ['DEPOSIT', 'WITHDRAWAL'],
+        type: () => String,
+        enum: ['DEPOSIT', 'WITHDRAWAL', 'PAYMENT', 'SALE', 'COMMISSION'],
         required: true
     })
-    public type!: 'DEPOSIT' | 'WITHDRAWAL';
+    public type!: string;
 
     @prop({
         enum: ['PENDING', 'PAID', 'FAILED'],
