@@ -54,7 +54,7 @@ class Artwork {
 	public url!: string;
 
 	@prop({
-		enum: ['available', 'sold', 'hidden', 'selling'],
+		enum: ['available', 'hidden', 'selling'],
 		required: true
 	})
 	public status!: string; // enum 'available, sold, hidden, selling'
