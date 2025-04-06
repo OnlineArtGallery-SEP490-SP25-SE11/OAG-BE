@@ -179,6 +179,51 @@ class UserService {
 			throw new Error(`Check follow status failed!, ${error.message}`);
 		}
 	}
+
+	async requestBecomeArtist(userId: string) {
+		try {
+			const user = await User.findByIdAndUpdate(userId, { isRequestBecomeArtist: true }, { new: true });
+			if (!user) {
+				throw new Error('User not found');
+			}
+			return { success: true, message: 'Request to become artist submitted' };
+		} catch (error: any) {
+			logger.error(`Request become artist failed! ${error.message}`);
+			throw new Error(`Request become artist failed! ${error.message}`);
+		}
+	}
+
+	async approveBecomeArtist(userId: string) {
+		try {
+			const user = await User.findByIdAndUpdate(
+				userId,
+				{
+					isRequestBecomeArtist: false,
+					$addToSet: { role: 'artist' }
+				},
+				{ new: true }
+			);
+	
+			if (!user) {
+				throw new Error('User not found');
+			}
+			return { success: true, message: 'User has been granted artist role' };
+		} catch (error: any) {
+			logger.error(`Approve become artist failed! ${error.message}`);
+			throw new Error(`Approve become artist failed! ${error.message}`);
+		}
+	}
+	
+
+	async getPendingArtistRequests() {
+		try {
+			const users = await User.find({ isRequestBecomeArtist: true }, 'name email');
+			return users;
+		} catch (error: any) {
+			logger.error(`Get pending artist requests failed! ${error.message}`);
+			throw new Error(`Get pending artist requests failed! ${error.message}`);
+		}
+	}
 }
 
 export default new UserService();

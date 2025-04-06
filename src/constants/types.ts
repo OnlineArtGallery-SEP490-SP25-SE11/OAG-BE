@@ -71,7 +71,13 @@ export const TYPES = {
     IWalletService: Symbol.for('IWalletService'),
     WalletService: Symbol.for('WalletService'),
 
-    ArtworkWarehouseController: Symbol.for('ArtworkWarehouseController')
+    ArtworkWarehouseController: Symbol.for('ArtworkWarehouseController'),
+
+        // cccd
+    ICCCDService: Symbol.for('ICCCDService'),
+    CCCDService: Symbol.for('CCCDService'),
+    ICCCDController: Symbol.for('ICCCDController'),
+    CCCDController: Symbol.for('CCCDController'),
 
         
 }

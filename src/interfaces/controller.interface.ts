@@ -84,3 +84,11 @@ export interface IChatController {
   deleteMessage(req: Request, res: Response, next: NextFunction): Promise<Response>;
   deleteChat(req: Request, res: Response, next: NextFunction): Promise<Response>;
 }
+
+export interface ICCCDController {
+  create(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
+  getCCCDById(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
+  getCCCDByUserId(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
+  update(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
+  delete(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
+}

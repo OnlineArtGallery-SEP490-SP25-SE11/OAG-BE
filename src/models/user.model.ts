@@ -144,8 +144,8 @@ class User {
 
 	@prop({ default: false })
 	isBanned!: boolean;
-	@prop({ type: () => String })
-	address?: string;
+	@prop({ type: Boolean, default: false })
+	isRequestBecomeArtist!: boolean;
 
 	@prop({ type: () => Object })
 	artistProfile?: {
