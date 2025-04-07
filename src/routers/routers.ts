@@ -9,6 +9,7 @@ import eventRouter from '@/routers/event.router';
 import fileRouter from '@/routers/file.router';
 import interactionRouter from '@/routers/interaction.router';
 import notificationRouter from '@/routers/notification.router';
+import premiumRouter from '@/routers/premium.router';
 
 import galleryRouter from '@/routers/gallery.router';
 import exhibitionRouter from '@/routers/exhibition.router';
@@ -45,4 +46,7 @@ export default [
 	{ path: '/api/bank-request', router: bankrequestRouter },
 	{ path: '/api/artwork-warehouse', router: artworkWarehouseRouter },
 	{ path: '/api/bank-request', router: bankrequestRouter },
+	{ path: '/api/premium', router: premiumRouter },
 	{ path: '/api/cccd', router: cccdRouter}];
+	
+	

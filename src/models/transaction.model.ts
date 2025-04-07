@@ -22,7 +22,7 @@ class Transaction {
 
     @prop({
         type: () => String,
-        enum: ['DEPOSIT', 'WITHDRAWAL', 'PAYMENT', 'SALE', 'COMMISSION'],
+        enum: ['DEPOSIT', 'WITHDRAWAL', 'PAYMENT', 'SALE', 'COMMISSION', 'PREMIUM_SUBSCRIPTION'],
         required: true
     })
     public type!: string;
