@@ -7,8 +7,10 @@ const router = Router();
 const colleciontController = container.get<CollectionController>(
 	TYPES.CollectionController
 );
-router.post('/', roleRequire(), colleciontController.add);
-router.get('/', roleRequire(), colleciontController.getByUserId);
+router.post('/in-user', roleRequire(), colleciontController.addInUser);
+router.post('/in-artist', roleRequire(), colleciontController.addInArtist);
+router.get('/in-user', roleRequire(), colleciontController.getByUserId);
+router.get('/in-artist', roleRequire(), colleciontController.getByArtistId);
 router.get('/other', roleRequire(), colleciontController.getByOtherUserId);
 router.get('/:id', roleRequire(), colleciontController.getById);
 router.put('/:id', roleRequire(), colleciontController.update);

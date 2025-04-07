@@ -12,6 +12,7 @@ import {
     AddHeartSchema,
     RemoveHeartSchema,  
 } from "@/dto/blog.dto";
+import permanentBan from '@/configs/middleware.config'
 
 
 const router = Router();
@@ -23,7 +24,7 @@ router.get('/last-edited', roleRequire([Role.ARTIST]), blogController.findLastEd
 router.get('/user-blogs', roleRequire([Role.ARTIST]), blogController.findUserBlogs);
 router.get('/:id', blogController.findById);
 
-router.post('/', roleRequire([Role.ARTIST, Role.ADMIN]), validate(CreateBlogPayload), blogController.create);
+router.post('/', roleRequire([Role.ARTIST, Role.ADMIN]), validate(CreateBlogPayload),permanentBan(), blogController.create);
 router.put("/:id", roleRequire([Role.ARTIST, Role.ADMIN]), validate(UpdateBlogSchema), blogController.update);
 router.delete("/:id", roleRequire([Role.ARTIST, Role.ADMIN]), blogController.delete);
 
