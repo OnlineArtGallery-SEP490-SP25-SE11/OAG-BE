@@ -49,6 +49,13 @@ export const TYPES = {
     ICollectionService: Symbol.for('ICollectionService'),
     CollectionService: Symbol.for('CollectionService'),
 
+     // Album
+     IAlbumService: Symbol.for('IAlbumService'),
+     AlbumService: Symbol.for('AlbumService'),
+
+     IAlbumController: Symbol.for('IAlbumController'),
+     AlbumController: Symbol.for('AlbumController'),
+
     ICollectionController: Symbol.for('ICollectionController'),
     CollectionController: Symbol.for('CollectionController'),
 
