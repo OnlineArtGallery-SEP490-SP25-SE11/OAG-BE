@@ -11,7 +11,6 @@ import Wallet from '@/models/wallet.model';
 import env from '@/utils/validateEnv.util';
 import PayOS from '@payos/node';
 import { injectable } from 'inversify';
-import mongoose from 'mongoose';
 import crypto from 'crypto';
 interface PaymentPurchase {
     amount: number;

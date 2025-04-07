@@ -53,6 +53,8 @@ import { AiService } from '@/services/ai.service';
 import { ArtworkWarehouseController } from '@/controllers/artwork-warehouse.controller';
 import { CCCDController } from '@/controllers/cccd.controller';
 import { CCCDService } from '@/services/cccd.service';
+import {PremiumService} from '@/services/premium.service';
+import {PremiumController} from '@/controllers/premium.controller';
 const container = new Container();
 
 // Services
@@ -112,4 +114,8 @@ container.bind(Symbol.for('BankRequestController')).to(BankRequestController);
 
 container.bind(Symbol.for('AiService')).to(AiService);
 container.bind<ArtworkWarehouseController>(TYPES.ArtworkWarehouseController).to(ArtworkWarehouseController);
+
+//PREMIUM
+container.bind<PremiumService>(Symbol.for('PremiumService')).to(PremiumService);
+container.bind<PremiumController>(Symbol.for('PremiumController')).to(PremiumController);
 export default container;

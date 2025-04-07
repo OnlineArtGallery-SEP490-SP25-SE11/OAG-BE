@@ -7,7 +7,6 @@ import { TYPES } from '@/constants/types';
 import Wallet from '@/models/wallet.model';
 import Transaction from '@/models/transaction.model';
 import Artwork from '@/models/artwork.model';
-import mongoose from 'mongoose';
 
 @injectable()
 export class ArtworkTransactionService {
