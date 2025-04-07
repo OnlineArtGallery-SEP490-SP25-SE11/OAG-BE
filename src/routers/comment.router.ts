@@ -7,7 +7,7 @@ import { CommentController } from "@/controllers/comment.controller";
 import container from "@/configs/container.config";
 import { validate } from "@/middlewares/validate.middleware";
 import { CreateCommentSchema, UpdateCommentSchema } from "@/dto/comment.dto";
-
+import permanentBan from '@/configs/middleware.config'
 const router = Router();
 const commentController = container.get<CommentController>(TYPES.CommentController);
 
@@ -15,6 +15,7 @@ const commentController = container.get<CommentController>(TYPES.CommentControll
 router.post(
   "/",
   roleRequire([Role.ARTIST, Role.USER]),
+  permanentBan(),
   validate(CreateCommentSchema),
   commentController.create
 );
