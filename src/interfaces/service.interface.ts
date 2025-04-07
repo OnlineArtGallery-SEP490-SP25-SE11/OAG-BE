@@ -11,6 +11,8 @@ import Album from '@/models/album.model.ts';
 import { ArtworkQueryOptions } from '@/services/artwork.service.ts';
 import { UpdateCollectionOptions } from '@/services/collection.service.ts';
 import { ChatDocument } from "@/models/chat.model";
+import { CreateCccdDto, UpdateCccdDto } from "@/dto/cccd.dto";
+import { CCCDDocument } from "@/models/cccd.model";
 
 export interface IInteractionService {
 	getUserInteractions(
@@ -138,3 +140,11 @@ export interface IChatService {
 	deleteMessage(chatId: string, userId: string): Promise<void>;
 	deleteChat(userId: string, contactId: string): Promise<void>;
 }
+
+export interface ICCCDService {
+	createCCCD(data: CreateCccdDto): Promise<CCCDDocument>;
+	getCCCDById(id: string): Promise<CCCDDocument | null>;
+	getCccdByUserId(userId: string): Promise<CCCDDocument | null>;
+	updateCCCD(id: string, data: UpdateCccdDto): Promise<CCCDDocument | null>;
+	deleteCCCD(id: string): Promise<void>;
+  }

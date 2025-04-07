@@ -18,6 +18,7 @@ import paymentRouter from '@/routers/payment.router';
 import userRouter from '@/routers/user.router';
 import bankrequestRouter from './bankrequest.router';
 import walletRouter from './wallet.router';
+import cccdRouter from './cccd.router';
 import artworkWarehouseRouter from './artwork-warehouse.router';
 import reportRouter from '@/routers/report.router';
 
@@ -43,5 +44,5 @@ export default [
 	{ path: '/api/wallet', router: walletRouter },
 	{ path: '/api/bank-request', router: bankrequestRouter },
 	{ path: '/api/artwork-warehouse', router: artworkWarehouseRouter },
-	{ path: '/api/bank-request', router: bankrequestRouter }
-];
+	{ path: '/api/bank-request', router: bankrequestRouter },
+	{ path: '/api/cccd', router: cccdRouter}];
