@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import roleRequire from '@/configs/middleware.config';
+import roleRequire, { permanentBan } from '@/configs/middleware.config';
 import { Role } from '@/constants/enum';
 import { EventController } from '@/controllers/event.controller';
 import { EventService } from '@/services/events.service';
@@ -16,6 +16,6 @@ router.get('/:id', eventController.getEventById);
 router.post('/',roleRequire([Role.ADMIN]),validate(eventSchema), eventController.add);
 router.put('/:id', roleRequire([Role.ADMIN]), eventController.update);
 router.delete('/:id', roleRequire([Role.ADMIN]), eventController.deleteEvent);
-router.post('/:id/participate', roleRequire(), eventController.participate);
+router.post('/:id/participate', roleRequire(),permanentBan(), eventController.participate);
 
 export default router;

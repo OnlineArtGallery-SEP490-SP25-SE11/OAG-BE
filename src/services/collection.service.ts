@@ -22,6 +22,7 @@ export interface UpdateCollectionOptions {
 export class CollectionService {
 	async add(
 		userId: string,
+		isArtist: boolean,
 		title: string,
 		description: string,
 		artworks?: string[]
@@ -30,6 +31,7 @@ export class CollectionService {
 			const collection = new Collection({
 				userId,
 				title,
+				isArtist,
 				description,
 				artworks: artworks || []
 			});
@@ -57,11 +59,34 @@ export class CollectionService {
 	}
 	// get my collections
 	async getByUserId(userId: string): Promise<InstanceType<typeof Collection>[]> {
-		try{
+		try {
 			if(!userId){
 				throw new Error('User not found');
 			}
-			const collections = await Collection.find({ userId })
+			const collections = await Collection.find({ userId, isArtist: false })
+			.populate({
+				path: 'artworks',
+				select: 'title url',
+				model: 'Artwork' // Explicitly specify the model name
+			})
+			.exec();
+			if(!collections){
+				throw new Error('Collection not found');
+			}
+			return collections;
+		}
+		catch(error){
+			logger.error(error);
+			throw error;
+		}
+	}
+	//get collection of artist
+	async getByArtistId(artistId: string): Promise<InstanceType<typeof Collection>[]> {
+		try{
+			if(!artistId){
+				throw new Error('Artist not found');
+			}
+			const collections = await Collection.find({ userId: artistId, isArtist: true })
 			.populate({
 				path: 'artworks',
 				select: 'title url',

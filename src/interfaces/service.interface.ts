@@ -7,6 +7,7 @@ import { CommentDocument } from "@/models/comment.model";
 import { Status } from "@/constants/enum";
 import Artwork from '@/models/artwork.model.ts';
 import Collection from '@/models/collection.model.ts';
+import Album from '@/models/album.model.ts';
 import { ArtworkQueryOptions } from '@/services/artwork.service.ts';
 import { UpdateCollectionOptions } from '@/services/collection.service.ts';
 import { ChatDocument } from "@/models/chat.model";
@@ -58,6 +59,7 @@ export interface ICollectionService {
 	): Promise<InstanceType<typeof Collection>>;
 
 }
+
 export interface IBlogTagService {
 	createTag(name: string): Promise<BlogTag>;
 	getTags(): Promise<BlogTag[]>;
