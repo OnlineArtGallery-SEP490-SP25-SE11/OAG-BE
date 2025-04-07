@@ -109,7 +109,7 @@ class Artwork {
 		type: () => [String],
 		default: []
 	})
-	public buyers?: string[];
+	public buyers?: string[]; //so nguoi da mua
 }
 
 export default getModelForClass(Artwork, {

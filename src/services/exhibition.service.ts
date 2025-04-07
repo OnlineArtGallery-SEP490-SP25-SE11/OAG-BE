@@ -29,7 +29,7 @@ export class ExhibitionService implements IExhibitionService {
             logger.error('Error creating exhibition:', error);
             if (error instanceof BadRequestException) {
                 throw error;
-            }
+            }   
             if (error instanceof Error.ValidationError) {
                 throw new BadRequestException(
                     'Invalid exhibition data',
@@ -86,15 +86,22 @@ export class ExhibitionService implements IExhibitionService {
                 limit = 10,
                 sort = { startDate: 1 },
                 filter = {},
-                search = ''
+                search = '',
+                userId
             } = options;
 
+        
             const query: Record<string, any> = { ...filter };
             if (search) {
                 query.$or = [
-                    { name: { $regex: search, $options: 'i' } },
-                    { description: { $regex: search, $options: 'i' } }
+                    { 'contents.name': { $regex: search, $options: 'i' } },
+                    { 'contents.description': { $regex: search, $options: 'i' } },
+                    { 'linkName': { $regex: search, $options: 'i' } }
                 ];
+            }
+
+            if (userId) {
+				query.author = new Types.ObjectId(userId);
             }
 
             const skip = (page - 1) * limit;
@@ -149,7 +156,7 @@ export class ExhibitionService implements IExhibitionService {
                 
                 const existingExhibitionWithLinkName = await ExhibitionModel.findOne({ linkName: data.linkName });
                 if (existingExhibitionWithLinkName && existingExhibitionWithLinkName.id !== id) {
-                    throw new BadRequestException('Link name has been used', ErrorCode.VALIDATION_ERROR);
+                    throw new BadRequestException('Link name has been used', ErrorCode.LINKNAME_EXISTS);
                 }
             }
             

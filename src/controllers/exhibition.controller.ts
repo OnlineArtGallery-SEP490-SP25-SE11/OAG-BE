@@ -15,6 +15,7 @@ export class ExhibitionController implements IExhibitionController {
     this.findByLinkName = this.findByLinkName.bind(this);
     this.update = this.update.bind(this);
     this.delete = this.delete.bind(this);
+    this.findUserExhibitions = this.findUserExhibitions.bind(this);
   }       
 
   create = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
@@ -126,6 +127,23 @@ export class ExhibitionController implements IExhibitionController {
         { exhibition },
         200,
         'Exhibition retrieved successfully'
+      );
+      res.status(response.statusCode).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  findUserExhibitions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const exhibitions = await this._exhibitionService.findAll({
+        userId: req.userId
+      });
+      
+      const response = BaseHttpResponse.success(
+        { exhibitions },
+        200,
+        'User exhibitions retrieved successfully'
       );
       res.status(response.statusCode).json(response);
     } catch (error) {

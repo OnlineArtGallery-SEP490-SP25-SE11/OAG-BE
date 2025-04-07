@@ -40,5 +40,6 @@ export enum ErrorCode {
 	PAYMENT_VERIFICATION_ERROR = 'payment_verification_error',
 	PAYMENT_WEBHOOK_ERROR = 'payment_webhook_error',
 
-	//
+	// exhibition
+	LINKNAME_EXISTS = 'linkname_exists',
 }

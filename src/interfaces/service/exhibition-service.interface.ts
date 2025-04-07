@@ -19,6 +19,7 @@ export interface ExhibitionQueryOptions {
   sort?: Record<string, any>;
   filter?: Record<string, any>;
   search?: string;
+  userId?: string;
 }
 
 export interface IExhibitionService {
