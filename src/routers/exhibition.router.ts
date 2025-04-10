@@ -6,14 +6,15 @@ import roleRequire from '@/configs/middleware.config';
 import { validate } from '@/middlewares/validate.middleware';
 import { TYPES } from '@/constants/types';
 import container from '@/configs/container.config';
-
+import { permanentBan } from '@/configs/middleware.config';
 const router = Router();
 const exhibitionController = container.get<ExhibitionController>(TYPES.ExhibitionController);
 
 router.post(
   '/',
-  roleRequire([Role.ARTIST,Role.ADMIN]), 
+  roleRequire([Role.ARTIST,Role.ADMIN]),
   validate(createEmptyExhibitionSchema),
+  permanentBan(),
   exhibitionController.create
 );
 
