@@ -67,6 +67,20 @@ const exhibitionCompleteSchema = z.object({
 // Update schema - all fields optional
 export const updateExhibitionSchema = exhibitionCompleteSchema.partial();
 
+//RejectExhibitionSchema
+export const rejectExhibitionSchema = z.object({
+  reason: z.string().min(1),
+});
+
 // Types for use in controllers and services
 export type CreateEmptyExhibitionDto = z.infer<typeof createEmptyExhibitionSchema>;
 export type UpdateExhibitionDto = z.infer<typeof updateExhibitionSchema>;
+
+// Interface for ticket purchase response
+export type TicketPurchaseResponse = {
+  exhibitionId: string;
+  exhibitionName: string;
+  purchaseDate: Date;
+  price: number;
+  status: 'COMPLETED';
+}
