@@ -27,7 +27,7 @@ export class Blog {
 	status!: Status;
 
 	@prop({ type: () => [Types.ObjectId], ref: () => User, default: [] })
- 	hearts!: Types.ObjectId[];
+	hearts!: Types.ObjectId[];
 
 	@prop({ default: 0 })
 	views?: number;

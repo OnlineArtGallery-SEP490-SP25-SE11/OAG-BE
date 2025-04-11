@@ -1,5 +1,7 @@
+/* eslint-disable no-unused-vars */
 import { ExhibitionDocument } from '@/models/exhibition.model';
-import { CreateEmptyExhibitionDto, UpdateExhibitionDto } from '@/dto/exhibition.dto';
+import { CreateEmptyExhibitionDto, TicketPurchaseResponse, UpdateExhibitionDto } from '@/dto/exhibition.dto';
+import { ExhibitionStatus } from '@/constants/enum';
 
 export interface PaginatedExhibitionResponse {
   exhibitions: ExhibitionDocument[];
@@ -20,6 +22,7 @@ export interface ExhibitionQueryOptions {
   filter?: Record<string, any>;
   search?: string;
   userId?: string;
+  status?: ExhibitionStatus;
 }
 
 export interface IExhibitionService {
@@ -29,4 +32,9 @@ export interface IExhibitionService {
   findAll(options?: ExhibitionQueryOptions): Promise<PaginatedExhibitionResponse>;
   update(id: string, data: UpdateExhibitionDto): Promise<ExhibitionDocument | null>;
   delete(id: string): Promise<ExhibitionDocument | null>;
+  approveExhibition(id: string): Promise<ExhibitionDocument | null>;
+  rejectExhibition(id: string, reason: string): Promise<ExhibitionDocument | null>;
+  purchaseTicket(exhibitionId: string, userId: string): Promise<TicketPurchaseResponse>;
+  findPublishedById(id: string): Promise<ExhibitionDocument | null>;
+  findPublishedByLinkName(linkName: string): Promise<ExhibitionDocument | null>;
 }
