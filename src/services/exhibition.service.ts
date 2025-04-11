@@ -13,11 +13,14 @@ import NotificationService from '@/services/notification.service';
 import { TYPES } from '@/constants/types';
 import WalletService from './wallet.service';
 import Wallet from '@/models/wallet.model';
+import { AiService } from './ai.service';
 
 @injectable()
 export class ExhibitionService implements IExhibitionService {
     constructor(
-        @inject(TYPES.WalletService) private _walletService: WalletService
+        @inject(TYPES.WalletService) private _walletService: WalletService,
+                @inject(Symbol.for('AiService')) private readonly aiService: AiService
+        
     ) { }
 
     async create(data: CreateEmptyExhibitionDto & { author: string }): Promise<ExhibitionDocument> {
@@ -552,7 +555,6 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
             if (!linkName || typeof linkName !== 'string') {
                 throw new BadRequestException('Invalid link name format');
             }
-    
             // Find exhibition with populated fields
             const exhibition = await ExhibitionModel.findOne({
                 linkName,
