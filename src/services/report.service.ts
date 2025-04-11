@@ -304,7 +304,7 @@ export class ReportService {
 			}
 			
 			 // Set fixed ban period to 30 days
-			 const banPeriod =  0.0007;
+			 const banPeriod =  30;///test 1' 0.0007
 			
 			// Ban the reported user
 			const user = await User.findByIdAndUpdate(
