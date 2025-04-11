@@ -22,7 +22,7 @@ export interface ExhibitionQueryOptions {
   filter?: Record<string, any>;
   search?: string;
   userId?: string;
-  status?: ExhibitionStatus;
+  status?: ExhibitionStatus | ExhibitionStatus[] | undefined;
 }
 
 export interface IExhibitionService {

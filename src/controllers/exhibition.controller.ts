@@ -5,7 +5,6 @@ import { TYPES } from '@/constants/types';
 import { IExhibitionController } from '@/interfaces/controller/exhibition-controller.interface';
 import { ExhibitionService } from '@/services/exhibition.service';
 import { ExhibitionStatus } from '@/constants/enum';
-import logger from '@/configs/logger.config';
 @injectable()
 export class ExhibitionController implements IExhibitionController {
   constructor(
@@ -218,63 +217,29 @@ export class ExhibitionController implements IExhibitionController {
 
   public findPublishedExhibitions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      // Extract and validate query parameters with safe defaults
-      const page = Math.max(parseInt(req.query.page as string) || 1, 1);
-      const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 10, 1), 50);
-
-      // Parse sort parameter with safe default
-      let sort: Record<string, 1 | -1> = { startDate: 1 };
-      try {
-        if (req.query.sort) {
-          const parsedSort = JSON.parse(req.query.sort as string);
-          if (typeof parsedSort === 'object' && parsedSort !== null) {
-            sort = parsedSort;
-          }
-        }
-      } catch (parseError) {
-        logger.warn('Invalid sort parameter provided', { error: parseError });
-      }
-
-      // Add published status and discovery flag to filter
-      let filter: Record<string, any> = {
-        status: ExhibitionStatus.PUBLISHED,
-        discovery: true
-      };
-
-      // Handle isFeatured parameter
-      if (req.query.isFeatured === 'true') {
-        filter.isFeatured = true;
-      }
-
-      // Parse additional filter parameters if provided
-      try {
-        if (req.query.filter) {
-          const parsedFilter = JSON.parse(req.query.filter as string);
-          if (typeof parsedFilter === 'object' && parsedFilter !== null) {
-            // Preserve required filters but add user-provided filters
-            filter = {
-              ...parsedFilter,
-            }
-          }
-        }
-      } catch (parseError) {
-        logger.warn('Invalid filter parameter provided', { error: parseError });
-      }
-
-      const options = {
+      const {
         page,
         limit,
         sort,
         filter,
-        search: req.query.search as string
+        search
+      } = req.query;
+
+      // Force status to be PUBLISHED regardless of what was passed in the request
+      const statusParam: ExhibitionStatus = ExhibitionStatus.PUBLISHED;
+
+      const options = {
+        page: parseInt(page as string) || 1,
+        limit: parseInt(limit as string) || 10,
+        sort: sort ? JSON.parse(sort as string) : { createdAt: -1 },
+        filter: {
+          ...filter ? JSON.parse(filter as string) : {},
+          discovery: true // Force discovery to be true
+        },
+        status: statusParam,
+        search: search as string
       };
-      console.log('Exhibition options:', options);
 
-      // Set cache headers for better performance
-      const cacheTime = req.query.search ? 60 : 300; // 1 min for searches, 5 min for listings
-      res.setHeader('Cache-Control', `public, max-age=${cacheTime}`);
-
-      // Use the standard findAll method with the public filter applied
       const result = await this._exhibitionService.findAll(options);
 
       const response = BaseHttpResponse.success(
@@ -284,7 +249,6 @@ export class ExhibitionController implements IExhibitionController {
       );
       res.status(response.statusCode).json(response);
     } catch (error) {
-      logger.error('Error retrieving published exhibitions:', error);
       next(error);
     }
   };
