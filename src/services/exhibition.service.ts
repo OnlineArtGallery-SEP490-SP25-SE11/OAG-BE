@@ -97,7 +97,8 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
             sort = { startDate: 1 },
             filter = {},
             search = '',
-            userId
+            userId,
+            status
         } = options;
 
         // Build the base query with provided filters
@@ -105,8 +106,12 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
         
         // For public requests, only show exhibitions with discovery=true
         // if they aren't explicitly filtering on discovery
-        if (filter.status === ExhibitionStatus.PUBLISHED && !('discovery' in filter)) {
-            query.discovery = true;
+        if (status) {
+            if (Array.isArray(status)) {
+                query.status = { $in: status };
+            } else {
+                query.status = status;
+            }
         }
         
         // Enhanced search to include tags

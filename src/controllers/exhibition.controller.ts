@@ -50,14 +50,23 @@ export class ExhibitionController implements IExhibitionController {
         limit,
         sort,
         filter,
+        status,
         search
       } = req.query;
-
+      let statusParam: ExhibitionStatus | ExhibitionStatus[] | undefined = undefined;
+      if (status) {
+        if (typeof status === 'string' && status.includes(',')) {
+          statusParam = status.split(',') as ExhibitionStatus[];
+        } else {
+          statusParam = status as ExhibitionStatus;
+        }
+      }
       const options = {
         page: parseInt(page as string) || 1,
         limit: parseInt(limit as string) || 10,
         sort: sort ? JSON.parse(sort as string) : { createdAt: -1 },
         filter: filter ? JSON.parse(filter as string) : {},
+        status: statusParam,
         search: search as string
       };
 
@@ -212,7 +221,7 @@ export class ExhibitionController implements IExhibitionController {
       // Extract and validate query parameters with safe defaults
       const page = Math.max(parseInt(req.query.page as string) || 1, 1);
       const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 10, 1), 50);
-      
+
       // Parse sort parameter with safe default
       let sort: Record<string, 1 | -1> = { startDate: 1 };
       try {
@@ -225,25 +234,25 @@ export class ExhibitionController implements IExhibitionController {
       } catch (parseError) {
         logger.warn('Invalid sort parameter provided', { error: parseError });
       }
-      
+
       // Add published status and discovery flag to filter
       let filter: Record<string, any> = {
         status: ExhibitionStatus.PUBLISHED,
         discovery: true
       };
-      
+
       // Handle isFeatured parameter
       if (req.query.isFeatured === 'true') {
         filter.isFeatured = true;
       }
-      
+
       // Parse additional filter parameters if provided
       try {
         if (req.query.filter) {
           const parsedFilter = JSON.parse(req.query.filter as string);
           if (typeof parsedFilter === 'object' && parsedFilter !== null) {
             // Preserve required filters but add user-provided filters
-            filter = { 
+            filter = {
               ...parsedFilter,
             }
           }
@@ -251,7 +260,7 @@ export class ExhibitionController implements IExhibitionController {
       } catch (parseError) {
         logger.warn('Invalid filter parameter provided', { error: parseError });
       }
-      
+
       const options = {
         page,
         limit,
@@ -264,10 +273,10 @@ export class ExhibitionController implements IExhibitionController {
       // Set cache headers for better performance
       const cacheTime = req.query.search ? 60 : 300; // 1 min for searches, 5 min for listings
       res.setHeader('Cache-Control', `public, max-age=${cacheTime}`);
-      
+
       // Use the standard findAll method with the public filter applied
       const result = await this._exhibitionService.findAll(options);
-      
+
       const response = BaseHttpResponse.success(
         result,
         200,

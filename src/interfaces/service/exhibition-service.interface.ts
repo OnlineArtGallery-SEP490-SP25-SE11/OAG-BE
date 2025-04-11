@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { ExhibitionDocument } from '@/models/exhibition.model';
 import { CreateEmptyExhibitionDto, TicketPurchaseResponse, UpdateExhibitionDto } from '@/dto/exhibition.dto';
+import { ExhibitionStatus } from '@/constants/enum';
 
 export interface PaginatedExhibitionResponse {
   exhibitions: ExhibitionDocument[];
@@ -21,6 +22,7 @@ export interface ExhibitionQueryOptions {
   filter?: Record<string, any>;
   search?: string;
   userId?: string;
+  status?: ExhibitionStatus;
 }
 
 export interface IExhibitionService {
