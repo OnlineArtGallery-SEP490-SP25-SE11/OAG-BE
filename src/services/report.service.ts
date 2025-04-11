@@ -278,4 +278,86 @@ export class ReportService {
 			);
 		}
 	}
+
+	//banned by time (fixed 30 days)
+	async temporaryBan(reportId: string): Promise<InstanceType<typeof User> | null> {
+		try {
+			if (!Types.ObjectId.isValid(reportId)) {
+				throw new BadRequestException(
+					'Invalid report id',
+					ErrorCode.INVALID_REPORT_ID
+				);
+			}
+			
+			// Find the report first
+			const report = await Report.findById(reportId);
+			if (!report) {
+				logger.warn(`Report with id ${reportId} not found`);
+				return null;
+			}
+			
+			// Get the reportedId from the report
+			const reportedUserId = report.reportedId;
+			if (!reportedUserId) {
+				logger.warn(`Report with id ${reportId} has no reportedId`);
+				return null;
+			}
+			
+			 // Set fixed ban period to 30 days
+			 const banPeriod =  0.0007;
+			
+			// Ban the reported user
+			const user = await User.findByIdAndUpdate(
+				reportedUserId,
+				{ 
+					isBanned: true,
+					banExpiresAt: new Date(Date.now() + banPeriod * 24 * 60 * 60 * 1000) // Set expiration date (30 days)
+				},
+				{ new: true }
+			);
+			
+			if (!user) {
+				logger.warn(`User with id ${reportedUserId} not found`);
+				return null;
+			}
+			
+			// Update all reports involving this user to RESOLVED
+			await Report.updateMany({ reportedId: reportedUserId }, { status: ReportStatus.RESOLVED });
+			
+			// Import node-cron at the top of your file if not already done
+			const cron = require('node-cron');
+			
+			// Calculate when to unban (30 days in milliseconds)
+			const unbanTime = banPeriod * 24 * 60 * 60 * 1000;
+			
+			// Schedule the unban task
+			setTimeout(async () => {
+				try {
+					// Unban the user after 30 days
+					const unbannedUser = await User.findByIdAndUpdate(
+						reportedUserId,
+						{ isBanned: false, banExpiresAt: null },
+						{ new: true }
+					);
+					
+					if (unbannedUser) {
+						logger.info(`User ${reportedUserId} has been automatically unbanned after ${banPeriod} days`);
+					} else {
+						logger.warn(`Failed to unban user ${reportedUserId}: User not found`);
+					}
+				} catch (error) {
+					logger.error(error, `Error unbanning user ${reportedUserId}`);
+				}
+			}, unbanTime);
+			
+			logger.info(`Successfully temporarily banned user ${reportedUserId} for ${banPeriod} days from report ${reportId}`);
+			return user;
+		} catch (error) {
+			logger.error(error, 'Error temporarily banning user');
+			throw new InternalServerErrorException(
+				'Error temporarily banning user',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
 }

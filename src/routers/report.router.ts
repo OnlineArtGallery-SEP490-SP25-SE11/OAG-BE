@@ -10,6 +10,6 @@ reportRouter.get('/:id', roleRequire([Role.ADMIN]), reportController.getById);
 reportRouter.get('/my-report/:reporterId', roleRequire(), reportController.getByReporterId);
 reportRouter.post('/', roleRequire(), reportController.create);
 reportRouter.put('/status/:id', roleRequire(), reportController.updateStatus);
-// reportRouter.put('/action/:id',roleRequire([Role.ADMIN]), reportController.action);
 reportRouter.put('/permanent-ban/:id',roleRequire([Role.ADMIN]), reportController.permanentBan);
+reportRouter.put('/temporary-ban/:id',roleRequire([Role.ADMIN]), reportController.temporaryBan);
 export default reportRouter;

@@ -16,6 +16,7 @@ export class ReportController {
 		this.action = this.action.bind(this);
 		this.getByReporterId = this.getByReporterId.bind(this);
 		this.permanentBan = this.permanentBan.bind(this);
+		this.temporaryBan = this.temporaryBan.bind(this);
 	}
 
 	async get(req: Request, res: Response, next: NextFunction): Promise<any> {
@@ -166,9 +167,6 @@ export class ReportController {
 	async permanentBan(req: Request, res: Response, next: NextFunction): Promise<any> {
 		try{
 			const userId = req.params.id; 
-			if(!userId){
-				throw new ForbiddenException('Forbidden');
-			}
 			const user = await this._reportService.permanentBan(userId);
 			const response = BaseHttpResponse.success(
 				user,
@@ -176,6 +174,23 @@ export class ReportController {
 				'Permanent ban user success'
 			);
 			return res.status(response.statusCode).json(response);
+		}
+		catch(error){
+			next(error);
+		}
+	}
+
+	async temporaryBan(req: Request, res: Response, next: NextFunction): Promise<any> {
+		try{
+			const userId = req.params.id;
+			const user = await this._reportService.temporaryBan(userId);
+			const response = BaseHttpResponse.success(
+				user,
+				200,
+				'Temporary ban user success'
+			);
+			return res.status(response.statusCode).json(response);
+
 		}
 		catch(error){
 			next(error);
