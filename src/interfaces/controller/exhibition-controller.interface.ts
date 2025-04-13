@@ -14,4 +14,5 @@ export interface IExhibitionController {
   findPublishedExhibitions(req: Request, res: Response, next: NextFunction): Promise<void>;
   findPublishedExhibitionById(req: Request, res: Response, next: NextFunction): Promise<void>;
   findPublishedExhibitionByLinkName(req: Request, res: Response, next: NextFunction): Promise<void>;
+  likeArtwork(req: Request, res: Response, next: NextFunction): Promise<void>;
 }

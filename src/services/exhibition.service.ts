@@ -4,7 +4,7 @@ import ExhibitionModel, { ExhibitionDocument, Exhibition } from '@/models/exhibi
 import logger from '@/configs/logger.config';
 import { BadRequestException, NotFoundException, InternalServerErrorException } from '@/exceptions/http-exception';
 import { ErrorCode } from '@/constants/error-code';
-import { CreateEmptyExhibitionDto, TicketPurchaseResponse, UpdateExhibitionDto } from '@/dto/exhibition.dto';
+import { CreateEmptyExhibitionDto, LikeArtworkResponse, TicketPurchaseResponse, UpdateExhibitionDto } from '@/dto/exhibition.dto';
 import { IExhibitionService, ExhibitionQueryOptions, PaginatedExhibitionResponse } from '@/interfaces/service/exhibition-service.interface';
 import { ExhibitionFactory } from '@/factorires/exhitition.factory';
 import { GalleryModel } from '@/models/gallery.model';
@@ -584,6 +584,96 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
             }
             throw new InternalServerErrorException(
                 'Error finding published exhibition',
+                ErrorCode.DATABASE_ERROR
+            );
+        }
+    }
+
+    async toggleArtworkLike(exhibitionId: string, artworkId: string, userId: string): Promise<LikeArtworkResponse> {
+        try {
+            if (!Types.ObjectId.isValid(exhibitionId) || !Types.ObjectId.isValid(artworkId)) {
+                throw new BadRequestException('Invalid exhibition or artwork ID format');
+            }
+    
+            // First check if exhibition exists and contains the artwork
+            const exhibition = await ExhibitionModel.findById(exhibitionId);
+            
+            if (!exhibition) {
+                throw new NotFoundException('Exhibition not found', ErrorCode.NOT_FOUND);
+            }
+            
+            // Verify the artwork is part of this exhibition
+            const artworkExists = exhibition.artworkPositions.some(
+                position => position.artwork.toString() === artworkId
+            );
+            
+            if (!artworkExists) {
+                throw new BadRequestException(
+                    'Artwork is not part of this exhibition',
+                    ErrorCode.VALIDATION_ERROR
+                );
+            }
+    
+            // Initialize likes array if it doesn't exist
+            if (!exhibition.result.likes) {
+                exhibition.result.likes = [];
+            }
+    
+            // Check if the user has already liked this artwork in this exhibition
+            const existingLikeIndex = exhibition.result.likes.findIndex(
+                like => like.artworkId.toString() === artworkId && like.userId?.toString() === userId
+            );
+    
+            let updatedExhibition;
+            
+            if (existingLikeIndex !== -1) {
+                // User already liked this artwork, so unlike it
+                updatedExhibition = await ExhibitionModel.findByIdAndUpdate(
+                    exhibitionId,
+                    { 
+                        $pull: { 'result.likes': { artworkId, userId } }
+                    },
+                    { new: true }
+                );
+            } else {
+                // User hasn't liked this artwork, so add like
+                updatedExhibition = await ExhibitionModel.findByIdAndUpdate(
+                    exhibitionId,
+                    { 
+                        $push: { 'result.likes': { artworkId, userId, count: 1 } }
+                    },
+                    { new: true }
+                );
+            }
+    
+            if (!updatedExhibition) {
+                throw new InternalServerErrorException(
+                    'Failed to update exhibition',
+                    ErrorCode.DATABASE_ERROR
+                );
+            }
+    
+            // Count total likes for this artwork in this exhibition
+            const artworkLikes = updatedExhibition.result.likes.filter(
+                like => like.artworkId.toString() === artworkId
+            ) || [];
+            
+            const likesCount = artworkLikes.reduce((total, like) => total + (like.count || 0), 0);
+    
+            return {
+                liked: existingLikeIndex === -1, // True if we just added a like, false if we removed it
+                likesCount,
+                artworkId,
+            };
+        } catch (error) {
+            logger.error('Error toggling artwork like:', error);
+            if (error instanceof BadRequestException || 
+                error instanceof NotFoundException || 
+                error instanceof InternalServerErrorException) {
+                throw error;
+            }
+            throw new InternalServerErrorException(
+                'Error toggling artwork like',
                 ErrorCode.DATABASE_ERROR
             );
         }

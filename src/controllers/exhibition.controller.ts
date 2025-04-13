@@ -283,4 +283,28 @@ export class ExhibitionController implements IExhibitionController {
     }
   };
 
+  likeArtwork = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id: exhibitionId } = req.params;
+      const { artworkId } = req.validatedData;
+      const userId = req.userId!;
+
+      const result = await this._exhibitionService.toggleArtworkLike(
+        exhibitionId,
+        artworkId,
+        userId
+      );
+
+      const response = BaseHttpResponse.success(
+        result,
+        200,
+        result.liked ? 'Artwork liked successfully' : 'Artwork unliked successfully'
+      );
+      
+      res.status(response.statusCode).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
 }

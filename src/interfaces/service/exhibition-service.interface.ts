@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { ExhibitionDocument } from '@/models/exhibition.model';
-import { CreateEmptyExhibitionDto, TicketPurchaseResponse, UpdateExhibitionDto } from '@/dto/exhibition.dto';
+import { CreateEmptyExhibitionDto, LikeArtworkResponse, TicketPurchaseResponse, UpdateExhibitionDto } from '@/dto/exhibition.dto';
 import { ExhibitionStatus } from '@/constants/enum';
 
 export interface PaginatedExhibitionResponse {
@@ -37,4 +37,5 @@ export interface IExhibitionService {
   purchaseTicket(exhibitionId: string, userId: string): Promise<TicketPurchaseResponse>;
   findPublishedById(id: string): Promise<ExhibitionDocument | null>;
   findPublishedByLinkName(linkName: string): Promise<ExhibitionDocument | null>;
+  toggleArtworkLike(exhibitionId: string, artworkId: string, userId: string): Promise<LikeArtworkResponse>;
 }
