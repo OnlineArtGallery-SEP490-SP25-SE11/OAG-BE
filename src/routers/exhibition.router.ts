@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { ExhibitionController } from '@/controllers/exhibition.controller';
 import { 
   createEmptyExhibitionSchema, 
+  likeArtworkSchema, 
   rejectExhibitionSchema, 
   updateExhibitionSchema 
 } from '@/dto/exhibition.dto';
@@ -25,6 +26,13 @@ router.post(
   '/:id/ticket/purchase', 
   roleRequire([Role.USER]), 
   exhibitionController.purchaseTicket
+);
+
+router.post(
+  '/:id/artwork/like',
+  roleRequire([Role.USER, Role.ARTIST, Role.ADMIN]),
+  validate(likeArtworkSchema),
+  exhibitionController.likeArtwork
 );
 
 // Artist Routes
