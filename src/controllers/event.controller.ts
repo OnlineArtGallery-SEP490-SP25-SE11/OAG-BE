@@ -94,7 +94,8 @@ export class EventController {
 				endDate,
 				status,
 				organizer,
-				image
+				image,
+				link
 			} = req.body;
 
 			const event = await this._eventService.add(
@@ -106,6 +107,7 @@ export class EventController {
 				status,
 				organizer,
 				image,
+				link,
 				userId
 			)
 			const response = BaseHttpResponse.success(event, 201, 'Add event success');
@@ -134,7 +136,8 @@ export class EventController {
 				endDate,
 				status,
 				organizer,
-				image
+				image,
+				link
 			} = req.body;
 			console.log(userId,req.body);
 			const event = await this._eventService.update(
@@ -146,7 +149,8 @@ export class EventController {
 				endDate,
 				status,
 				organizer,
-				image
+				image,
+				link,
 			);
 			const response = BaseHttpResponse.success(event, 201, 'Update event success');
 			console.log(response);

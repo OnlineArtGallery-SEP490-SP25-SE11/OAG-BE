@@ -65,7 +65,7 @@ export class EventService {
 		}
 	}
 	async add(title: string, description: string, type: string, startDate: Date, endDate: Date,
-		status: EventStatus, organizer: string, image: string, userId: string): Promise<InstanceType<typeof Event>> {
+		status: EventStatus, organizer: string, image: string, link:string, userId: string): Promise<InstanceType<typeof Event>> {
 		try {
 			const event = new Event({
 				title,
@@ -76,6 +76,7 @@ export class EventService {
 				status: EventStatus.UPCOMING,
 				organizer,
 				image,
+				link,
 				userId,
 			});
 			console.log(event);
@@ -99,7 +100,8 @@ export class EventService {
 		endDate?: Date,
 		status?: EventStatus,
 		organizer?: string,
-		image?: string
+		image?: string,
+		link?: string,
 	): Promise<InstanceType<typeof Event>> {
 		try {
 			if (!Types.ObjectId.isValid(id)) {
@@ -118,6 +120,7 @@ export class EventService {
 				status,
 				organizer,
 				image,
+				link
 			};
 
 			// Loại bỏ các key có giá trị undefined, ép kiểu key
