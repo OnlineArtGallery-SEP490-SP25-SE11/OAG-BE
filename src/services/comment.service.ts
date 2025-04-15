@@ -10,13 +10,13 @@ export class CommentService implements ICommentService {
     userId: string,
     blogId: string,
     content: string,
-    parentId?: string
+    parentId?: string | null
   ): Promise<CommentDocument> {
     const comment = new CommentModel({
       author: new Types.ObjectId(userId),
       blog: new Types.ObjectId(blogId),
       content,
-      parentId: parentId ? new Types.ObjectId(parentId) : null, // Gán parentId nếu có
+      parentComment: parentId ? new Types.ObjectId(parentId) : undefined, // Gán parentId nếu có
     });
   
     const savedComment = await comment.save();
