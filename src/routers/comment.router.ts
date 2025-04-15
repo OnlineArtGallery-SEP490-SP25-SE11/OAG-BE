@@ -15,8 +15,8 @@ const commentController = container.get<CommentController>(TYPES.CommentControll
 router.post(
   "/",
   roleRequire([Role.ARTIST, Role.USER]),
-  permanentBan(),
   validate(CreateCommentSchema),
+  permanentBan(),
   commentController.create
 );
 

@@ -9,6 +9,7 @@ export const CreateEventSchema = z.object({
     startDate: z.string().optional(),
     endDate: z.string().optional(),
     image: z.string().url().nonempty(),
+    link: z.string().nonempty(),
 });
 
 export const UpdateEventSchema = z.object({
@@ -19,6 +20,7 @@ export const UpdateEventSchema = z.object({
     status: z.string().min(5).max(100).optional(),
     organizer: z.string().optional(),
     image: z.string().url().nonempty(),
+    link: z.string().url().nonempty(),
 });
 
 export const CreateEventPayload = z.object({
