@@ -266,8 +266,18 @@ export class EventService {
 		}
 	}
 
-
-
+	async getUpcomingEvent(){
+		try {
+			const events = await Event.find({ status: EventStatus.UPCOMING });
+			return events;
+		} catch (error) {
+			logger.error(error, 'Error getting upcoming events');
+			throw new InternalServerErrorException(
+				'Error getting upcoming events from database',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
 
 }
 

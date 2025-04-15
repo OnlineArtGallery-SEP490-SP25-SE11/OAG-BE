@@ -18,6 +18,7 @@ export class EventController {
 		this.deleteEvent = this.deleteEvent.bind(this);
 		this.get = this.get.bind(this);
 		this.participate = this.participate.bind(this);
+		this.getUpcomingEvents = this.getUpcomingEvents.bind(this);
 	}
 
 	async get(req: Request, res: Response, next: NextFunction): Promise<any>{
@@ -192,6 +193,20 @@ export class EventController {
 			return res.status(response.statusCode).json(response);
 		}
 		catch(error){
+			next(error);
+		}
+	}
+
+	async getUpcomingEvents(req: Request, res: Response, next: NextFunction): Promise<any> {
+		try {
+			const events = await this._eventService.getUpcomingEvent();
+			const response = BaseHttpResponse.success(
+				events,
+				200,
+				'Get upcoming events success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
 			next(error);
 		}
 	}
