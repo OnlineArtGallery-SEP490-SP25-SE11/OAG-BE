@@ -47,6 +47,7 @@ class Event {
   @prop({ required: true })
   endDate!: Date;
 
+  
   @prop({
     required: true,
     type: String,
@@ -55,15 +56,18 @@ class Event {
     index: true // Index cho status filters
   })
   status!: EventStatus;
-
+  
   @prop({ required: true })
-  organizer?: string;
-
+  organizer!: string;
+  
   @prop({ type: () => [Participant], required: false })
   public participants?: Participant[];
-
+  
   @prop({ ref: () => User, required: true, index: true })
   userId!: Ref<typeof User>;
+  
+  @prop({ required: true })
+  link!: string;
 }
 
 export default getModelForClass(Event, {

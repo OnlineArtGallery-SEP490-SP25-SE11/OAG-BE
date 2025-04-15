@@ -11,6 +11,7 @@ const eventController = new EventController();
 
 router.get('/', eventController.getEvents);
 // router.get('/', eventController.get);
+router.get('/upcoming', eventController.getUpcomingEvents);
 router.get('/:id', eventController.getEventById);
 // router.post('/', roleRequire([Role.ADMIN]), eventController.createEvent);
 router.post('/',roleRequire([Role.ADMIN]),validate(eventSchema), eventController.add);
