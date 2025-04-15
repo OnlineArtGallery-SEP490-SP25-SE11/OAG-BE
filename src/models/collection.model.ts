@@ -16,6 +16,13 @@ class Collection {
 	userId!: Ref<typeof User>;
 
 	@prop({
+		type: () => Boolean,
+		required: true,
+		default: false
+	})
+	isArtist!: boolean;
+
+	@prop({
 		type: () => String,
 		required: true
 	})

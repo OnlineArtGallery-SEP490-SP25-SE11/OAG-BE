@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { CreateGalleryDto, UpdateGalleryDto } from "@/dto/gallery.dto";
 import { GalleryDocument } from "@/models/gallery.model";
 

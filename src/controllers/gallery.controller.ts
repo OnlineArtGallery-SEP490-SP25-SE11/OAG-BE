@@ -100,7 +100,7 @@ export class GalleryController implements IGalleryController{
             const gallery = await this._galleryService.findById(req.params.id);
             
             const response = BaseHttpResponse.success(
-                gallery,
+                {gallery},
                 200,
                 'Gallery retrieved successfully'
             );

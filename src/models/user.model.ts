@@ -10,7 +10,7 @@ import {
 import bcrypt from 'bcryptjs';
 import { PremiumSubscriptionModel } from './premium.model';
 import { Role } from '@/constants/enum';
-import mongoose, { Types } from 'mongoose';
+import { Types } from 'mongoose';
 // userSchema.pre("updateOne", async function (next) {
 //   const update = this.getUpdate() as mongoose.UpdateQuery<IUser>;
 //   if (!update) {
@@ -133,9 +133,11 @@ class User {
 	})
 	role!: Role[];
 
+	//xoa
 	@prop({ default: false })
 	isPremium!: boolean;
 
+	//xoa
 	@prop()
 	premiumSince?: Date;
 

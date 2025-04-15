@@ -22,6 +22,7 @@ class Result {
     public likes!: {
         count: number;
         artworkId: string;
+        userId: string; 
     }[];
 
     @prop({ default: 0 })
