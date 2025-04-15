@@ -1,5 +1,5 @@
 import env from '@/utils/validateEnv.util';
-import {injectable} from 'inversify';
+import { injectable } from 'inversify';
 import OpenAI from 'openai';
 
 @injectable()
@@ -69,10 +69,10 @@ Be constructive and specific in your feedback. If rejecting, explain exactly wha
 
         try {
             const response = await this.createCompletion(messages, {
-                    response_format: {type: 'json_object'},
-                    temperature: 0.1,
-                    max_tokens: 2048
-                },
+                response_format: { type: 'json_object' },
+                temperature: 0.1,
+                max_tokens: 2048
+            },
                 'grok-2-latest' // Changed from vision model since image processing isn't needed
             );
 
@@ -89,7 +89,7 @@ Be constructive and specific in your feedback. If rejecting, explain exactly wha
                     keywords: parsedResponse.keywords || [],
                     suggestedCategories: parsedResponse.suggestedCategories ?
                         [parsedResponse.suggestedCategories.primary,
-                            ...(parsedResponse.suggestedCategories.secondary || [])] : [],
+                        ...(parsedResponse.suggestedCategories.secondary || [])] : [],
                     description: description,
                     metadata: parsedResponse.metadata || {}
                 };
@@ -123,7 +123,7 @@ Be constructive and specific in your feedback. If rejecting, explain exactly wha
             category: string[];
             dimensions?: { width: number; height: number };
             url?: string;
-            moderationStatus?: 'pending'| 'approved'| 'rejected'| 'suspended' | string;
+            moderationStatus?: 'pending' | 'approved' | 'rejected' | 'suspended' | string;
             moderationReason?: string;
             moderatedBy?: string;
             aiReview?: {
@@ -192,10 +192,10 @@ Be specific about what has improved and what still needs attention.`
 
         try {
             const response = await this.createCompletion(messages, {
-                    response_format: {type: 'json_object'},
-                    temperature: 0.1,
-                    max_tokens: 2048
-                },
+                response_format: { type: 'json_object' },
+                temperature: 0.1,
+                max_tokens: 2048
+            },
                 'grok-2-latest'
             );
 
@@ -215,7 +215,7 @@ Be specific about what has improved and what still needs attention.`
                     keywords: parsedResponse.keywords || artwork.aiReview?.keywords || [],
                     suggestedCategories: parsedResponse.suggestedCategories ?
                         [parsedResponse.suggestedCategories.primary,
-                            ...(parsedResponse.suggestedCategories.secondary || [])] :
+                        ...(parsedResponse.suggestedCategories.secondary || [])] :
                         artwork.aiReview?.suggestedCategories || [],
                     metadata: parsedResponse.metadata || artwork.aiReview?.metadata || {}
                 };
@@ -255,6 +255,33 @@ Be specific about what has improved and what still needs attention.`
         } catch (error) {
             console.error('Error in createCompletion:', error);
             throw new Error('Failed to create completion');
+        }
+    }
+
+    public async detectLanguage(text: string): Promise<string> {
+        try {
+            const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+                {
+                    role: 'system',
+                    content: 'You are a language detection tool. Analyze the provided text and respond ONLY with the appropriate language code in ISO format (e.g., "en-US", "fr-FR", "ja-JP", "zh-CN", etc.). If unsure, return "en-US" as default.'
+                },
+                {
+                    role: 'user',
+                    content: `Detect the language of this text: "${text}"`
+                }
+            ];
+
+            const response = await this.createCompletion(messages, {
+                temperature: 0.1,
+                max_tokens: 10
+            }, 'grok-2-latest'
+            );
+
+            console.log('Language Detection Response:', response);
+            // return response.trim() || 'en-US';
+        } catch (error) {
+            console.error('Error in detectLanguage:', error);
+            throw new Error('Failed to detect language');
         }
     }
 }
