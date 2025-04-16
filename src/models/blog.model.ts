@@ -1,51 +1,59 @@
-import { getModelForClass, modelOptions, prop } from "@typegoose/typegoose";
-import { User } from "./user.model";
 import { Status } from "@/constants/enum";
+import { DocumentType, getModelForClass, modelOptions, prop, type Ref } from "@typegoose/typegoose";
+import { Types } from "mongoose";
+import User from "./user.model";
 
 @modelOptions({ schemaOptions: { timestamps: true } })
 export class Blog {
-  @prop({ required: true, default: false })
-  published!: boolean;
+	@prop({ required: true })
+	title!: string;
 
-  @prop({ required: true })
-  title!: string;
+	@prop({required: false})
+	content?: string;
 
-  @prop()
-  content?: string;
+	@prop({ required: true })
+	image!: string;
 
-  @prop({ required: true })
-  image!: string;
+	@prop({ ref: () => User, required: true, index: true })
+	author!: Ref<typeof User>;
 
-  @prop({ ref: () => User, required: true, index: true })
-  userId!: User;
+	@prop({
+		required: true,
+		type: String,
+		enum: Status,
+		default: Status.DRAFT,
+		index: true // Index cho status filters
+	})
+	status!: Status;
 
-  @prop({
-    required: true,
-    type: String,
-    enum: Status,
-    default: Status.INACTIVE,
-    index: true, // Index cho status filters
-  })
-  status!: Status;
+	@prop({ type: () => [Types.ObjectId], ref: () => User, default: [] })
+	hearts!: Types.ObjectId[];
 
-  @prop({ default: 0 })
-  heartCount?: number;
+	@prop({ default: 0 })
+	views?: number;
 
-  static async incrementHeartCount(postId: string) {
-    return getModelForClass(Blog).findByIdAndUpdate(
-      postId,
-      { $inc: { heartCount: 1 } },
-      { new: true }
-    );
-  }
+	@prop({ type: () => [String], default: [], required: false })
+	tags?: string[];
 
-  static async decrementHeartCount(postId: string) {
-    return getModelForClass(Blog).findByIdAndUpdate(
-      postId,
-      { $inc: { heartCount: -1 } },
-      { new: true }
-    );
-  }
+	static async incrementHeartCount(postId: string) {
+		return getModelForClass(Blog).findByIdAndUpdate(
+			postId,
+			{ $inc: { heartCount: 1 } },
+			{ new: true }
+		);
+	}
+
+	static async decrementHeartCount(postId: string) {
+		return getModelForClass(Blog).findByIdAndUpdate(
+			postId,
+			{ $inc: { heartCount: -1 } },
+			{ new: true }
+		);
+	}
 }
 
-export default getModelForClass(Blog, { schemaOptions: { timestamps: true } });
+export type BlogDocument = DocumentType<Blog> & {
+	createdAt: Date;
+	updatedAt: Date;
+};
+export default getModelForClass(Blog);

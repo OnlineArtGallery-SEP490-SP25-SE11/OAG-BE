@@ -1,175 +1,391 @@
-import { ErrorCode } from "@/constants/error-code";
-import {
-  CreateBlogPayload,
-  UpdateBlogDto,
-  UpdateBlogSchema,
-} from "@/dto/blog.dto";
-import { BaseHttpResponse } from "@/lib/base-http-response";
-import { BlogService } from "@/services/blog.service";
-import { ForbiddenException } from "@/exceptions/http-exception";
-import { NextFunction, Request, Response } from "express";
+import { BaseHttpResponse } from '@/lib/base-http-response';
+import { ForbiddenException } from '@/exceptions/http-exception';
+import { NextFunction, Request, Response } from 'express';
+import { Types } from 'mongoose';
+import { IBlogController } from '@/interfaces/controller.interface';
+import { BlogService } from '@/services/blog.service';
+import { inject, injectable } from 'inversify';
+import { TYPES } from '@/constants/types';
+import { Status } from '@/constants/enum';
 
-export class BlogController {
-  constructor(private readonly _blogService: BlogService) {
-    this.getBlogs = this.getBlogs.bind(this);
-    this.getBlogById = this.getBlogById.bind(this);
-    this.createBlog = this.createBlog.bind(this);
-    this.updateBlog = this.updateBlog.bind(this);
-    this.deleteBlog = this.deleteBlog.bind(this);
-    this.getLastEditedBlog = this.getLastEditedBlog.bind(this);
-  }
+@injectable()
+export class BlogController implements IBlogController {
+	constructor(
+		@inject(TYPES.BlogService) private readonly _blogService: BlogService
+	) {
 
-  async getBlogs(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<any> {
-    try {
-      const blogs = await this._blogService.getBlogs();
-      const response = BaseHttpResponse.success(
-        blogs,
-        200,
-        "Get blogs success"
-      );
-      return res.status(response.statusCode).json(response.data);
-    } catch (error) {
-      next(error);
-    }
-  }
+		this.findAll = this.findAll.bind(this);
+		this.findById = this.findById.bind(this);
+		this.findLastEditedByUser = this.findLastEditedByUser.bind(this);
+		this.findPublished = this.findPublished.bind(this);
+		this.create = this.create.bind(this);
+		this.update = this.update.bind(this);
+		this.delete = this.delete.bind(this);
+		this.approve = this.approve.bind(this);
+		this.reject = this.reject.bind(this);
+		this.addHeart = this.addHeart.bind(this);
+		this.removeHeart = this.removeHeart.bind(this);
+		// this.getLikes = this.getLikes.bind(this);
+		this.getHeartCount = this.getHeartCount.bind(this);
+	}
 
-  async getBlogById(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<any> {
-    try {
-      const blog = await this._blogService.getBlogById(req.params.id);
-      const response = BaseHttpResponse.success(blog, 200, "Get blog success");
-      return res.status(response.statusCode).json(response.data);
-    } catch (error) {
-      next(error);
-    }
-  }
+	findAll = async (
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> => {
+		try {
+			const blogs = await this._blogService.findAll();
+			const response = BaseHttpResponse.success(
+				blogs,
+				200,
+				'Get blogs success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	};
 
-  async getLastEditedBlog(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<any> {
-    try {
-      const userId = req.userId;
-      const blog = await this._blogService.getLastEditedBlog(userId!);
-      const response = BaseHttpResponse.success(
-        blog,
-        200,
-        "Get last edited blog success"
-      );
-      return res.status(response.statusCode).json(response.data);
-    } catch (error) {
-      next(error);
-    }
-  }
+	findById = async (
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> => {
+		try {
+			const blog = await this._blogService.findById(req.params.id);
+			const response = BaseHttpResponse.success(
+				{blog},
+				200,
+				'Get blog success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	};
 
-  async createBlog(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<any> {
-    try {
-      const userId = req.userId;
-      if (!userId) {
-        throw new ForbiddenException("Forbidden");
-      }
-      req.body.userId = userId;
-      const validationResult = CreateBlogPayload.safeParse(req.body);
-      if (!validationResult.success) {
-        const errors = validationResult.error.errors.map((error) => ({
-          path: error.path.join("."),
-          message: error.message,
-        }));
-        return res
-          .status(400)
-          .json(
-            BaseHttpResponse.error(
-              "Invalid blog data",
-              400,
-              ErrorCode.INVALID_BLOG_DATA,
-              errors
-            )
-          );
-      }
-      const blogData = { ...validationResult.data, userId };
-      const blog = await this._blogService.createBlog(blogData);
-      const response = BaseHttpResponse.success(
-        blog,
-        201,
-        "Create blog success"
-      );
-      return res.status(response.statusCode).json(response.data);
-    } catch (error) {
-      next(error);
-    }
-  }
+	findLastEditedByUser = async (
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> => {
+		try {
+			const userId = req.userId;
+			const blog = await this._blogService.findLastEditedByUser(userId!);
+			const response = BaseHttpResponse.success(
+				{blog},
+				200,
+				'Get last edited blog success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	};
 
-  async updateBlog(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<any> {
-    try {
-      const userId = req.userId;
-      if (!userId) {
-        throw new ForbiddenException("Forbidden");
-      }
-      req.body.userId = userId;
-      const role = req.userRole!;
-      const blogId = req.params.id;
-      req.body._id = blogId;
-      const validationResult = UpdateBlogSchema.safeParse(req.body);
-      if (!validationResult.success) {
-        const errors = validationResult.error.errors.map((error) => ({
-          path: error.path.join("."),
-          message: error.message,
-        }));
-        return res
-          .status(400)
-          .json(
-            BaseHttpResponse.error(
-              "Invalid blog data",
-              400,
-              ErrorCode.INVALID_BLOG_DATA,
-              errors
-            )
-          );
-      }
-      const blogData: UpdateBlogDto = validationResult.data;
+	create = async (
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> => {
+		try {
+			// Use the pre-validated data
+			const blogData = { ...req.validatedData };
+			const blog = await this._blogService.create(req.userId!, blogData);
 
-      const blog = await this._blogService.updateBlog(blogData, role);
-      const response = BaseHttpResponse.success(
-        blog,
-        200,
-        "Update blog success"
-      );
-      return res.status(response.statusCode).json(response.data);
-    } catch (error) {
-      next(error);
-    }
-  }
+			const response = BaseHttpResponse.success({ blog },
+				201,
+				'Create blog success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	};
 
-  async deleteBlog(req: Request, res: Response, next: NextFunction) {
-    const userId = req.userId;
-    if (!userId) {
-      throw new ForbiddenException("Forbidden");
-    }
-    const roleId = req.userRole!;
-    const blogId = req.params.id;
-    try {
-      await this._blogService.deleteBlog(blogId, userId, roleId);
-      res
-        .status(204)
-        .json(BaseHttpResponse.success(null, 204, "Delete blog success"));
-    } catch (error) {
-      next(error);
-    }
-  }
+	update = async (
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> => {
+		try {
+			const role = req.userRole!;
+			const blogId = req.params.id;
+			const blogData = req.validatedData;
+
+			const blog = await this._blogService.update({
+				blogId,
+				userId: req.userId!,
+				data: blogData,
+				role
+			});
+			const response = BaseHttpResponse.success({ blog },
+				200,
+				'Update blog success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	};
+
+	delete = async (req: Request, res: Response, next: NextFunction) => {
+		const userId = req.userId;
+		if (!userId) {
+			throw new ForbiddenException('Forbidden');
+		}
+		const roleId = req.userRole!;
+		const blogId = req.params.id;
+		try {
+			await this._blogService.delete(blogId, userId, roleId);
+			res.status(204).json(
+				BaseHttpResponse.success(null, 204, 'Delete blog success')
+			);
+		} catch (error) {
+			next(error);
+		}
+	};
+
+	findPublished = async (
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> => {
+		try {
+			const limit = parseInt(req.query.limit as string) || 10;
+			const after = req.query.after as string;
+			const query = req.query.query as string;
+
+			const baseQuery: any = {};
+			if (query) {
+				baseQuery.$or = [
+					{ title: { $regex: query, $options: 'i' } }
+					// { content: { $regex: query, $options: 'i' } }
+				];
+			}
+			if (after) {
+				const [timestamp, id] = after.split('_');
+				baseQuery.$or = [
+					{ createdAt: { $lt: new Date(parseInt(timestamp)) } },
+					{
+						$and: [
+							{ createdAt: new Date(parseInt(timestamp)) },
+							{ _id: { $lt: new Types.ObjectId(id) } }
+						]
+					}
+				];
+			}
+			const blogs = await this._blogService.findPublished(
+				baseQuery,
+				limit + 1
+			);
+			const total = await this._blogService.countPublished(
+				baseQuery
+			);
+			const hasNextPage = blogs.length > limit;
+
+			//remove extra
+			const edges = blogs.slice(0, limit).map((blog) => ({
+				cursor: `${blog.updatedAt.getTime()}_${blog._id.toString()}`,
+				node: blog
+			}));
+
+			const pageInfo = {
+				hasNextPage,
+				endCursor:
+					edges.length > 0 ? edges[edges.length - 1].cursor : null
+			};
+			const response = BaseHttpResponse.success(
+				{ edges, total, pageInfo },
+				200,
+				'Get published blogs success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	approve = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const userId = req.userId;
+			if (!userId) {
+				throw new ForbiddenException('Forbidden');
+			}
+			const blogId = req.params.id;
+
+			// Directly pass blogId
+			const blog = await this._blogService.approve(blogId);
+
+			const response = BaseHttpResponse.success(
+				blog,
+				200,
+				'Blog approved successfully'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	reject = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const userId = req.userId;
+			if (!userId) {
+				throw new ForbiddenException('Forbidden');
+			}
+
+			const blogId = req.params.id;
+			const { reason } = req.validatedData;
+
+			// Directly pass blogId and reason
+			await this._blogService.reject(blogId, reason);
+
+			const response = BaseHttpResponse.success(
+				null,
+				200,
+				'Blog rejected successfully'
+			);
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	requestPublish = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const userId = req.userId;
+			if (!userId) {
+				throw new ForbiddenException('Forbidden');
+			}
+
+			const blogId = req.params.id;
+
+			// Pass the ID from params
+			const blog = await this._blogService.requestPublish(blogId, userId);
+
+			const response = BaseHttpResponse.success(
+				blog,
+				200,
+				'Blog submitted for review successfully'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	findUserBlogs = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const blogs = await this._blogService.find({ userId: req.userId! });
+			const response = BaseHttpResponse.success(
+				blogs,
+				200,
+				'Blogs retrieved successfully'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	find = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const { page, limit, sort, filter, status, search } = req.query;
+			let statusParam: Status | Status[] | undefined = undefined;
+			if (status) {
+				if (typeof status === 'string' && status.includes(',')) {
+					statusParam = status.split(',') as Status[];
+				} else {
+					statusParam = status as Status;
+				}
+			}
+			const blogs = await this._blogService.find({
+				page: parseInt(page as string) || 1,
+				limit: parseInt(limit as string) || 10,
+				sort: sort as Record<string, any>,
+				filter: filter as Record<string, any>,
+				status: statusParam,
+				search: search as string
+			});
+			const response = BaseHttpResponse.success(
+				blogs,
+				200,
+				'Blogs retrieved successfully'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	// Like a blog
+	addHeart = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const userId = req.userId;
+			const blogId = req.params.id;
+			if (!userId) {
+				throw new ForbiddenException('Forbidden');
+			}
+			await this._blogService.addHeart(blogId, userId);
+			const response = BaseHttpResponse.success(null, 200, 'Liked successfully');
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	};
+
+	// Unlike a blog
+	removeHeart = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const userId = req.userId;
+			const blogId = req.params.id;
+			if (!userId) {
+				throw new ForbiddenException('Forbidden');
+			}
+			await this._blogService.removeHeart(blogId, userId);
+			const response = BaseHttpResponse.success(null, 200, 'Unliked successfully');
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	};
+
+	// Get like count for a blog
+	getHeartCount = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const blogId = req.params.id;
+			const count = await this._blogService.getHeartCount(blogId);
+			const response = BaseHttpResponse.success({ count }, 200, 'Fetched like count successfully');
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	};
+
+	// ✅ Check if user has liked the blog
+	isHeart = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const userId = req.params.userId;
+			const blogId = req.params.id;
+			const hasLiked = await this._blogService.isHeart(blogId, userId);
+			const response = BaseHttpResponse.success({ hasLiked }, 200, 'Checked successfully');
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	};
+
+	// ✅ Get list of users who liked the blog
+	getHeartUsers = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+		try {
+			const blogId = req.params.id;
+			const users = await this._blogService.getHeartUsers(blogId);
+			const response = BaseHttpResponse.success({ users }, 200, 'Fetched users successfully');
+			return res.status(response.statusCode).json(response.data);
+		} catch (error) {
+			next(error);
+		}
+	};
 }
