@@ -225,6 +225,24 @@ class UserService {
 			throw new Error(`Get pending artist requests failed! ${error.message}`);
 		}
 	}
+
+	async getUserProfile(userId: string): Promise<InstanceType<typeof User> | null> {
+		try {
+			const user = await User.findById(userId)
+				.select('-password')
+				.populate('following', 'name email image')
+				.populate('followers', 'name email image');
+				
+			if (!user) {
+				logger.error(`User not found!`);
+				throw new Error('User not found');
+			}
+			return user;
+		} catch (err: any) {
+			logger.error(`Get user profile failed!, ${err.message}`);
+			throw new Error(`Get user profile failed!, ${err.message}`);
+		}
+	}
 }
 
 export default new UserService();
