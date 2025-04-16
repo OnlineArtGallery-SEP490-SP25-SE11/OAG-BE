@@ -6,7 +6,7 @@ import { ArtworkController } from '@/controllers/artwork.controller';
 import { validate } from '@/middlewares/validate.middleware.ts';
 import { artworkSchema } from '@/schemas/artwork.schema.ts';
 import { Router } from 'express';
-
+import { permanentBan } from '@/configs/middleware.config.ts';
 const router = Router();
 const artworkController = container.get<ArtworkController>(
 	TYPES.ArtworkController
@@ -20,6 +20,7 @@ router.post(
 	'/',
 	roleRequire([Role.ARTIST]),
 	validate(artworkSchema._def.schema),
+	permanentBan(),
 	artworkController.add
 );
 router.get('/categories', artworkController.getCategory);
@@ -29,6 +30,7 @@ router.delete('/:id', roleRequire([Role.ARTIST]), artworkController.delete);
 router.post(
 	'/:id/purchase',
 	roleRequire([Role.USER, Role.ARTIST]),
+	permanentBan(),
 	artworkController.purchase
 );
 router.get('/:id/check-purchased', roleRequire([Role.USER, Role.ARTIST]), artworkController.checkPurchaseStatus);
