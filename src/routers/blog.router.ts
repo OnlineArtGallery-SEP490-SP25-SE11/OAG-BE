@@ -10,9 +10,7 @@ import {
     UpdateBlogSchema,
     RejectBlogSchema,
     AddHeartSchema,
-    RemoveHeartSchema,
-    IsHeartSchema,
-    GetHeartUsersSchema
+    RemoveHeartSchema,  
 } from "@/dto/blog.dto";
 import permanentBan from '@/configs/middleware.config'
 

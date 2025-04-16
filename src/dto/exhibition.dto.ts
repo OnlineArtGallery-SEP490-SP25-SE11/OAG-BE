@@ -13,7 +13,8 @@ const resultSchema = z.object({
   likes: z.array(
     z.object({
       count: z.number(),
-      artwork: z.string()
+      artwork: z.string(),
+      userId: z.string()
     })
   ).optional().default([]),
   totalTime: z.number().optional().default(0)
@@ -67,6 +68,33 @@ const exhibitionCompleteSchema = z.object({
 // Update schema - all fields optional
 export const updateExhibitionSchema = exhibitionCompleteSchema.partial();
 
+//RejectExhibitionSchema
+export const rejectExhibitionSchema = z.object({
+  reason: z.string().min(1),
+});
+
+
+export const likeArtworkSchema = z.object({
+  artworkId: z.string().min(1, 'Artwork ID is required')
+});
+
+export type LikeArtworkDto = z.infer<typeof likeArtworkSchema>;
+
+export interface LikeArtworkResponse {
+  liked: boolean;
+  likesCount: number;
+  artworkId: string;
+}
+
 // Types for use in controllers and services
 export type CreateEmptyExhibitionDto = z.infer<typeof createEmptyExhibitionSchema>;
 export type UpdateExhibitionDto = z.infer<typeof updateExhibitionSchema>;
+
+// Interface for ticket purchase response
+export type TicketPurchaseResponse = {
+  exhibitionId: string;
+  exhibitionName: string;
+  purchaseDate: Date;
+  price: number;
+  status: 'COMPLETED';
+}

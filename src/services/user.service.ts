@@ -24,6 +24,7 @@ class UserService {
 				logger.error(`User not found!`);
 				throw new Error('User not found');
 			}
+			//populate status premium
 			return user;
 		} catch (err: any) {
 			logger.error(`Get profile failed!, ${err.message}`);
