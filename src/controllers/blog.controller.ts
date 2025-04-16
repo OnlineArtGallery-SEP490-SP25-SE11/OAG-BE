@@ -280,7 +280,7 @@ export class BlogController implements IBlogController {
 		try {
 			const blogs = await this._blogService.find({ userId: req.userId! });
 			const response = BaseHttpResponse.success(
-				{blogs},
+				blogs,
 				200,
 				'Blogs retrieved successfully'
 			);
