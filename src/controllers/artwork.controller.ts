@@ -65,15 +65,27 @@ export class ArtworkController {
 
     async get(req: Request, res: Response, next: NextFunction): Promise<any> {
         try {
-            const options = req.query;
-            // Loại bỏ skip và take khỏi options
-            const {skip: _skip, take: _take, ...queryOptions} = options;
-            // tránh cảnh báo eslint
-            void _skip;
-            void _take;
+            const {skip: skipStr, take: takeStr, keyword, minPrice, maxPrice, ...restQuery} = req.query;
+            
+            // Create a properly typed queryOptions object
+            const queryOptions: any = {...restQuery};
+            
+            // Convert to numbers if provided, use defaults if not
+            const skip = skipStr ? parseInt(skipStr as string) : 0;
+            const take = takeStr ? parseInt(takeStr as string) : 10;
 
-            const skip = parseInt(req.query.skip as string);
-            const take = parseInt(req.query.take as string);
+            // Add keyword search if provided
+            if (keyword) {
+                queryOptions.keyword = keyword as string;
+            }
+            
+            // Handle price range separately to avoid type errors
+            if (minPrice || maxPrice) {
+                queryOptions.priceRange = {
+                    min: minPrice ? parseFloat(minPrice as string) : undefined,
+                    max: maxPrice ? parseFloat(maxPrice as string) : undefined
+                };
+            }
 
             const {artworks, total} = await this._artworkService.get(
                 queryOptions,
@@ -98,29 +110,31 @@ export class ArtworkController {
         }
     }
 
-    async getForArtist(
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): Promise<any> {
+    async getForArtist(req: Request, res: Response, next: NextFunction): Promise<any> {
         try {
-            const {skip: _skip, take: _take, ...queryOptions} = req.query;
-            void _skip;
-            void _take;
-
-            const skip = parseInt(req.query.skip as string);
-            const take = parseInt(req.query.take as string);
+            const {skip: skipStr, take: takeStr, ...restQuery} = req.query;
+            
+            // Create a properly typed queryOptions object
+            const queryOptions: any = {...restQuery};
+            
+            // Convert to numbers if provided, use defaults if not
+            const skip = skipStr ? parseInt(skipStr as string) : 0;
+            const take = takeStr ? parseInt(takeStr as string) : 10;
+            
             const userId = req.userId;
 
             if (!userId) {
                 throw new Error('Unauthorized');
             }
 
+            // Use artistId from the authenticated user to filter artworks
+            queryOptions.artistId = userId;
+
             const {artworks, total} = await this._artworkService.get(
                 queryOptions,
                 skip,
                 take,
-                {userId, role: 'artist'} // Đặt context là artist & userId
+                {userId, role: 'artist'}
             );
 
             const response = BaseHttpResponse.success(
