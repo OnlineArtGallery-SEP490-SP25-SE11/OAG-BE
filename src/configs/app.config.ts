@@ -84,15 +84,10 @@ class AppConfig {
 	private initMiddlewares(): void {
 		this.app.use(
 			cors({
-				origin: [env.CLIENT_URL, env.ADMIN_URL],
-				credentials: true,
-				methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-				allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+			origin: [env.CLIENT_URL, env.ADMIN_URL],
+			credentials: true
 			})
 		);
-		// Xử lý preflight requests
-		this.app.options('*', cors());
-
 		this.app.use(Cookieparser());
 		this.app.use(express.json({ limit: '50mb' }));
 		this.app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -128,7 +123,7 @@ class AppConfig {
 	// 			this.eventSystem.stopAll();
 	// 			logger.info('🗓️ Event status update system stopped');
 	// 		}
-
+			
 	// 		// Đóng các kết nối khác
 	// 		this.httpServer.close();
 	// 		await connectDatabase.disconnect();
