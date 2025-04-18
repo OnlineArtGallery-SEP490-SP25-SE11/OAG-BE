@@ -187,7 +187,7 @@ export class BlogController implements IBlogController {
 
 			//remove extra
 			const edges = blogs.slice(0, limit).map((blog) => ({
-				cursor: `${blog.updatedAt.getTime()}_${blog._id.toString()}`,
+				cursor: `${blog.updatedAt.getTime()}_${blog._id}`,
 				node: blog
 			}));
 

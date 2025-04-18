@@ -3,7 +3,7 @@ import { BadRequestException, NotFoundException } from '@/exceptions/http-except
 import User from '@/models/user.model';
 import logger from '@/configs/logger.config';
 import { Types } from 'mongoose';
-import { ArtistProfileModel } from '@/models/artist-profile.model';
+import  ArtistProfileModel  from '@/models/artist-profile.model';
 import { Role } from '@/constants/enum';
 
 

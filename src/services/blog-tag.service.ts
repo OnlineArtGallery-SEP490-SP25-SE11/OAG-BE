@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import BlogTagModel, { BlogTag } from "@/models/blog-tag.model";
+import BlogTagModel, { BlogTagDocument } from "@/models/blog-tag.model";
 import logger from '@/configs/logger.config';
 import { ErrorCode } from '@/constants/error-code';
 import { InternalServerErrorException } from "@/exceptions/http-exception";
@@ -9,7 +9,7 @@ import { IBlogTagService } from "@/interfaces/service.interface";
 export class BlogTagService implements IBlogTagService{
     constructor() {}
 
-    async createTag(name: string): Promise<BlogTag> {
+    async createTag(name: string): Promise<BlogTagDocument> {
         try {
             //find if tag existed
             const existedTag = await BlogTagModel.findOne({ name });
@@ -29,10 +29,9 @@ export class BlogTagService implements IBlogTagService{
         }
     }
 
-    async getTags(): Promise<BlogTag[]> {
+    async getTags(): Promise<BlogTagDocument[]> {
         try {
             return await BlogTagModel.find({}, 'name _id')
-                .lean()
                 .exec();
         } catch (error) {
             logger.error(error, 'Error getting blog tags');
