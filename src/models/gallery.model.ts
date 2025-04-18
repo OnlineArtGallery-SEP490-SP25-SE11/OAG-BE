@@ -117,6 +117,9 @@ export class Gallery {
   @prop({ default: false })
   public isPremium!: boolean;
 
+  @prop({ default: true })
+  public isActive!: boolean;
+
   @prop({
     type: () => [CustomCollider],
     default: []
