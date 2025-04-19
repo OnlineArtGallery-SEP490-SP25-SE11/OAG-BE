@@ -5,7 +5,7 @@ import {
 	pre,
 	prop,
 	type Ref,
-
+	Severity
 } from '@typegoose/typegoose';
 import bcrypt from 'bcryptjs';
 import { PremiumSubscriptionModel } from './premium.model';
@@ -168,5 +168,5 @@ class User {
 	followers!: Types.ObjectId[];
 }
 
-const UserModel = getModelForClass(User, { schemaOptions: { timestamps: true } });
+const UserModel = getModelForClass(User);
 export default UserModel;
