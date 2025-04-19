@@ -1,6 +1,5 @@
 // comment.service.ts
 import { injectable } from "inversify";
-import { injectable } from "inversify";
 import CommentModel, { CommentDocument } from "@/models/comment.model";
 import { ICommentService } from "@/interfaces/service.interface";
 import { Types } from "mongoose";

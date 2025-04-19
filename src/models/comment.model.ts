@@ -25,57 +25,18 @@ export class Comment {
 
   @prop({ default: 0 })
   likeCount?: number;
-  parentComment?: Types.ObjectId;
-  replies: Types.ObjectId[];
-  createdAt: Date;
-  updatedAt: Date;
+
+  @prop({ ref: () => Comment })
+  parentComment?: Ref<Comment>;
+
+  @prop({ ref: () => Comment, default: [], type: () => [Types.ObjectId] })
+  replies!: Types.ObjectId[];
+
+  createdAt!: Date;
+  updatedAt!: Date;
 }
 
-// Create the schema
-const commentSchema = new Schema<IComment>(
-  {
-    blog: {
-      type: Schema.Types.ObjectId,
-      ref: 'Blog',
-      required: true,
-      index: true
-    },
-    author: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-      index: true
-    },
-    content: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    likeCount: {
-      type: Number,
-      default: 0
-    },
-    parentComment: {
-      type: Schema.Types.ObjectId,
-      ref: 'Comment',
-      required: false,
-    },
-    replies: {
-      type: [Schema.Types.ObjectId],
-      ref: 'Comment',
-      default: []
-    }
-  },
-  { timestamps: true }
-);
-
-// Create and export the model
-const Comment = model<IComment>('Comment', commentSchema);
-
-export default Comment;
-
-// Export the document type for type safety in other files
-export type CommentDocument = IComment & {
+export type CommentDocument = Comment & {
   _id: Types.ObjectId;
 };
 
