@@ -130,5 +130,26 @@ router.get('/pending-become-artist', roleRequire(['admin']), async (_req: Reques
     }
 });
 
+// Lấy profile của người dùng khác
+router.get('/profile/:userId', roleRequire(), async (req: Request, res: Response) => {
+    try {
+        const targetUserId = req.params.userId;
+        const userProfile = await UserService.getUserProfile(targetUserId);
+        
+        // Nếu người dùng hiện tại đã đăng nhập, kiểm tra xem họ có đang follow người dùng này không
+        let isFollowing = false;
+        if (req.userId) {
+            isFollowing = await UserService.isFollowingUser(req.userId as string, targetUserId);
+        }
+        
+        res.status(200).json({ 
+            user: userProfile,
+            isFollowing 
+        });
+    } catch (err: any) {
+        logger.error(err.message);
+        res.status(500).json({ message: err.message });
+    }
+});
 
 export default router;
