@@ -2,17 +2,13 @@ import { TYPES } from '@/constants/types';
 import { BlogController } from '@/controllers/blog.controller';
 import { InteractionController } from '@/controllers/interaction.controller';
 import {
-	IArtworkController,
 	IBlogController,
-	IChatController,
-	ICollectionController,
 	IInteractionController
 } from '@/interfaces/controller.interface';
 import {
 	IBlogService,
 	ICCCDService,
 	IChatService,
-	ICollectionService,
 	ICommentService,
 	IInteractionService
 } from '@/interfaces/service.interface';

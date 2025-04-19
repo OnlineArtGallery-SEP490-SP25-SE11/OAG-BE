@@ -1,53 +1,62 @@
-import User from '@/models/user.model.ts';
-import { getModelForClass, index, prop, type Ref } from '@typegoose/typegoose';
+import mongoose, { Document, Schema, model } from 'mongoose';
 
-@index({ userId: 1, createdAt: -1 })
-@index({ isSystem: 1 })
-@index({ isRead: 1 })class Notification {
-    @prop({
-        type: () => String,
-        required: true
-    })
-    public title!: string;
+// Define notification type for type safety
+type NotificationType = 'system' | 'announcement' | 'marketing' | 'feature' | 'maintenance' | 'artwork' | 'event' | 'chat' | 'transaction';
 
-    @prop({
-        type: () => String,
-        required: false
-    })
-    public content?: string;
-
-    @prop({
-        ref: () => User,
-        required: true
-    })
-    public userId!: Ref<typeof User>;
-
-    @prop({
-        type: () => Boolean,
-        default: false
-    })
-    public isRead!: boolean;
-
-    @prop({
-        type: () => Boolean,
-        default: true  // Mặc định là true - tức là hệ thống tạo
-    })
-    public isSystem!: boolean;
-
-    @prop({
-        type: () => String,
-        enum: ['system', 'announcement', 'marketing', 'feature', 'maintenance', 'artwork', 'event', 'chat', 'transaction'],
-        default: 'system'
-    })
-    public refType?: string;
-
-    @prop({
-        type: () => String,
-        required: false
-    })
-    public refId?: string;
+// Define interface for Notification document
+interface INotification extends Document {
+  title: string;
+  content?: string;
+  userId: mongoose.Types.ObjectId;
+  isRead: boolean;
+  isSystem: boolean;
+  refType?: NotificationType;
+  refId?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-export default getModelForClass(Notification, {
-    schemaOptions: { timestamps: true }
-});
+// Create the schema
+const notificationSchema = new Schema<INotification>(
+  {
+    title: {
+      type: String,
+      required: true
+    },
+    content: {
+      type: String
+    },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    isRead: {
+      type: Boolean,
+      default: false
+    },
+    isSystem: {
+      type: Boolean,
+      default: true // Default is true - means created by system
+    },
+    refType: {
+      type: String,
+      enum: ['system', 'announcement', 'marketing', 'feature', 'maintenance', 'artwork', 'event', 'chat', 'transaction'],
+      default: 'system'
+    },
+    refId: {
+      type: String
+    }
+  },
+  { timestamps: true }
+);
+
+// Create indexes
+notificationSchema.index({ userId: 1, createdAt: -1 });
+notificationSchema.index({ isSystem: 1 });
+notificationSchema.index({ isRead: 1 });
+
+// Create and export the model
+const Notification = model<INotification>('Notification', notificationSchema);
+
+export default Notification;

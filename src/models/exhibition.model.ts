@@ -1,164 +1,259 @@
-import { getModelForClass, modelOptions, prop, DocumentType, type Ref, Severity, pre } from "@typegoose/typegoose";
-import User from "./user.model";
-import Artwork from "./artwork.model";
+import mongoose, { Document, Schema, model } from 'mongoose';
 import { ExhibitionStatus } from "@/constants/enum";
-import { Gallery } from "./gallery.model";
-class LanguageOption {
-    @prop({ required: true, trim: true, minlength: 2, maxlength: 2 })
-    public name!: string;
 
-    @prop({ required: true, trim: true, minlength: 2, maxlength: 2 })
-    public code!: string;
-
-    @prop({ required: true })
-    public isDefault!: boolean;
+// Define interfaces for nested types
+interface ILanguageOption {
+  name: string;
+  code: string;
+  isDefault: boolean;
 }
 
-class Result {
-    @prop({ default: 0 })
-    public visits!: number;
-
-    @prop({ required: false })
-    public likes!: {
-        count: number;
-        artworkId: string;
-        userId: string; 
-    }[];
-
-    @prop({ default: 0 })
-    public totalTime!: number; // minutes
+interface IResult {
+  visits: number;
+  likes?: {
+    count: number;
+    artworkId: string;
+    userId: string;
+  }[];
+  totalTime: number; // minutes
 }
 
-
-class ArtWorkPosition {
-    @prop({ ref: () => typeof Artwork, required: true })
-    public artwork!: Ref<typeof Artwork>;
-
-    @prop({ required: true })
-    public positionIndex!: number;
+interface IArtworkPosition {
+  artwork: mongoose.Types.ObjectId;
+  positionIndex: number;
 }
 
-
-class Content {
-    @prop({ required: true, trim: true, minlength: 2, maxlength: 2 })
-    public languageCode!: string;
-
-    @prop({ trim: true, maxlength: 100, default: '' })
-    public name!: string;
-
-    @prop({ default: '' })
-    public description!: string;
+interface IContent {
+  languageCode: string;
+  name: string;
+  description: string;
 }
 
-class Ticket {
-    @prop({ required: true, default: false })
-    public requiresPayment!: boolean;
+interface ITicket {
+  requiresPayment: boolean;
+  price: number;
+  registeredUsers: mongoose.Types.ObjectId[];
+}
 
-    @prop({ 
-        default: 0,
-        validate: {
-            validator: function(this: Ticket, price: number) {
-                if (this.requiresPayment) {
-                    return price > 0;
-                }
-                return true;
-            },
-            message: 'Price must be greater than 0 when payment is required'
+// Define main interface for Exhibition document
+interface IExhibition extends Document {
+  contents: IContent[];
+  welcomeImage?: string;
+  backgroundMedia?: string;
+  backgroundAudio?: string;
+  startDate: Date;
+  endDate: Date;
+  gallery: mongoose.Types.ObjectId;
+  author: mongoose.Types.ObjectId;
+  languageOptions: ILanguageOption[];
+  isFeatured: boolean;
+  status: ExhibitionStatus;
+  result: IResult;
+  linkName: string;
+  discovery: boolean;
+  artworkPositions: IArtworkPosition[];
+  ticket: ITicket;
+  getContent(languageCode: string): IContent | undefined;
+  getDefaultContent(): IContent | undefined;
+}
+
+// Create schemas for nested documents
+const languageOptionSchema = new Schema<ILanguageOption>({
+  name: { 
+    type: String, 
+    required: true, 
+    trim: true, 
+    minlength: 2, 
+    maxlength: 2 
+  },
+  code: { 
+    type: String, 
+    required: true,
+    trim: true, 
+    minlength: 2, 
+    maxlength: 2 
+  },
+  isDefault: { 
+    type: Boolean, 
+    required: true 
+  }
+}, { _id: false });
+
+const resultSchema = new Schema<IResult>({
+  visits: { 
+    type: Number, 
+    default: 0 
+  },
+  likes: [{
+    count: Number,
+    artworkId: String,
+    userId: String
+  }],
+  totalTime: { 
+    type: Number, 
+    default: 0 
+  }
+}, { _id: false });
+
+const artworkPositionSchema = new Schema<IArtworkPosition>({
+  artwork: { 
+    type: Schema.Types.ObjectId, 
+    ref: 'Artwork', 
+    required: true 
+  },
+  positionIndex: { 
+    type: Number, 
+    required: true 
+  }
+}, { _id: false });
+
+const contentSchema = new Schema<IContent>({
+  languageCode: { 
+    type: String, 
+    required: true, 
+    trim: true, 
+    minlength: 2, 
+    maxlength: 2 
+  },
+  name: { 
+    type: String, 
+    trim: true, 
+    maxlength: 100, 
+    default: '' 
+  },
+  description: { 
+    type: String, 
+    default: '' 
+  }
+}, { _id: false });
+
+const ticketSchema = new Schema<ITicket>({
+  requiresPayment: { 
+    type: Boolean, 
+    required: true, 
+    default: false 
+  },
+  price: { 
+    type: Number, 
+    default: 0,
+    validate: {
+      validator: function(this: ITicket, price: number) {
+        if (this.requiresPayment) {
+          return price > 0;
         }
-    })
-    public price!: number;
+        return true;
+      },
+      message: 'Price must be greater than 0 when payment is required'
+    }
+  },
+  registeredUsers: [{ 
+    type: Schema.Types.ObjectId, 
+    ref: 'User', 
+    default: [] 
+  }]
+}, { _id: false });
 
-    @prop({ ref: () => User, default: [] })
-    public registeredUsers!: Ref<typeof User>[];
-}
-
-@modelOptions({
-    options: {
-        allowMixed: Severity.ALLOW
+// Create the main Exhibition schema
+const exhibitionSchema = new Schema<IExhibition>(
+  {
+    contents: {
+      type: [contentSchema],
+      required: true,
+      default: []
     },
-    schemaOptions: {
-        toJSON: { virtuals: true },
-        toObject: { virtuals: true }
+    welcomeImage: String,
+    backgroundMedia: String,
+    backgroundAudio: String,
+    startDate: {
+      type: Date,
+      required: true
+    },
+    endDate: {
+      type: Date,
+      required: true
+    },
+    gallery: {
+      type: Schema.Types.ObjectId,
+      ref: 'Gallery',
+      required: true,
+      index: true
+    },
+    author: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true
+    },
+    languageOptions: {
+      type: [languageOptionSchema],
+      required: true
+    },
+    isFeatured: {
+      type: Boolean,
+      default: false
+    },
+    status: {
+      type: String,
+      enum: Object.values(ExhibitionStatus),
+      required: true,
+      default: ExhibitionStatus.DRAFT,
+      index: true // Index for status filters
+    },
+    result: {
+      type: resultSchema,
+      required: true,
+      default: () => ({})
+    },
+    linkName: {
+      type: String,
+      default: ''
+    },
+    discovery: {
+      type: Boolean,
+      required: true,
+      default: false
+    },
+    artworkPositions: {
+      type: [artworkPositionSchema],
+      required: true,
+      default: []
+    },
+    ticket: {
+      type: ticketSchema,
+      required: true,
+      default: () => ({})
     }
-})
-@pre<Exhibition>('validate', function() {
-    if (this.endDate <= this.startDate) {
-        throw new Error('End date must be after start date');
-    }
-})
-export class Exhibition {
-    @prop({
-        type: () => [Content],
-        required: true,
-        _id: false,
-        default: []
-    })
-    public contents!: Content[];
+  },
+  { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+    strict: false // Equivalent to allowMixed: Severity.ALLOW
+  }
+);
 
-    @prop({ required: false })
-    public welcomeImage?: string;
+// Add pre-validate hook for date validation
+exhibitionSchema.pre('validate', function(next) {
+  if (this.endDate <= this.startDate) {
+    this.invalidate('endDate', 'End date must be after start date');
+  }
+  next();
+});
 
-    @prop({ required: false })
-    public backgroundMedia?: string;
+// Add instance methods
+exhibitionSchema.methods.getContent = function(languageCode: string) {
+  return this.contents.find((content: IContent) => content.languageCode === languageCode);
+};
 
-    @prop({ required: false })
-    public backgroundAudio?: string;
+exhibitionSchema.methods.getDefaultContent = function() {
+  const defaultLang = this.languageOptions.find((lang: ILanguageOption) => lang.isDefault)?.code || 'en';
+  return this.getContent(defaultLang);
+};
 
-    @prop({ required: true })
-    public startDate!: Date;
+// Create and export the model
+const Exhibition = model<IExhibition>('Exhibition', exhibitionSchema);
 
-    @prop({ required: true })
-    public endDate!: Date;
+// Export type for use in other files
+export type ExhibitionDocument = IExhibition;
 
-    @prop({ ref: () => Gallery, required: true, index: true })
-    public gallery!: Ref<Gallery>;
-
-    @prop({ ref: () => User, required: true, index: true })
-    public author!: Ref<typeof User>;
-
-    @prop({ required: true })
-    public languageOptions!: LanguageOption[];
-
-    @prop({ default: false })
-    public isFeatured!: boolean;
-
-    @prop({
-        required: true, type: String,
-        enum: ExhibitionStatus,
-        default: ExhibitionStatus.DRAFT,
-        index: true // Index cho status filters
-    })
-    public status!: ExhibitionStatus;
-
-    @prop({ required: true, type: () => Result, _id: false })
-    public result!: Result;
-
-    @prop({ default: '' })
-    public linkName!: string;
-
-    @prop({ required: true, default: false })
-    public discovery!: boolean;
-
-    @prop({ required: true, type: () => [ArtWorkPosition], _id: false })
-    public artworkPositions!: ArtWorkPosition[];
-
-    @prop({ type: () => Ticket, _id: false, required: true, default: () => ({}) })
-    public ticket!: Ticket;
-
-
-    public getContent(languageCode: string) {
-        return this.contents.find(content => content.languageCode === languageCode);
-    }
-
-    public getDefaultContent() {
-        const defaultLang = this.languageOptions.find(lang => lang.isDefault)?.code || 'en';
-        return this.getContent(defaultLang);
-    }
-
-
-}
-
-
-export type ExhibitionDocument = DocumentType<Exhibition>;
-
-export default getModelForClass(Exhibition);
+export default Exhibition;

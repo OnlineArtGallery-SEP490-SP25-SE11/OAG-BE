@@ -55,7 +55,7 @@ class FileService {
 			const files = await File.find({ url: { $in: urlArray } }).select(
 				'_id'
 			);
-			return files.map((file) => file._id.toString());
+			return files.map((file) => file._id as string);
 		} catch (error) {
 			logger.error(error);
 			throw error;

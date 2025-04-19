@@ -1,44 +1,52 @@
-import { getModelForClass, modelOptions, prop, type Ref } from '@typegoose/typegoose';
-import Wallet from './wallet.model';
+import mongoose, { Document, Schema, model } from 'mongoose';
 
-@modelOptions({
-    schemaOptions: {
-        timestamps: true
-    }
-})
-class Transaction {
-    @prop({
-        ref: () => Wallet,
-        required: true
-    })
-    public walletId!: Ref<typeof Wallet>;
+// Define transaction types and status as type literals for type safety
+type TransactionType = 'DEPOSIT' | 'WITHDRAWAL' | 'PAYMENT' | 'SALE' | 'COMMISSION' | 'PREMIUM_SUBSCRIPTION' | 'TICKET_SALE';
+type TransactionStatus = 'PENDING' | 'PAID' | 'FAILED';
 
-
-    @prop({
-        type: () => Number,
-        required: true
-    })
-    public amount!: number;
-
-    @prop({
-        type: () => String,
-        enum: ['DEPOSIT', 'WITHDRAWAL', 'PAYMENT', 'SALE', 'COMMISSION', 'PREMIUM_SUBSCRIPTION', 'TICKET_SALE'],
-        required: true
-    })
-    public type!: string;
-
-    @prop({
-        enum: ['PENDING', 'PAID', 'FAILED'],
-        required: true,
-        default: 'PENDING'
-    })
-    public status!: 'PENDING' | 'PAID' | 'FAILED';
-
-    @prop({
-        type: () => String,
-        required: true
-    })
-    public orderCode!: string;
+// Define interface for Transaction document
+interface ITransaction extends Document {
+  walletId: mongoose.Types.ObjectId;
+  amount: number;
+  type: TransactionType;
+  status: TransactionStatus;
+  orderCode: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-export default getModelForClass(Transaction, { schemaOptions: { timestamps: true } });
+// Create the schema
+const transactionSchema = new Schema<ITransaction>(
+  {
+    walletId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Wallet',
+      required: true
+    },
+    amount: {
+      type: Number,
+      required: true
+    },
+    type: {
+      type: String,
+      enum: ['DEPOSIT', 'WITHDRAWAL', 'PAYMENT', 'SALE', 'COMMISSION', 'PREMIUM_SUBSCRIPTION', 'TICKET_SALE'],
+      required: true
+    },
+    status: {
+      type: String,
+      enum: ['PENDING', 'PAID', 'FAILED'],
+      required: true,
+      default: 'PENDING'
+    },
+    orderCode: {
+      type: String,
+      required: true
+    }
+  },
+  { timestamps: true }
+);
+
+// Create and export the model
+const Transaction = model<ITransaction>('Transaction', transactionSchema);
+
+export default Transaction;

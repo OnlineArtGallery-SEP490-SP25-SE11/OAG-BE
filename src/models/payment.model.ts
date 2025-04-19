@@ -1,60 +1,62 @@
-import { getModelForClass, modelOptions, prop, type Ref } from '@typegoose/typegoose';
-import User from './user.model';
+import mongoose, { Document, Schema, model } from 'mongoose';
 
-@modelOptions({
-    schemaOptions: {
-        timestamps: true,
-    }
-})
-class Payment {
-    @prop({
-        ref: () => User,
-        required: true
-    })
-    public userId!: Ref<typeof User>;
+// Define payment status type for type safety
+type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED';
 
-    @prop({
-        type: () => Number,
-        required: true
-    })
-    public amount!: number;
-
-    @prop({
-        type: () => String,
-        required: false
-    }
-    )
-    public description?: string;
-
-    @prop({
-        enum: ['PENDING', 'PAID', 'FAILED'],
-        required: true
-    })
-    public status!: 'PENDING' | 'PAID' | 'FAILED';
-
-    @prop({
-        type: () => String,
-        required: true
-    })
-    public paymentUrl!: string;
-
-    @prop({
-        type: () => String,
-        required: true
-    })
-    public orderCode!: string;
-
-
-    public getId(): string {
-        return (this as any)._id?.toString();
-    }
+// Define interface for Payment document
+interface IPayment extends Document {
+  userId: mongoose.Types.ObjectId;
+  amount: number;
+  description?: string;
+  status: PaymentStatus;
+  paymentUrl: string;
+  orderCode: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  getId(): string;
 }
 
-export default getModelForClass(Payment,
-    {
-        schemaOptions: {
-            timestamps: true,
-            id: true
-        }
+// Create the schema
+const paymentSchema = new Schema<IPayment>(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    amount: {
+      type: Number,
+      required: true
+    },
+    description: {
+      type: String
+    },
+    status: {
+      type: String,
+      enum: ['PENDING', 'PAID', 'FAILED'],
+      required: true
+    },
+    paymentUrl: {
+      type: String,
+      required: true
+    },
+    orderCode: {
+      type: String,
+      required: true
     }
+  },
+  { 
+    timestamps: true,
+    id: true 
+  }
 );
+
+// Add instance method
+paymentSchema.methods.getId = function(): string {
+  return this._id?.toString();
+};
+
+// Create and export the model
+const Payment = model<IPayment>('Payment', paymentSchema);
+
+export default Payment;
