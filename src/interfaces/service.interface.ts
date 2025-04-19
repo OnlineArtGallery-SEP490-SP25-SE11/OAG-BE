@@ -13,6 +13,7 @@ import { UpdateCollectionOptions } from '@/services/collection.service.ts';
 import { ChatDocument } from "@/models/chat.model";
 import { CreateCccdDto, UpdateCccdDto } from "@/dto/cccd.dto";
 import { CCCDDocument } from "@/models/cccd.model";
+import { Types } from "mongoose";
 
 export interface IInteractionService {
 	getUserInteractions(
@@ -124,11 +125,35 @@ export interface IInteractionService {
 }
 
 export interface ICommentService {
-  createComment(userId: string, blogId: string, content: string): Promise<CommentDocument>;
-  getCommentsByBlog(blogId: string): Promise<CommentDocument[]>;
-  updateComment(commentId: string, userId: string, content: string): Promise<CommentDocument>;
-  deleteComment(commentId: string, userId: string, role: string[]): Promise<void>;
-}
+	createComment(
+	  userId: string,
+	  targetId: string,
+	  content: string,
+	  targetType: 'blog' | 'artwork',
+	  parentId?: string | null,
+	  onModel?: 'blog' | 'artwork' // Thêm onModel vào đây
+	): Promise<CommentDocument>;
+  
+	getCommentsByTarget(
+	  targetId: string,
+	  targetType: 'blog' | 'artwork'
+	): Promise<CommentDocument[]>;
+  
+	updateComment(
+	  commentId: string,
+	  userId: string,
+	  content?: string,
+	  replies?: Types.ObjectId[]
+	): Promise<CommentDocument>;
+  
+	deleteComment(
+	  commentId: string,
+	  userId: string,
+	  role: string[]
+	): Promise<void>;
+  }
+  
+  
 
 export interface IChatService {
 	createChat(senderId: string, receiverId: string, message: string, replyTo?: string): Promise<ChatDocument>;

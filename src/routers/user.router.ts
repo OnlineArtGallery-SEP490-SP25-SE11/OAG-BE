@@ -72,7 +72,7 @@ router.get('/is-following/:targetUserId', roleRequire(), async (req: Request, re
 });
 
 // Lấy danh sách followers
-router.get('/followers', roleRequire(), async (req: Request, res: Response) => {
+router.get('/followers',  async (req: Request, res: Response) => {
     try {
         const userId = req.userId as string;
         const followers = await UserService.getFollowers(userId);
