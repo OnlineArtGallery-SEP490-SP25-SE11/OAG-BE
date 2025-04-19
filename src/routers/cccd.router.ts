@@ -10,6 +10,12 @@ import { CreateCCCDSchema, UpdateCCCDSchema } from "@/dto/cccd.dto";
 const router = Router();
 const cccdController = container.get<CCCDController>(TYPES.CCCDController);
 
+router.get(
+  "/",
+  roleRequire([Role.ADMIN]),
+  cccdController.getAll
+);
+
 router.post(
   "/",
   roleRequire([Role.ARTIST, Role.USER]),

@@ -172,7 +172,6 @@ class UserService {
 			if (!user) {
 				throw new Error('User not found');
 			}
-
 			const targetObjectId = new mongoose.Types.ObjectId(targetUserId);
 			return user.following.some(followedId => followedId.equals(targetObjectId));
 		} catch (error: any) {
