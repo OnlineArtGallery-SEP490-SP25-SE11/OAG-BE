@@ -1,4 +1,3 @@
-//comment.route.ts
 import { Router } from "express";
 import roleRequire from "@/configs/middleware.config";
 import { Role } from "@/constants/enum";
@@ -7,11 +6,12 @@ import { CommentController } from "@/controllers/comment.controller";
 import container from "@/configs/container.config";
 import { validate } from "@/middlewares/validate.middleware";
 import { CreateCommentSchema, UpdateCommentSchema } from "@/dto/comment.dto";
-import permanentBan from '@/configs/middleware.config'
+import permanentBan from '@/configs/middleware.config';
+
 const router = Router();
 const commentController = container.get<CommentController>(TYPES.CommentController);
 
-// Tạo comment mới (dành cho Artist, USER)
+// Tạo comment mới (cho blog hoặc artwork)
 router.post(
   "/",
   roleRequire([Role.ARTIST, Role.USER]),
@@ -20,10 +20,12 @@ router.post(
   commentController.create
 );
 
-// Lấy danh sách comment theo blog (blogId truyền qua route parameter)
-router.get("/blog/:blogId", commentController.getComments);
+router.get(
+  "/target/:targetType/:targetId", // targetType: "blog" | "artwork"
+  commentController.getCommentsByTarget
+);
 
-// Cập nhật comment (dành cho tác giả hoặc USER)
+// Cập nhật comment (chỉ tác giả comment)
 router.put(
   "/:id",
   roleRequire([Role.ARTIST, Role.USER]),
@@ -31,10 +33,10 @@ router.put(
   commentController.update
 );
 
-// Xoá comment (dành cho tác giả hoặc USER)
+// Xoá comment (tác giả hoặc admin)
 router.delete(
   "/:id",
-  roleRequire([Role.ARTIST, Role.USER]),
+  roleRequire([Role.USER, Role.ARTIST]),
   commentController.delete
 );
 

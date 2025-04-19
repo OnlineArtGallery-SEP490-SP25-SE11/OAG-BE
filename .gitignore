@@ -181,3 +181,5 @@ bun.lockb
 http/
 
 .vscode/
+
+.scripts/

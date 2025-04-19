@@ -21,6 +21,11 @@ export interface ArtworkQueryOptions {
 	artistName?: string;
 	sortBy?: string;
 	sortOrder?: 'asc' | 'desc';
+	keyword?: string;
+	priceRange?: {
+		min?: number;
+		max?: number;
+	};
 }
 
 export interface ArtworkUpdateOptions {
@@ -198,8 +203,7 @@ export class ArtworkService {
 		total: number;
 	}> {
 		try {
-			// const query: FilterQuery<typeof Artwork> = { ...options };
-			const { select, sortBy, sortOrder, ...rest } = options;
+			const { select, sortBy, sortOrder, keyword, priceRange, artistName, ...rest } = options;
 			const query: FilterQuery<typeof Artwork> = { ...rest };
 
 			// Xử lý các điều kiện tìm kiếm
@@ -213,15 +217,71 @@ export class ArtworkService {
 				};
 			}
 
-			if (options.artistName) {
+			// Xử lý category - khi có nhiều category (OR logic)
+			if (options.category) {
+				if (Array.isArray(options.category)) {
+					// Nếu là mảng category, tìm artwork có BẤT KỲ category nào trong mảng
+					query.category = { $in: options.category };
+				} else {
+					// Nếu là string, tìm artwork có category này
+					query.category = { $regex: options.category, $options: 'i' };
+				}
+			}
+			
+			// Tìm kiếm theo tên nghệ sĩ (hỗ trợ nhiều tên)
+			if (artistName) {
+				let artistQuery;
+				
+				if (Array.isArray(artistName)) {
+					// Nhiều tên nghệ sĩ - tìm kiếm với $or
+					artistQuery = {
+						$or: artistName.map(name => ({ name: { $regex: name, $options: 'i' } }))
+					};
+				} else {
+					// Một tên nghệ sĩ
+					artistQuery = {
+						name: { $regex: artistName, $options: 'i' }
+					};
+				}
+				
+				const artistIds = await User.find(artistQuery)
+					.select('_id')
+					.exec();
+					
+				query.artistId = { $in: artistIds.map(a => a._id) };
+			}
+
+			// Tìm kiếm nâng cao theo keyword (tìm trong title, category, description, tên tác giả và AI review)
+			if (keyword) {
+				// Tìm tác giả theo keyword
 				const artistQuery = {
-					name: { $regex: options.artistName, $options: 'i' }
+					name: { $regex: keyword, $options: 'i' }
 				};
 				const artistIds = await User.find(artistQuery)
 					.select('_id')
 					.exec();
-				delete query.artistName;
-				query.artistId = { $in: artistIds.map((a) => a._id) };
+					
+				// Tạo điều kiện $or để tìm trong nhiều trường
+				query.$or = [
+					{ title: { $regex: keyword, $options: 'i' } },
+					{ description: { $regex: keyword, $options: 'i' } },
+					{ category: { $regex: keyword, $options: 'i' } },
+					{ artistId: { $in: artistIds.map(a => a._id) } },
+					{ 'aiReview.keywords': { $regex: keyword, $options: 'i' } },
+					{ 'aiReview.description': { $regex: keyword, $options: 'i' } },
+					{ 'aiReview.suggestedCategories': { $regex: keyword, $options: 'i' } }
+				];
+			}
+
+			// Lọc theo khoảng giá
+			if (priceRange) {
+				query.price = {};
+				if (priceRange.min !== undefined) {
+					query.price.$gte = priceRange.min;
+				}
+				if (priceRange.max !== undefined) {
+					query.price.$lte = priceRange.max;
+				}
 			}
 
 			// Áp dụng bộ lọc dựa trên quyền hạn người dùng
@@ -246,6 +306,7 @@ export class ArtworkService {
 			const artworkQuery = Artwork.find(query).sort(sortOptions);
 			// Áp dụng phân trang
 			this._applyPagination(artworkQuery, skip, take);
+
 			// Chọn các trường cần lấy nếu được chỉ định
 			if (select) {
 				artworkQuery.select(select);
