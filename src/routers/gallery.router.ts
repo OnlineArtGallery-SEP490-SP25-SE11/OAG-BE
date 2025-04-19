@@ -16,6 +16,7 @@ router.post(
     galleryController.create
 );
 router.get('/', galleryController.findAll);
+router.get('/public', galleryController.findAllPublic);
 router.get('/:id', galleryController.findById);
 
 router.put(
@@ -24,6 +25,14 @@ router.put(
     validate(updateGallerySchema),
     galleryController.update
 );
+router.patch(
+    '/:id',
+    roleRequire([Role.ADMIN]),
+    validate(updateGallerySchema),
+    galleryController.update
+);
+
+
 
 router.delete(
     '/:id',

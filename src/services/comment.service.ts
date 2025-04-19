@@ -1,3 +1,5 @@
+// comment.service.ts
+import { injectable } from "inversify";
 import { injectable } from "inversify";
 import CommentModel, { CommentDocument } from "@/models/comment.model";
 import { ICommentService } from "@/interfaces/service.interface";
@@ -21,7 +23,7 @@ export class CommentService implements ICommentService {
       onModel,  // Thêm onModel vào đây
       parentComment: parentId ? new Types.ObjectId(parentId) : undefined,
     });
-  
+
     const savedComment = await comment.save();
   
     // Nếu có parentId thì push vào replies của comment cha
@@ -30,7 +32,7 @@ export class CommentService implements ICommentService {
         $push: { replies: savedComment._id },
       });
     }
-  
+
     return savedComment.toObject() as CommentDocument;
   }
   
@@ -63,6 +65,7 @@ export class CommentService implements ICommentService {
   ): Promise<CommentDocument> {
     const comment = await CommentModel.findById(commentId);
     if (!comment) throw new Error("Comment not found");
+
 
     if (content && comment.author.toString() !== userId) {
       throw new Error("Unauthorized to update content");

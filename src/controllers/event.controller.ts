@@ -1,13 +1,8 @@
 import { ForbiddenException } from '@/exceptions/http-exception';
 import { NextFunction, Request, Response } from 'express';
-import { ErrorCode } from '@/constants/error-code';
 import { BaseHttpResponse } from '@/lib/base-http-response';
 import { EventService } from '@/services/events.service';
-import {
-	UpdateEventDto,
-	CreateEventPayload,
-	UpdateEventSchema
-} from '@/dto/event.dto';
+
 export class EventController {
 	private readonly _eventService = new EventService();
 	constructor() {

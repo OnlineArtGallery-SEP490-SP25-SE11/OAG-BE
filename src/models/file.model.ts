@@ -1,52 +1,49 @@
-import {
-	getModelForClass,
-	index,
-	modelOptions,
-	prop,
-	type Ref
-} from '@typegoose/typegoose';
+import { Document, Schema, model } from 'mongoose';
 
-@modelOptions({
-	schemaOptions: {
-		timestamps: true
-	}
-})
-@index({})
-class File {
-	@prop({
-		type: () => String,
-		required: true
-	})
-	public publicId!: string;
-
-	@prop({
-		type: () => String,
-		required: true
-	})
-	public url!: string;
-
-	@prop({
-		type: () => String
-		// TODO: fix any
-	})
-	public refId?: Ref<any>;
-
-	@prop({
-		type: () => String
-	})
-	public refType?: string;
-
-	@prop({
-		type: () => Number
-	})
-	public width?: number;
-
-	@prop({
-		type: () => Number
-	})
-	public height?: number;
+// Define interface for File document
+interface IFile extends Document {
+  publicId: string;
+  url: string;
+  refId?: string;
+  refType?: string;
+  width?: number;
+  height?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-export default getModelForClass(File, {
-	schemaOptions: { timestamps: true }
-});
+// Create the schema
+const fileSchema = new Schema<IFile>(
+  {
+    publicId: {
+      type: String,
+      required: true
+    },
+    url: {
+      type: String,
+      required: true
+    },
+    refId: {
+      type: String
+      // TODO: fix any (from original comment)
+    },
+    refType: {
+      type: String
+    },
+    width: {
+      type: Number
+    },
+    height: {
+      type: Number
+    }
+  },
+  { timestamps: true }
+);
+
+// Create index (empty in original but keeping for consistency)
+fileSchema.index({});
+
+// Create and export the model
+const File = model<IFile>('File', fileSchema);
+
+export default File;

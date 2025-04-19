@@ -1,13 +1,12 @@
 // service.interface.ts
 import { CreateBlogDto, RejectBlogDto, UpdateBlogDto } from "@/dto/blog.dto";
-import { BlogTag } from "@/models/blog-tag.model";
-import { Blog, BlogDocument } from "@/models/blog.model";
+import { BlogTagDocument } from "@/models/blog-tag.model";
+import { BlogDocument } from "@/models/blog.model";
 import { CommentDocument } from "@/models/comment.model";
 /* eslint-disable no-unused-vars */
 import { Status } from "@/constants/enum";
 import Artwork from '@/models/artwork.model.ts';
 import Collection from '@/models/collection.model.ts';
-import Album from '@/models/album.model.ts';
 import { ArtworkQueryOptions } from '@/services/artwork.service.ts';
 import { UpdateCollectionOptions } from '@/services/collection.service.ts';
 import { ChatDocument } from "@/models/chat.model";
@@ -62,8 +61,8 @@ export interface ICollectionService {
 }
 
 export interface IBlogTagService {
-	createTag(name: string): Promise<BlogTag>;
-	getTags(): Promise<BlogTag[]>;
+	createTag(name: string): Promise<BlogTagDocument>;
+	getTags(): Promise<BlogTagDocument[]>;
 	deleteTag(id: string): Promise<void>;
 }
 export interface IBlogService {
@@ -108,8 +107,8 @@ export interface IBlogService {
 			hasPrev: boolean;
 		};
 	}>;
-	addHeart(blogId: string, userId: string): Promise<Blog>;
-	removeHeart(blogId: string, userId: string): Promise<Blog>;
+	addHeart(blogId: string, userId: string): Promise<BlogDocument>;
+	removeHeart(blogId: string, userId: string): Promise<BlogDocument>;
 	getHeartCount(blogId: string): Promise<number>;
 	isHeart(blogId: string, userId: string): Promise<boolean>;
 	getHeartUsers(blogId: string): Promise<string[]>;

@@ -1,6 +1,6 @@
 import logger from '@/configs/logger.config';
 import { BadRequestException, InternalServerErrorException, NotFoundException } from '@/exceptions/http-exception';
-import { PremiumSubscriptionModel } from '@/models/premium.model';
+import  PremiumSubscriptionModel from '@/models/premium.model';
 import User from '@/models/user.model';
 import WalletService from '@/services/wallet.service';
 import { inject, injectable } from 'inversify';
@@ -66,7 +66,7 @@ export class PremiumService {
       });
 
       // Lên lịch tự động gia hạn
-      this.scheduleAutoRenewal(userId, subscription._id.toString(), endDate);
+      this.scheduleAutoRenewal(userId, subscription._id as string, endDate);
 
       // // Gửi thông báo
       // await this.notificationService.createNotification({
@@ -195,7 +195,7 @@ export class PremiumService {
         });
         
         // Lên lịch tự động gia hạn cho lần tiếp theo
-        this.scheduleAutoRenewal(userId, newSubscription._id.toString(), endDate);
+        this.scheduleAutoRenewal(userId, newSubscription._id as string, endDate);
         
         // Gửi thông báo
         // await this.notificationService.createNotification({
