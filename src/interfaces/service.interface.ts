@@ -115,44 +115,44 @@ export interface IBlogService {
 }
 
 export interface IInteractionService {
-  getUserInteractions(
-    userId: string,
-    blogId: string
-  ): Promise<{
-    hearted: boolean;
-  }>;
+	getUserInteractions(
+		userId: string,
+		blogId: string
+	): Promise<{
+		hearted: boolean;
+	}>;
 }
 
 export interface ICommentService {
 	createComment(
-	  userId: string,
-	  targetId: string,
-	  content: string,
-	  targetType: 'blog' | 'artwork',
-	  parentId?: string | null,
-	  onModel?: 'blog' | 'artwork' // Thêm onModel vào đây
+		userId: string,
+		targetId: string,
+		content: string,
+		targetType: 'blog' | 'artwork',
+		parentId?: string | null,
+		onModel?: 'blog' | 'artwork' // Thêm onModel vào đây
 	): Promise<CommentDocument>;
-  
+
 	getCommentsByTarget(
-	  targetId: string,
-	  targetType: 'blog' | 'artwork'
+		targetId: string,
+		targetType: 'blog' | 'artwork'
 	): Promise<CommentDocument[]>;
-  
+
 	updateComment(
-	  commentId: string,
-	  userId: string,
-	  content?: string,
-	  replies?: Types.ObjectId[]
+		commentId: string,
+		userId: string,
+		content?: string,
+		replies?: Types.ObjectId[]
 	): Promise<CommentDocument>;
-  
+
 	deleteComment(
-	  commentId: string,
-	  userId: string,
-	  role: string[]
+		commentId: string,
+		userId: string,
+		role: string[]
 	): Promise<void>;
-  }
-  
-  
+}
+
+
 
 export interface IChatService {
 	createChat(senderId: string, receiverId: string, message: string, replyTo?: string): Promise<ChatDocument>;
@@ -171,4 +171,21 @@ export interface ICCCDService {
 	getCccdByUserId(userId: string): Promise<CCCDDocument | null>;
 	updateCCCD(id: string, data: UpdateCccdDto): Promise<CCCDDocument | null>;
 	deleteCCCD(id: string): Promise<void>;
-  }
+	findAll(options: {
+		page?: number;
+		limit?: number;
+		sort?: Record<string, 1 | -1>;
+		filter?: Record<string, any>;
+		search?: string;
+	}): Promise<{
+		cccd: CCCDDocument[];
+		pagination: {
+			total: number;
+			page: number;
+			limit: number;
+			pages: number;
+			hasNext: boolean;
+			hasPrev: boolean;
+		}
+	}>;
+}

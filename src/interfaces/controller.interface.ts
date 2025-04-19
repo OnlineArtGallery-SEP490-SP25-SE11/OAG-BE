@@ -94,6 +94,7 @@ export interface IChatController {
 }
 
 export interface ICCCDController {
+  getAll(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
   create(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
   getCCCDById(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
   getCCCDByUserId(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
