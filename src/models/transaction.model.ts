@@ -40,7 +40,7 @@ const transactionSchema = new Schema<ITransaction>(
     },
     orderCode: {
       type: String,
-      required: true
+      required: false
     }
   },
   { timestamps: true }
