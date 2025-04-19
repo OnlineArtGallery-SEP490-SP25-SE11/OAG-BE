@@ -65,14 +65,14 @@ class AuthService {
 				const savedUser = await newUser.save();
 				logger.info(savedUser, 'savedUser');
 				const { accessToken, refreshToken } = await this.generateTokens(
-					newUser._id.toString(),
+					newUser._id as string,
 					newUser.role
 				);
 				return {
 					isAuthenticated: true,
 					message: 'Authentication new user!',
 					result: {
-						id: savedUser._id.toString(),
+						id: savedUser._id as string,
 						accessToken,
 						refreshToken,
 						role: savedUser.role
@@ -80,7 +80,7 @@ class AuthService {
 				};
 			} else {
 				const { accessToken, refreshToken } = await this.generateTokens(
-					_user._id.toString(),
+					_user._id as string,
 					_user.role
 				);
 				logger.info(_user, 'user');
@@ -88,7 +88,7 @@ class AuthService {
 					isAuthenticated: true,
 					message: 'Authentication successful!',
 					result: {
-						id: _user._id.toString(),
+						id: _user._id as string,
 						accessToken,
 						refreshToken,
 						role: _user.role
@@ -307,7 +307,7 @@ class AuthService {
 
 			user.password = undefined;
 			const { accessToken, refreshToken } = await this.generateTokens(
-				user._id.toString(),
+				user._id as string,
 				user.role
 			);
 			return {
@@ -316,7 +316,7 @@ class AuthService {
 				result: {
 					accessToken,
 					refreshToken,
-					id: user._id.toString(),
+					id: user._id as string,
 					role: user.role
 				}
 			};

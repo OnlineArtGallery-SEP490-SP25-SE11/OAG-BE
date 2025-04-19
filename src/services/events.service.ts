@@ -231,7 +231,7 @@ export class EventService {
 
 			// Tạo set từ danh sách participants hiện tại
 			const participantsSet = new Set(
-				event.participants?.map(participant => participant.userId.toString()) || []
+				event.participants?.map(participant => participant.userId as unknown as string) || []
 			);
 
 			// Nếu user đã tham gia, xóa khỏi set, ngược lại thêm vào set

@@ -129,7 +129,7 @@ class NotificationService {
 			this.createNotification({
 				title,
 				content,
-				userId: user._id.toString(),
+				userId: user._id as string,
 				isSystem: options?.isSystem,
 				refType: options?.refType,
 				refId: options?.refId

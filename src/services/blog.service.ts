@@ -7,7 +7,7 @@ import {
 	InternalServerErrorException,
 	UnauthorizedException,
 } from "@/exceptions/http-exception";
-import BlogModel, { Blog, BlogDocument } from "@/models/blog.model";
+import BlogModel, { BlogDocument } from "@/models/blog.model";
 import { Types } from "mongoose";
 import { inject, injectable } from "inversify";
 import { TYPES } from '@/constants/types';
@@ -537,7 +537,7 @@ export class BlogService implements IBlogService {
 		}
 	}
 
-	async addHeart(blogId: string, userId: string): Promise<Blog> {
+	async addHeart(blogId: string, userId: string): Promise<BlogDocument> {
 		try {
 			const updatedBlog = await BlogModel.findByIdAndUpdate(
 				blogId,
@@ -560,7 +560,7 @@ export class BlogService implements IBlogService {
 	}
 	
 
-	async removeHeart(blogId: string, userId: string): Promise<Blog> {
+	async removeHeart(blogId: string, userId: string): Promise<BlogDocument> {
 		try {
 			const updatedBlog = await BlogModel.findByIdAndUpdate(
 				blogId,

@@ -1,51 +1,36 @@
-import {
-	getModelForClass,
-	index,
-	modelOptions,
-	prop,
-	type Ref
-} from '@typegoose/typegoose';
-import User from './user.model';
-import Artwork from './artwork.model';
+import mongoose, { Schema } from "mongoose";
 
-@modelOptions({
-	schemaOptions: {
-		timestamps: true
-	}
-})
-@index({ userId: 1 })
-@index({ artworkId: 1 })
-class ArtworkWarehouse {
-	@prop({
-		ref: () => User,
-		required: true
-	})
-	public userId!: Ref<typeof User>;
+const artworkWarehouseSchema = new Schema({
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  artworkId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Artwork',
+    required: true
+  },
+  purchasedAt: {
+    type: Date,
+    required: true,
+    default: Date.now
+  },
+  downloadedAt: {
+    type: Date
+  },
+  downloadCount: {
+    type: Number,
+    default: 0
+  }
+}, {
+  timestamps: true
+});
 
-	@prop({
-		ref: () => Artwork,
-		required: true
-	})
-	public artworkId!: Ref<typeof Artwork>;
+// Create indexes
+artworkWarehouseSchema.index({ userId: 1 });
+artworkWarehouseSchema.index({ artworkId: 1 });
 
-	@prop({
-		required: true,
-		default: Date.now
-	})
-	public purchasedAt!: Date;
+const ArtworkWarehouse = mongoose.model('ArtworkWarehouse', artworkWarehouseSchema);
 
-	@prop({
-		type: () => Date
-	})
-	public downloadedAt?: Date;
-
-	@prop({
-		type: () => Number,
-		default: 0
-	})
-	public downloadCount!: number;
-}
-
-export default getModelForClass(ArtworkWarehouse, {
-	schemaOptions: { timestamps: true }
-}); 
+export default ArtworkWarehouse;
