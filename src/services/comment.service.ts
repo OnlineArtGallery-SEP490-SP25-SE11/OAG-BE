@@ -1,5 +1,5 @@
-  // comment.service.ts
-  import { injectable } from "inversify";
+// comment.service.ts
+import { injectable } from "inversify";
 import CommentModel, { CommentDocument } from "@/models/comment.model";
 import { ICommentService } from "@/interfaces/service.interface";
 import { Types } from "mongoose";
@@ -16,22 +16,23 @@ export class CommentService implements ICommentService {
       author: new Types.ObjectId(userId),
       blog: new Types.ObjectId(blogId),
       content,
-      parentId: parentId ? new Types.ObjectId(parentId) : null, // Gán parentId nếu có
+      // Only include parentComment field if parentId exists
+      ...(parentId && { parentComment: new Types.ObjectId(parentId) })
     });
-  
+
     const savedComment = await comment.save();
-  
+
     // Nếu có parentId, cập nhật replies của comment cha
     if (parentId) {
       await CommentModel.findByIdAndUpdate(parentId, {
         $push: { replies: savedComment._id },
       });
     }
-  
-    return savedComment.toObject() as CommentDocument;
-  }  
 
-  async getCommentsByBlog(blogId: string): Promise<CommentDocument[]> {
+    return savedComment.toObject() as CommentDocument;
+  }
+
+  async getCommentsByBlog(blogId: string): Promise<any[]> {
     return await CommentModel.find({ blog: new Types.ObjectId(blogId) })
       .populate({
         path: 'author',
@@ -51,23 +52,23 @@ export class CommentService implements ICommentService {
     // Tìm comment cần update
     const comment = await CommentModel.findById(commentId);
     if (!comment) throw new Error("Comment not found");
-  
+
     if (content && comment.author.toString() !== userId) {
       throw new Error("Unauthorized to update content");
     }
-  
+
     if (content) {
       comment.content = content;
     }
-  
+
     if (replies) {
       comment.replies = replies;
     }
-  
+
     const updatedComment = await comment.save();
     return updatedComment.toObject() as CommentDocument;
   }
-  
+
   async deleteComment(commentId: string, userId: string, role: string[]): Promise<void> {
     const comment = await CommentModel.findById(commentId);
     if (!comment) throw new Error("Comment not found");

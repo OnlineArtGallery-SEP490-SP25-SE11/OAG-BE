@@ -277,8 +277,7 @@ Be specific about what has improved and what still needs attention.`
             }, 'grok-2-latest'
             );
 
-            console.log('Language Detection Response:', response);
-            // return response.trim() || 'en-US';
+            return response.trim() || 'en-US';
         } catch (error) {
             console.error('Error in detectLanguage:', error);
             throw new Error('Failed to detect language');

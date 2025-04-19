@@ -1,24 +1,28 @@
-import { getModelForClass, modelOptions, prop, type Ref } from '@typegoose/typegoose';
-import User from './user.model';
+import mongoose, { Document, Schema, model } from 'mongoose';
 
-@modelOptions({
-    schemaOptions: {
-        timestamps: true
-    }
-})
-class Wallet {
-    @prop({
-        ref: () => User,
-        required: true
-    })
-    public userId!: Ref<typeof User>;
-
-    @prop({
-        type: () => Number,
-        required: true,
-        default: 0
-    })
-    public balance!: number;
+interface IWallet extends Document {
+  userId: mongoose.Types.ObjectId;
+  balance: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-export default getModelForClass(Wallet, { schemaOptions: { timestamps: true } });
+const walletSchema = new Schema<IWallet>(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    balance: {
+      type: Number,
+      required: true,
+      default: 0
+    }
+  },
+  { timestamps: true }
+);
+
+const Wallet = model<IWallet>('Wallet', walletSchema);
+
+export default Wallet;

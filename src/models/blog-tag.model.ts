@@ -1,8 +1,19 @@
-import { getModelForClass, prop } from "@typegoose/typegoose";
+import  { Document, Schema, model } from 'mongoose';
 
-export class BlogTag {
-    @prop({ required: true })
-    name!: string;
+// Define interface for BlogTag document
+interface IBlogTag extends Document {
+  name: string;
 }
 
-export default getModelForClass(BlogTag);
+// Create the schema
+const blogTagSchema = new Schema<IBlogTag>({
+  name: {
+    type: String,
+    required: true
+  }
+});
+
+// Create and export the model
+const BlogTag = model<IBlogTag>('BlogTag', blogTagSchema);
+export type BlogTagDocument = IBlogTag
+export default BlogTag;

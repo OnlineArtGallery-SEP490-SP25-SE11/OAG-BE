@@ -1,26 +1,34 @@
-import { prop, getModelForClass, type Ref, modelOptions } from '@typegoose/typegoose';
-import User from '@/models/user.model.ts';
+import mongoose, { Document, Schema, model } from 'mongoose';
 
-@modelOptions({ schemaOptions: { timestamps: true } })
-
-export class ArtistProfile {
-    @prop({ ref: () => User, required: true })
-    userId!: Ref<typeof User>;
-
-    @prop()
-    bio!: string;
-
-    @prop({ required: true })
-    genre!: string[];
-
-    @prop({ default: Date.now })
-    createdAt!: Date;
-
-    @prop({ default: Date.now })
-    updatedAt!: Date;
+// Define interface for ArtistProfile document
+interface IArtistProfile extends Document {
+  userId: mongoose.Types.ObjectId;
+  bio: string;
+  genre: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export const ArtistProfileModel = getModelForClass(ArtistProfile);
+// Create the schema
+const artistProfileSchema = new Schema<IArtistProfile>(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    bio: {
+      type: String
+    },
+    genre: {
+      type: [String],
+      required: true
+    }
+  },
+  { timestamps: true }
+);
 
+// Create and export the model
+const ArtistProfile = model<IArtistProfile>('ArtistProfile', artistProfileSchema);
 
-
+export default ArtistProfile;

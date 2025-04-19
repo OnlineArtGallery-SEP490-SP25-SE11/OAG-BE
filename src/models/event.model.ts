@@ -1,13 +1,92 @@
-import { getModelForClass, modelOptions, prop, type Ref, pre } from '@typegoose/typegoose';
-import User from './user.model';
+import mongoose, { Document, Schema, model } from 'mongoose';
 import { EventStatus } from '../constants/enum';
 
-class Participant {
-  @prop({ ref: () => User, required: false })
-  public userId!: Ref<typeof User>;
+// Define interfaces for nested types
+interface IParticipant {
+  userId?: mongoose.Types.ObjectId;
 }
 
-@pre<Event>('save', function() {
+// Define main interface for Event document
+interface IEvent extends Document {
+  image: string;
+  title: string;
+  description: string;
+  type: string;
+  startDate: Date;
+  endDate: Date;
+  status: EventStatus;
+  organizer: string;
+  participants?: IParticipant[];
+  userId: mongoose.Types.ObjectId;
+  link: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// Create schema for nested Participant type
+const participantSchema = new Schema<IParticipant>({
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User'
+  }
+}, { _id: false });
+
+// Create the main Event schema
+const eventSchema = new Schema<IEvent>(
+  {
+    image: {
+      type: String,
+      required: true
+    },
+    title: {
+      type: String,
+      required: true
+    },
+    description: {
+      type: String
+    },
+    type: {
+      type: String,
+      required: true
+    },
+    startDate: {
+      type: Date,
+      required: true
+    },
+    endDate: {
+      type: Date,
+      required: true
+    },
+    status: {
+      type: String,
+      enum: Object.values(EventStatus),
+      required: true,
+      default: EventStatus.UPCOMING,
+      index: true // Index for status filters
+    },
+    organizer: {
+      type: String,
+      required: true
+    },
+    participants: {
+      type: [participantSchema]
+    },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true
+    },
+    link: {
+      type: String,
+      required: true
+    }
+  },
+  { timestamps: true }
+);
+
+// Add pre-save hook for status updates
+eventSchema.pre('save', function(next) {
   const currentDate = new Date();
   
   // Check if startDate is today or in the past, but endDate is in the future
@@ -22,54 +101,11 @@ class Participant {
   else {
     this.status = EventStatus.UPCOMING;
   }
-})
-@modelOptions({
-  schemaOptions: {
-    timestamps: true
-  }
-})
-class Event {
-  @prop({ required: true })
-  image!: string;
-
-  @prop({ required: true })
-  title!: string;
-
-  @prop()
-  description!: string;
-
-  @prop({ required: true })
-  type!: string;
-
-  @prop({ required: true })
-  startDate!: Date;
-
-  @prop({ required: true })
-  endDate!: Date;
-
   
-  @prop({
-    required: true,
-    type: String,
-    enum: EventStatus,
-    default: EventStatus.UPCOMING,
-    index: true // Index cho status filters
-  })
-  status!: EventStatus;
-  
-  @prop({ required: true })
-  organizer!: string;
-  
-  @prop({ type: () => [Participant], required: false })
-  public participants?: Participant[];
-  
-  @prop({ ref: () => User, required: true, index: true })
-  userId!: Ref<typeof User>;
-  
-  @prop({ required: true })
-  link!: string;
-}
-
-export default getModelForClass(Event, {
-  schemaOptions: { timestamps: true }
+  next();
 });
+
+// Create and export the model
+const Event = model<IEvent>('Event', eventSchema);
+
+export default Event;

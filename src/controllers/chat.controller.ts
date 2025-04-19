@@ -1,10 +1,7 @@
-import { BaseHttpResponse } from "@/lib/base-http-response";
-import { ForbiddenException } from "@/exceptions/http-exception";
 import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "inversify";
 import { TYPES } from "@/constants/types";
 import { IChatController } from "@/interfaces/controller.interface";
-import { SendMessageDto, MarkAsReadDto, GetMessagesDto, DeleteMessageDto } from "@/dto/chat.dto";
 import { ChatService } from "@/services/chat.service";
 
 
