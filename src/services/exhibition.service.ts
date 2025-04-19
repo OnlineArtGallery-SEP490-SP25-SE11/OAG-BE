@@ -430,8 +430,11 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
                 // Check user's wallet balance first
                 const userWallet = await Wallet.findOne({ userId });
                 if (!userWallet) {
-                    throw new BadRequestException('User wallet not found', ErrorCode.WALLET_NOT_FOUND);
-                }
+                    //not found vi user chua nap tien dang le phai tra ve wallet_not_found
+                    throw new BadRequestException(
+                        `Insufficient balance. Required: ${exhibition.ticket.price}, Available: 0`,
+                        ErrorCode.INSUFFICIENT_BALANCE
+                    );                }
 
                 // Check if user has enough balance
                 if (userWallet.balance < exhibition.ticket.price) {

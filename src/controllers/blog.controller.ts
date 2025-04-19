@@ -55,7 +55,7 @@ export class BlogController implements IBlogController {
 		try {
 			const blog = await this._blogService.findById(req.params.id);
 			const response = BaseHttpResponse.success(
-				blog,
+				{blog},
 				200,
 				'Get blog success'
 			);
@@ -74,7 +74,7 @@ export class BlogController implements IBlogController {
 			const userId = req.userId;
 			const blog = await this._blogService.findLastEditedByUser(userId!);
 			const response = BaseHttpResponse.success(
-				blog,
+				{blog},
 				200,
 				'Get last edited blog success'
 			);

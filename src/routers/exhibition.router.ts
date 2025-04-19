@@ -37,7 +37,12 @@ router.post(
 
 // Artist Routes
 // ------------
-router.get('/:id', roleRequire([Role.ARTIST, Role.ADMIN]), exhibitionController.findPublishedExhibitionById);
+router.get(
+  '/user-exhibitions', 
+  roleRequire([Role.ARTIST, Role.ADMIN]), 
+  exhibitionController.findUserExhibitions
+);
+router.get('/:id', roleRequire([Role.ARTIST, Role.ADMIN]), exhibitionController.findById);
 router.post(
   '/',
   roleRequire([Role.ARTIST, Role.ADMIN]), 
@@ -46,11 +51,6 @@ router.post(
   exhibitionController.create
 );
 
-router.get(
-  '/user-exhibitions', 
-  roleRequire([Role.ARTIST, Role.ADMIN]), 
-  exhibitionController.findUserExhibitions
-);
 
 router.patch(
   '/:id',
