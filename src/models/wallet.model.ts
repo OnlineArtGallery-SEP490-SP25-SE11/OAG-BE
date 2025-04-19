@@ -3,6 +3,7 @@ import mongoose, { Document, Schema, model } from 'mongoose';
 interface IWallet extends Document {
   userId: mongoose.Types.ObjectId;
   balance: number;
+  totalWithdrawInDay: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -17,6 +18,11 @@ const walletSchema = new Schema<IWallet>(
     balance: {
       type: Number,
       required: true,
+      default: 0
+    },
+    totalWithdrawInDay:{
+      type: Number,
+      required: false,
       default: 0
     }
   },

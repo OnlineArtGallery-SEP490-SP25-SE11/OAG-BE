@@ -1,10 +1,12 @@
 import cron from 'node-cron';
 import Event from '../models/event.model';
 import { EventStatus } from '../constants/enum';
+import Wallet from '../models/wallet.model'; // Add this import
 
 export default class EventScheduleService {
   private dailyJob: cron.ScheduledTask;
   private hourlyJob: cron.ScheduledTask;
+  private resetWithdrawLimitJob: cron.ScheduledTask; // Add this property
 
   constructor() {
     // Khởi tạo các cronjob
@@ -16,6 +18,12 @@ export default class EventScheduleService {
     this.hourlyJob = cron.schedule('0 * * * *', async () => {
       console.log('Đang chạy cronjob cập nhật trạng thái sự kiện hàng giờ');
       await this.updateEventStatus();
+    });
+    
+    // Thêm cronjob mới để reset totalWithdrawInDay hàng ngày lúc 00:00
+    this.resetWithdrawLimitJob = cron.schedule('0 0 * * *', async () => {
+      console.log('Đang chạy cronjob reset totalWithdrawInDay hàng ngày');
+      await this.resetTotalWithdrawInDay();
     });
   }
 
@@ -54,6 +62,24 @@ export default class EventScheduleService {
   }
 
   /**
+   * Hàm reset totalWithdrawInDay về 0 cho tất cả các ví
+   */
+  private async resetTotalWithdrawInDay() {
+    try {
+      const result = await Wallet.updateMany(
+        { totalWithdrawInDay: { $gt: 0 } },
+        { $set: { totalWithdrawInDay: 0 } }
+      );
+      
+      console.log(`Đã reset totalWithdrawInDay về 0 cho ${result.modifiedCount} ví`);
+      return { resetCount: result.modifiedCount };
+    } catch (error) {
+      console.error('Lỗi khi reset totalWithdrawInDay:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Chạy cập nhật ngay lập tức
    */
   public async runImmediately() {
@@ -67,6 +93,15 @@ export default class EventScheduleService {
   public stopAll() {
     this.dailyJob.stop();
     this.hourlyJob.stop();
-    console.log('Đã dừng tất cả các cronjob cập nhật trạng thái sự kiện');
+    this.resetWithdrawLimitJob.stop(); // Add this line
+    console.log('Đã dừng tất cả các cronjob cập nhật trạng thái sự kiện và reset totalWithdrawInDay');
+  }
+  
+  /**
+   * Chạy reset totalWithdrawInDay ngay lập tức
+   */
+  public async resetWithdrawLimitImmediately() {
+    console.log('Đang chạy reset totalWithdrawInDay ngay lập tức');
+    return this.resetTotalWithdrawInDay();
   }
 }
