@@ -77,7 +77,7 @@ export class ArtworkTransactionService {
                 }
 
                 // Sử dụng phương thức addFunds mới
-                await this.walletService.addFunds(artistWallet?._id.toString(), artistAmount, {
+                await this.walletService.addFunds(artistWallet?._id as string, artistAmount, {
                     userId: artwork.artistId.toString(),
                     type: 'SALE',
                     status: 'PAID',

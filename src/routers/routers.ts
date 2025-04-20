@@ -46,7 +46,6 @@ export default [
 	{ path: '/api/wallet', router: walletRouter },
 	{ path: '/api/bank-request', router: bankrequestRouter },
 	{ path: '/api/artwork-warehouse', router: artworkWarehouseRouter },
-	{ path: '/api/bank-request', router: bankrequestRouter },
 	{ path: '/api/premium', router: premiumRouter },
 	{ path: '/api/cccd', router: cccdRouter},
 	{ path: '/api/artist-request', router: artistRequestRouter}

@@ -24,10 +24,11 @@ export class UnauthorizedException extends HttpException {
 }
 
 export class ForbiddenException extends HttpException {
-	constructor(message: string = 'Forbidden') {
-		super(message, 403, ErrorCode.FORBIDDEN);
+	constructor(message: string = 'Forbidden', errorCode?: ErrorCode, details?: any) {
+		super(message, 403, errorCode, details);
 	}
 }
+
 
 export class InternalServerErrorException extends HttpException {
 	constructor(
