@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema, model } from 'mongoose';
 
 // Define notification type for type safety
-type NotificationType = 'system' | 'announcement' | 'marketing' | 'feature' | 'maintenance' | 'artwork' | 'event' | 'chat' | 'transaction';
+type NotificationType = 'system' | 'announcement' | 'marketing' | 'feature' | 'maintenance' | 'artwork' | 'event' | 'chat' | 'transaction' | 'artist-request';
 
 // Define interface for Notification document
 interface INotification extends Document {
@@ -41,7 +41,7 @@ const notificationSchema = new Schema<INotification>(
     },
     refType: {
       type: String,
-      enum: ['system', 'announcement', 'marketing', 'feature', 'maintenance', 'artwork', 'event', 'chat', 'transaction'],
+      enum: ['system', 'announcement', 'marketing', 'feature', 'maintenance', 'artwork', 'event', 'chat', 'transaction', 'artist-request'],
       default: 'system'
     },
     refId: {

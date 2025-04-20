@@ -51,6 +51,8 @@ import { CCCDController } from '@/controllers/cccd.controller';
 import { CCCDService } from '@/services/cccd.service';
 import {PremiumService} from '@/services/premium.service';
 import {PremiumController} from '@/controllers/premium.controller';
+import { ArtistRequestService } from '@/services/artist-request.service';
+import { ArtistRequestController } from '@/controllers/artist-request.controller';
 const container = new Container();
 
 // Services
@@ -114,4 +116,8 @@ container.bind<ArtworkWarehouseController>(TYPES.ArtworkWarehouseController).to(
 //PREMIUM
 container.bind<PremiumService>(Symbol.for('PremiumService')).to(PremiumService);
 container.bind<PremiumController>(Symbol.for('PremiumController')).to(PremiumController);
+
+//ARTIST REQUEST
+container.bind<ArtistRequestService>(TYPES.ArtistRequestService).to(ArtistRequestService);
+container.bind<ArtistRequestController>(TYPES.ArtistRequestController).to(ArtistRequestController);
 export default container;

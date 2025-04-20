@@ -101,3 +101,10 @@ export interface ICCCDController {
   update(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
   delete(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
 }
+
+export interface IArtistRequestController {
+  createRequest(req: Request, res: Response, next: NextFunction): Promise<void>;
+  getMyRequest(req: Request, res: Response, next: NextFunction): Promise<void>;
+  getRequestById(req: Request, res: Response, next: NextFunction): Promise<void>;
+  updateRequestStatus(req: Request, res: Response, next: NextFunction): Promise<void>;
+}

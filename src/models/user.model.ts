@@ -111,10 +111,6 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false
     },
-    isRequestBecomeArtist: {
-      type: Boolean,
-      default: false
-    },
     artistProfile: {
       bio: String,
       genre: String,

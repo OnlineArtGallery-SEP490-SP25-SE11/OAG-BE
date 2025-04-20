@@ -10,6 +10,7 @@ router.get('/', roleRequire(), async (req: Request, res: Response) => {
     try {
         const userId = req.userId as string;
         const user = await UserService.getProfile(userId);
+        console.log(user);
         res.status(200).json({ user });
     } catch (err: any) {
         logger.error(err.message);
