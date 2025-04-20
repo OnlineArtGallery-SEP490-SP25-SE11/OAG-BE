@@ -78,7 +78,7 @@ class WalletService {
             }
 
             // Sử dụng phương thức subtractFunds mới
-            const updatedWallet = await this.subtractFunds(wallet._id?.toString(), amount, {
+            const updatedWallet = await this.subtractFunds(wallet._id as string, amount, {
                 type: 'WITHDRAWAL',
                 description: `Withdrawal ${amount}`,
                 userId

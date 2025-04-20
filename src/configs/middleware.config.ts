@@ -1,11 +1,14 @@
 import { NextFunction, Request, Response } from 'express';
 import logger from '@/configs/logger.config';
 import {
+	BadRequestException,
 	ForbiddenException,
 	UnauthorizedException
 } from '@/exceptions/http-exception';
 import AuthService from '@/services/auth.service';
 import User from '@/models/user.model';
+import { BaseHttpResponse } from '@/lib/base-http-response';
+import { ErrorCode } from '@/constants/error-code';
 
 async function authMiddleware(req: Request, res: Response, next: NextFunction) {
 	try {
@@ -69,10 +72,11 @@ export function permanentBan() {
                 // Kiểm tra nếu người dùng bị cấm
 				console.log(user);
                 if (user.isBanned) {
-					return next(new ForbiddenException('User is limited some function'));
+					return next(new ForbiddenException('this account is banned and cannot be implemented some function', ErrorCode.USER_BANNED));
                 }
-                // Người dùng không bị cấm, tiếp tục đến middleware tiếp theo
-                next();
+                
+				next();
+
             } catch (error) {
                 logger.error('Error checking ban status:', error);
                 return next(new ForbiddenException('Error checking user status'));

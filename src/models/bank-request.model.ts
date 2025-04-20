@@ -35,7 +35,11 @@ const bankRequestSchema = new Schema({
   bankAccountName: {
     type: String,
     required: true
-  }
+  },
+  idBankAccount: {
+    type: String,
+    required: true
+  },
 }, {
   timestamps: true
 });

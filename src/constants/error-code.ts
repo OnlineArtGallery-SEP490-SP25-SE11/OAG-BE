@@ -52,4 +52,7 @@ export enum ErrorCode {
 	//gallery
 	GALLERY_NAME_EXISTS = 'gallery_name_exists',
 
+	//baned
+	USER_BANNED = 'user_banned',
+
 }

@@ -22,6 +22,7 @@ import walletRouter from './wallet.router';
 import cccdRouter from './cccd.router';
 import artworkWarehouseRouter from './artwork-warehouse.router';
 import reportRouter from '@/routers/report.router';
+import artistRequestRouter from '@/routers/artist-request.router';
 
 export default [
 	{ path: '/api/auth', router: authRouter },
@@ -45,8 +46,10 @@ export default [
 	{ path: '/api/wallet', router: walletRouter },
 	{ path: '/api/bank-request', router: bankrequestRouter },
 	{ path: '/api/artwork-warehouse', router: artworkWarehouseRouter },
-	{ path: '/api/bank-request', router: bankrequestRouter },
 	{ path: '/api/premium', router: premiumRouter },
-	{ path: '/api/cccd', router: cccdRouter}];
+	{ path: '/api/cccd', router: cccdRouter},
+	{ path: '/api/artist-request', router: artistRequestRouter}
+];
+
 	
 	
