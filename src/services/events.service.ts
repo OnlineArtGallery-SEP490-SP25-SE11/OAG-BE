@@ -65,7 +65,7 @@ export class EventService {
 		}
 	}
 	async add(title: string, description: string, type: string, startDate: Date, endDate: Date,
-		status: EventStatus, organizer: string, image: string, link:string, userId: string): Promise<InstanceType<typeof Event>> {
+		status: EventStatus, organizer: string, image: string, link: string='Updating',userId: string): Promise<InstanceType<typeof Event>> {
 		try {
 			const event = new Event({
 				title,
@@ -73,7 +73,7 @@ export class EventService {
 				type,
 				startDate,
 				endDate,
-				status: EventStatus.UPCOMING,
+				status: EventStatus.UPCOMING || status,
 				organizer,
 				image,
 				link,

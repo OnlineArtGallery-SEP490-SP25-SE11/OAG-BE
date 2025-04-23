@@ -170,7 +170,7 @@ export class ArtworkService {
 					userId: artistId,
 					isSystem: true,
 					refType: 'artwork',
-					refId: savedArtwork._id.toString()
+					refId: savedArtwork._id as string
 				});
 				
 				logger.info(`Notification sent to artist ${artistId} about new artwork status: ${moderationStatus}`);
@@ -801,7 +801,7 @@ export class ArtworkService {
 			}
 
 			// Sử dụng phương thức addFunds mới
-			await this.walletService.addFunds(artistWallet._id?.toString(), artistAmount, {
+			await this.walletService.addFunds(artistWallet._id as string, artistAmount, {
 				userId: artwork.artistId?.toString() || '',
 				type: 'SALE',
 				status: 'PAID',
