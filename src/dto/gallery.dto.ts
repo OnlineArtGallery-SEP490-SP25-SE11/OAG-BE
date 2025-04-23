@@ -55,7 +55,7 @@ export const createGallerySchema = z.object({
     previewImage: z.string().url(),
     isPremium: z.boolean(),
     isActive: z.boolean(),
-    planImage: z.string().url(),
+    // planImage: z.string().url(),
     customColliders: z.array(customColliderSchema).optional(),
     artworkPlacements: z.array(artworkPlacementSchema).optional()
 });
