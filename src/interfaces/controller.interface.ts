@@ -54,15 +54,11 @@ export interface ArtistProfileUpdate {
 }
 export interface ICommentController {
   create(req: Request, res: Response, next: NextFunction): Promise<Response>;
-  getComments(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  getCommentsByTarget(req: Request, res: Response, next: NextFunction): Promise<Response>;
   update(req: Request, res: Response, next: NextFunction): Promise<Response>;
   delete(req: Request, res: Response, next: NextFunction): Promise<Response>;
-	// getUserInteractions(
-	// 	req: Request,
-	// 	res: Response,
-	// 	next: NextFunction
-	// ): Promise<any>;
 }
+
 
 export interface IArtworkController {
   add(req: Request, res: Response, next: NextFunction): Promise<any>;
@@ -98,9 +94,17 @@ export interface IChatController {
 }
 
 export interface ICCCDController {
+  getAll(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
   create(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
   getCCCDById(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
   getCCCDByUserId(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
   update(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
   delete(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
+}
+
+export interface IArtistRequestController {
+  createRequest(req: Request, res: Response, next: NextFunction): Promise<void>;
+  getMyRequest(req: Request, res: Response, next: NextFunction): Promise<void>;
+  getRequestById(req: Request, res: Response, next: NextFunction): Promise<void>;
+  updateRequestStatus(req: Request, res: Response, next: NextFunction): Promise<void>;
 }

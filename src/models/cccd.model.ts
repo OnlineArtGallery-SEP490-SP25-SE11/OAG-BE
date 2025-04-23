@@ -1,64 +1,95 @@
-import {
-  DocumentType,
-    getModelForClass,
-    modelOptions,
-    prop,
-    type Ref
-  } from '@typegoose/typegoose';
-  import UserModel from './user.model';
-  
-  @modelOptions({
-    schemaOptions: {
-      timestamps: true
+import mongoose, { Document, Schema, model } from 'mongoose';
+
+// Define interface for CCCD document
+interface ICCCD extends Document {
+  id: string; // Số CCCD
+  name: string; // Họ và tên
+  dob: string; // Ngày sinh (YYYY-MM-DD)
+  sex: string; // Giới tính
+  nationality: string; // Quốc tịch
+  home: string; // Nguyên quán
+  address: string; // Địa chỉ thường trú
+  doe: string; // Ngày hết hạn (YYYY-MM-DD)
+  issue_date: string; // Ngày cấp (YYYY-MM-DD)
+  issue_loc: string; // Nơi cấp
+  features?: string; // Đặc điểm nhận dạng
+  mrz?: string; // Mã MRZ
+  user: mongoose.Types.ObjectId; // Tham chiếu tới User
+  imageFront?: string; // Ảnh mặt trước CCCD
+  imageBack?: string; // Ảnh mặt sau CCCD
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// Create the schema
+const cccdSchema = new Schema<ICCCD>(
+  {
+    id: { 
+      type: String, 
+      required: true,
+      unique: true
+    },
+    name: { 
+      type: String, 
+      required: true 
+    },
+    dob: { 
+      type: String, 
+      required: true 
+    },
+    sex: { 
+      type: String, 
+      required: true 
+    },
+    nationality: { 
+      type: String, 
+      required: true 
+    },
+    home: { 
+      type: String, 
+      required: true 
+    },
+    address: { 
+      type: String, 
+      required: true 
+    },
+    doe: { 
+      type: String, 
+      required: true 
+    },
+    issue_date: { 
+      type: String, 
+      required: true 
+    },
+    issue_loc: { 
+      type: String, 
+      required: true 
+    },
+    features: { 
+      type: String 
+    },
+    mrz: { 
+      type: String 
+    },
+    user: { 
+      type: Schema.Types.ObjectId, 
+      ref: 'User', 
+      required: true 
+    },
+    imageFront: { 
+      type: String 
+    },
+    imageBack: { 
+      type: String 
     }
-  })
-  class CCCD {
-    @prop({ required: true, unique: true })
-    id!: string; // Số CCCD
-  
-    @prop({ required: true })
-    name!: string; // Họ và tên
-  
-    @prop({ required: true })
-    dob!: string; // Ngày sinh (YYYY-MM-DD)
-  
-    @prop({ required: true })
-    sex!: string; // Giới tính
-  
-    @prop({ required: true })
-    nationality!: string; // Quốc tịch
-  
-    @prop({ required: true })
-    home!: string; // Nguyên quán
-  
-    @prop({ required: true })
-    address!: string; // Địa chỉ thường trú
-  
-    @prop({ required: true })
-    doe!: string; // Ngày hết hạn (YYYY-MM-DD)
-  
-    @prop({ required: true })
-    issue_date!: string; // Ngày cấp (YYYY-MM-DD)
-  
-    @prop({ required: true })
-    issue_loc!: string; // Nơi cấp
-  
-    @prop({ type: () => String })
-    features?: string; // Đặc điểm nhận dạng
-  
-    @prop({ type: () => String })
-    mrz?: string; // Mã MRZ
-  
-    @prop({ required: true, ref: () => 'User' }) // Tham chiếu tới UserModel bằng tên collection
-    user!: Ref<typeof UserModel>;
-  
-    @prop({ type: () => String })
-    imageFront?: string; // Ảnh mặt trước CCCD
-  
-    @prop({ type: () => String })
-    imageBack?: string; // Ảnh mặt sau CCCD
-  }
-  
-  const CCCDModel = getModelForClass(CCCD);
-  export default CCCDModel;
-  export type CCCDDocument = DocumentType<CCCD>;
+  },
+  { timestamps: true }
+);
+
+// Create and export the model
+const CCCD = model<ICCCD>('CCCD', cccdSchema);
+
+// Export type for use in other files
+export type CCCDDocument = ICCCD;
+
+export default CCCD;

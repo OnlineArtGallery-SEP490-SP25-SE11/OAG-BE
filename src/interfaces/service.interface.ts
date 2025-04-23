@@ -1,18 +1,18 @@
 // service.interface.ts
 import { CreateBlogDto, RejectBlogDto, UpdateBlogDto } from "@/dto/blog.dto";
-import { BlogTag } from "@/models/blog-tag.model";
-import { Blog, BlogDocument } from "@/models/blog.model";
+import { BlogTagDocument } from "@/models/blog-tag.model";
+import { BlogDocument } from "@/models/blog.model";
 import { CommentDocument } from "@/models/comment.model";
 /* eslint-disable no-unused-vars */
 import { Status } from "@/constants/enum";
 import Artwork from '@/models/artwork.model.ts';
 import Collection from '@/models/collection.model.ts';
-import Album from '@/models/album.model.ts';
 import { ArtworkQueryOptions } from '@/services/artwork.service.ts';
 import { UpdateCollectionOptions } from '@/services/collection.service.ts';
 import { ChatDocument } from "@/models/chat.model";
 import { CreateCccdDto, UpdateCccdDto } from "@/dto/cccd.dto";
 import { CCCDDocument } from "@/models/cccd.model";
+import { Types } from "mongoose";
 
 export interface IInteractionService {
 	getUserInteractions(
@@ -61,8 +61,8 @@ export interface ICollectionService {
 }
 
 export interface IBlogTagService {
-	createTag(name: string): Promise<BlogTag>;
-	getTags(): Promise<BlogTag[]>;
+	createTag(name: string): Promise<BlogTagDocument>;
+	getTags(): Promise<BlogTagDocument[]>;
 	deleteTag(id: string): Promise<void>;
 }
 export interface IBlogService {
@@ -107,28 +107,52 @@ export interface IBlogService {
 			hasPrev: boolean;
 		};
 	}>;
-	addHeart(blogId: string, userId: string): Promise<Blog>;
-	removeHeart(blogId: string, userId: string): Promise<Blog>;
+	addHeart(blogId: string, userId: string): Promise<BlogDocument>;
+	removeHeart(blogId: string, userId: string): Promise<BlogDocument>;
 	getHeartCount(blogId: string): Promise<number>;
 	isHeart(blogId: string, userId: string): Promise<boolean>;
 	getHeartUsers(blogId: string): Promise<string[]>;
 }
 
 export interface IInteractionService {
-  getUserInteractions(
-    userId: string,
-    blogId: string
-  ): Promise<{
-    hearted: boolean;
-  }>;
+	getUserInteractions(
+		userId: string,
+		blogId: string
+	): Promise<{
+		hearted: boolean;
+	}>;
 }
 
 export interface ICommentService {
-  createComment(userId: string, blogId: string, content: string): Promise<CommentDocument>;
-  getCommentsByBlog(blogId: string): Promise<CommentDocument[]>;
-  updateComment(commentId: string, userId: string, content: string): Promise<CommentDocument>;
-  deleteComment(commentId: string, userId: string, role: string[]): Promise<void>;
+	createComment(
+		userId: string,
+		targetId: string,
+		content: string,
+		targetType: 'blog' | 'artwork',
+		parentId?: string | null,
+		onModel?: 'blog' | 'artwork' // Thêm onModel vào đây
+	): Promise<CommentDocument>;
+
+	getCommentsByTarget(
+		targetId: string,
+		targetType: 'blog' | 'artwork'
+	): Promise<CommentDocument[]>;
+
+	updateComment(
+		commentId: string,
+		userId: string,
+		content?: string,
+		replies?: Types.ObjectId[]
+	): Promise<CommentDocument>;
+
+	deleteComment(
+		commentId: string,
+		userId: string,
+		role: string[]
+	): Promise<void>;
 }
+
+
 
 export interface IChatService {
 	createChat(senderId: string, receiverId: string, message: string, replyTo?: string): Promise<ChatDocument>;
@@ -147,4 +171,21 @@ export interface ICCCDService {
 	getCccdByUserId(userId: string): Promise<CCCDDocument | null>;
 	updateCCCD(id: string, data: UpdateCccdDto): Promise<CCCDDocument | null>;
 	deleteCCCD(id: string): Promise<void>;
-  }
+	findAll(options: {
+		page?: number;
+		limit?: number;
+		sort?: Record<string, 1 | -1>;
+		filter?: Record<string, any>;
+		search?: string;
+	}): Promise<{
+		cccd: CCCDDocument[];
+		pagination: {
+			total: number;
+			page: number;
+			limit: number;
+			pages: number;
+			hasNext: boolean;
+			hasPrev: boolean;
+		}
+	}>;
+}

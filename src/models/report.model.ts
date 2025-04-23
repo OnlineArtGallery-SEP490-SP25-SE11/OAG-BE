@@ -1,38 +1,73 @@
-import { getModelForClass, modelOptions, prop, type Ref, pre } from '@typegoose/typegoose';
+import mongoose, { Document, Schema, model } from 'mongoose';
 import { ReasonReport, ReportStatus } from '../constants/enum';
-import User from './user.model';
-import { Blog } from './blog.model';
-import Artwork from './artwork.model';
 
-@modelOptions({schemaOptions: {timestamps: true}})
-class Report {
-    @prop({ref: () => User, required: true, index: true})
-    reporterId!: Ref<typeof User>;
-
-    @prop({ refPath: "reportedType", required: true })
-    public refId!: Ref<Blog | typeof Artwork>; 
-
-    @prop({ required: true, enum: ['BLOG', 'ARTWORK','USER','COMMENT'] })
-    public refType!: string;
-
-    @prop({required: true, ref: () => User})
-    reportedId!: Ref<typeof User>;
-
-    @prop({required: true, enum: ReasonReport, type: String})
-    reason!: string;
-
-    @prop({required: true, type: String})
-    description!: string;
-
-    @prop({required: true, type: String, enum: ReportStatus, default: ReportStatus.PENDING})
-    status?: string;
-    
-    @prop({required: false, type: String})
-    url?: string;
-
-    @prop({ required: false, type: [String] })
-    image?: string[];
+// Define interface for Report document
+interface IReport extends Document {
+  reporterId: mongoose.Types.ObjectId;
+  refId: mongoose.Types.ObjectId;
+  refType: 'BLOG' | 'ARTWORK' | 'USER' | 'COMMENT';
+  reportedId: mongoose.Types.ObjectId;
+  reason: string;
+  description: string;
+  status: string;
+  url?: string;
+  image?: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-const ReportModel = getModelForClass(Report);
-export default ReportModel;
+// Create the schema
+const reportSchema = new Schema<IReport>(
+  {
+    reporterId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true
+    },
+    refId: {
+      type: Schema.Types.ObjectId,
+      refPath: 'refType',
+      required: true
+    },
+    refType: {
+      type: String,
+      required: true,
+      enum: ['BLOG', 'ARTWORK', 'USER', 'COMMENT']
+    },
+    reportedId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    reason: {
+      type: String,
+      enum: Object.values(ReasonReport),
+      required: true
+    },
+    description: {
+      type: String,
+      required: true
+    },
+    status: {
+      type: String,
+      enum: Object.values(ReportStatus),
+      required: true,
+      default: ReportStatus.PENDING
+    },
+    url: {
+      type: String,
+      required: false
+    },
+    image: {
+      type: [String],
+      required: false
+    }
+  },
+  { timestamps: true }
+);
+
+// Create and export the model
+const Report = model<IReport>('Report', reportSchema);
+
+export default Report;

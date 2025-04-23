@@ -12,7 +12,7 @@ export class ReportController {
 		this.get = this.get.bind(this);
 		this.getById = this.getById.bind(this);
 		this.create = this.create.bind(this);
-        this.updateStatus = this.updateStatus.bind(this);
+		this.updateStatus = this.updateStatus.bind(this);
 		this.action = this.action.bind(this);
 		this.getByReporterId = this.getByReporterId.bind(this);
 		this.permanentBan = this.permanentBan.bind(this);
@@ -69,52 +69,52 @@ export class ReportController {
 
 	async create(req: Request, res: Response, next: NextFunction): Promise<any> {
 		try {
-		  // Extract data from request body
-		  const { refId, refType, reason, description, url, image } = req.body;
-		  
-		  // Get reporterId from the authenticated user
-		  // Using userId instead of user.id as we see in your event controller
-		  const reporterId = req.userId;
-		  
-		  // Debug information
-		  console.log('Creating report with data:', { 
-			reporterId, refId, refType, reason, description, url, 
-			image: image ? (Array.isArray(image) ? `${image.length} images` : 'image provided') : 'no image' 
-		  });
-		  
-		  // Validate required fields
-		  if (!reporterId) {
-			throw new ForbiddenException('Forbidden');
-		  }
-		  
-		  if (!refId || !refType || !reason) {
-			throw new ForbiddenException('Missing required fields');
-		  }
-	
-		  // Call service to create report
-		  const report = await this._reportService.create(
-			reporterId,
-			refId,
-			refType,
-			reason,
-			description || '', 
-			url || '', 
-			image || []
-		  );
-	
-		  // Return successful response using BaseHttpResponse
-		  const response = BaseHttpResponse.success(
-			report, 
-			201, 
-			'Report created successfully'
-		  );
-		  
-		  return res.status(response.statusCode).json(response);
+			// Extract data from request body
+			const { refId, refType, reason, description, url, image } = req.body;
+
+			// Get reporterId from the authenticated user
+			// Using userId instead of user.id as we see in your event controller
+			const reporterId = req.userId;
+
+			// Debug information
+			console.log('Creating report with data:', {
+				reporterId, refId, refType, reason, description, url,
+				image: image ? (Array.isArray(image) ? `${image.length} images` : 'image provided') : 'no image'
+			});
+
+			// Validate required fields
+			if (!reporterId) {
+				throw new ForbiddenException('Forbidden');
+			}
+
+			if (!refId || !refType || !reason) {
+				throw new ForbiddenException('Missing required fields');
+			}
+
+			// Call service to create report
+			const report = await this._reportService.create(
+				reporterId,
+				refId,
+				refType,
+				reason,
+				description || '',
+				url || '',
+				image || []
+			);
+
+			// Return successful response using BaseHttpResponse
+			const response = BaseHttpResponse.success(
+				report,
+				201,
+				'Report created successfully'
+			);
+
+			return res.status(response.statusCode).json(response);
 		} catch (error) {
-		  logger.error(error, 'Error creating report');
-		  next(error);
+			logger.error(error, 'Error creating report');
+			next(error);
 		}
-	  }
+	}
 
 	async updateStatus(
 		req: Request,
@@ -135,16 +135,16 @@ export class ReportController {
 			next(error);
 		}
 	}
-    // ban/unban or warning
+	// ban/unban or warning
 	async action(req: Request, res: Response, next: NextFunction): Promise<any> {
 		try {
 			const id = req.params.id; // Lấy report id từ params
 			const action = req.body.action; // Lấy action từ body request
-	
+
 			// Gọi service để thực hiện logic action
 			const user = await this._reportService.action(id, action);
 
-			if(!user){
+			if (!user) {
 				const response = BaseHttpResponse.error(
 					'null',
 					404,
@@ -152,7 +152,7 @@ export class ReportController {
 				);
 				return res.status(response.statusCode).json(response);
 			}
-	
+
 			const response = BaseHttpResponse.success(
 				user,
 				200,
@@ -165,8 +165,8 @@ export class ReportController {
 	}
 
 	async permanentBan(req: Request, res: Response, next: NextFunction): Promise<any> {
-		try{
-			const userId = req.params.id; 
+		try {
+			const userId = req.params.id;
 			const user = await this._reportService.permanentBan(userId);
 			const response = BaseHttpResponse.success(
 				user,
@@ -175,13 +175,13 @@ export class ReportController {
 			);
 			return res.status(response.statusCode).json(response);
 		}
-		catch(error){
+		catch (error) {
 			next(error);
 		}
 	}
 
 	async temporaryBan(req: Request, res: Response, next: NextFunction): Promise<any> {
-		try{
+		try {
 			const userId = req.params.id;
 			const user = await this._reportService.temporaryBan(userId);
 			const response = BaseHttpResponse.success(
@@ -192,7 +192,7 @@ export class ReportController {
 			return res.status(response.statusCode).json(response);
 
 		}
-		catch(error){
+		catch (error) {
 			next(error);
 		}
 	}

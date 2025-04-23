@@ -3,7 +3,6 @@ import ArtworkWarehouseModel from '../models/artwork-warehouse.model';
 import ArtworkModel from '../models/artwork.model';
 import { injectable } from 'inversify';
 import { BaseHttpResponse } from '@/lib/base-http-response';
-import User from '@/models/user.model';
 
 @injectable()
 export class ArtworkWarehouseController {

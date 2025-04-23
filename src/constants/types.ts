@@ -86,5 +86,6 @@ export const TYPES = {
     ICCCDController: Symbol.for('ICCCDController'),
     CCCDController: Symbol.for('CCCDController'),
 
-        
+    ArtistRequestService: Symbol.for('ArtistRequestService'),
+    ArtistRequestController: Symbol.for('ArtistRequestController'),
 }

@@ -172,7 +172,6 @@ class UserService {
 			if (!user) {
 				throw new Error('User not found');
 			}
-
 			const targetObjectId = new mongoose.Types.ObjectId(targetUserId);
 			return user.following.some(followedId => followedId.equals(targetObjectId));
 		} catch (error: any) {
@@ -223,6 +222,24 @@ class UserService {
 		} catch (error: any) {
 			logger.error(`Get pending artist requests failed! ${error.message}`);
 			throw new Error(`Get pending artist requests failed! ${error.message}`);
+		}
+	}
+
+	async getUserProfile(userId: string): Promise<InstanceType<typeof User> | null> {
+		try {
+			const user = await User.findById(userId)
+				.select('-password')
+				.populate('following', 'name email image')
+				.populate('followers', 'name email image');
+				
+			if (!user) {
+				logger.error(`User not found!`);
+				throw new Error('User not found');
+			}
+			return user;
+		} catch (err: any) {
+			logger.error(`Get user profile failed!, ${err.message}`);
+			throw new Error(`Get user profile failed!, ${err.message}`);
 		}
 	}
 }

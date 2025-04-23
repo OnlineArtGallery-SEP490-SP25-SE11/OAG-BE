@@ -31,10 +31,31 @@ interface PaginatedGalleryResponse {
 export class GalleryService implements IGalleryService {
     async create(data: CreateGalleryDto): Promise<GalleryDocument> {
         try {
+            // Check if gallery with same name already exists
+            const existingGallery = await GalleryModel.findOne({
+                name: {
+                    $regex: new RegExp(`^${data.name}$`, 'i') // Case insensitive match
+                }
+            });
+
+            if (existingGallery) {
+                throw new BadRequestException(
+                    'Gallery with this name already exists',
+                    ErrorCode.GALLERY_NAME_EXISTS
+                );
+            }
+
+            // Create new gallery if name is unique
             const gallery = await GalleryModel.create(data);
             return gallery;
+
         } catch (error) {
             logger.error('Error creating gallery:', error);
+
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+
             if (error instanceof Error.ValidationError) {
                 throw new BadRequestException(
                     'Invalid gallery data',
@@ -42,6 +63,7 @@ export class GalleryService implements IGalleryService {
                     error.errors
                 );
             }
+
             throw new InternalServerErrorException(
                 'Error creating gallery',
                 ErrorCode.DATABASE_ERROR
@@ -77,12 +99,12 @@ export class GalleryService implements IGalleryService {
 
     async findAll(options: GalleryQueryOptions = {}): Promise<PaginatedGalleryResponse> {
         try {
-            const { 
-                page = 1, 
-                limit = 10, 
-                sort = { createdAt: -1 }, 
+            const {
+                page = 1,
+                limit = 10,
+                sort = { createdAt: -1 },
                 filter = {},
-                search 
+                search
             } = options;
 
             // Build query filters

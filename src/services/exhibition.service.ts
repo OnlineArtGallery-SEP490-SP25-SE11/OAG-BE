@@ -1,13 +1,13 @@
 import { injectable, inject } from 'inversify';
 import { Error, Types } from 'mongoose';
-import ExhibitionModel, { ExhibitionDocument, Exhibition } from '@/models/exhibition.model';
+import ExhibitionModel, { ExhibitionDocument } from '@/models/exhibition.model';
 import logger from '@/configs/logger.config';
 import { BadRequestException, NotFoundException, InternalServerErrorException } from '@/exceptions/http-exception';
 import { ErrorCode } from '@/constants/error-code';
 import { CreateEmptyExhibitionDto, LikeArtworkResponse, TicketPurchaseResponse, UpdateExhibitionDto } from '@/dto/exhibition.dto';
 import { IExhibitionService, ExhibitionQueryOptions, PaginatedExhibitionResponse } from '@/interfaces/service/exhibition-service.interface';
 import { ExhibitionFactory } from '@/factorires/exhitition.factory';
-import { GalleryModel } from '@/models/gallery.model';
+import  GalleryModel from '@/models/gallery.model';
 import { ExhibitionStatus } from '@/constants/enum';
 import NotificationService from '@/services/notification.service';
 import { TYPES } from '@/constants/types';
@@ -198,7 +198,7 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
             if (!Types.ObjectId.isValid(id)) {
                 throw new BadRequestException('Invalid exhibition ID format');
             }
-
+            console.log('data', data);
             // validate linkName uniqueness
             if (data.linkName) {
 
@@ -217,7 +217,7 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
             // Use factory to update exhibition object
             const updatedExhibitionData = ExhibitionFactory.update(
                 existingExhibition.toObject(),
-                data as Partial<Exhibition>
+                data as Partial<ExhibitionDocument>
             );
 
             // Update the exhibition with our constructed object
@@ -239,7 +239,7 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
 
             return exhibition;
         } catch (error) {
-            // logger.error(`Error updating exhibition ${id}:`, error);
+            console.error(`Error updating exhibition ${id}:`, error);
             if (error instanceof Error.ValidationError) {
                 throw new BadRequestException(
                     'Invalid exhibition data',
@@ -471,7 +471,7 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
                         });
                     }
 
-                    await this._walletService.addFunds(artistWallet._id.toString(), artistAmount, {
+                    await this._walletService.addFunds(artistWallet._id as string, artistAmount, {
                         userId: exhibition.author.toString(),
                         type: 'TICKET_SALE',
                         description: `Ticket sale for exhibition: ${exhibition.contents[0]?.name || exhibitionId}`,
@@ -492,7 +492,7 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
             });
 
             return {
-                exhibitionId: exhibition._id.toString(),
+                exhibitionId: exhibition._id as string,
                 exhibitionName: exhibition.contents[0]?.name || 'Untitled Exhibition',
                 purchaseDate: new Date(),
                 price: exhibition.ticket.price || 0,
@@ -657,7 +657,7 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
             }
     
             // Count total likes for this artwork in this exhibition
-            const artworkLikes = updatedExhibition.result.likes.filter(
+            const artworkLikes = updatedExhibition.result.likes?.filter(
                 like => like.artworkId.toString() === artworkId
             ) || [];
             

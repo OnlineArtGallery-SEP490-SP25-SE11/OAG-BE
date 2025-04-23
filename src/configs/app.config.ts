@@ -84,8 +84,8 @@ class AppConfig {
 	private initMiddlewares(): void {
 		this.app.use(
 			cors({
-			origin: [env.CLIENT_URL, env.ADMIN_URL],
-			credentials: true
+				origin: [env.CLIENT_URL, env.ADMIN_URL, /\.vercel\.app$/, /\.onrender\.com$/],
+				credentials: true
 			})
 		);
 		this.app.use(Cookieparser());
@@ -123,7 +123,7 @@ class AppConfig {
 	// 			this.eventSystem.stopAll();
 	// 			logger.info('🗓️ Event status update system stopped');
 	// 		}
-			
+
 	// 		// Đóng các kết nối khác
 	// 		this.httpServer.close();
 	// 		await connectDatabase.disconnect();

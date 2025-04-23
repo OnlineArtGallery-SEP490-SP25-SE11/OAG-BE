@@ -1,4 +1,4 @@
-import logger from '@/configs/logger.config'; 
+import logger from '@/configs/logger.config';
 import roleRequire from '@/configs/middleware.config';
 import UserService from '@/services/user.service';
 import { Request, Response, Router } from 'express';
@@ -7,29 +7,55 @@ const router = Router();
 const userController = new UserController();
 
 router.get('/', roleRequire(), async (req: Request, res: Response) => {
-	try {
-		const userId = req.userId as string;
-		const user = await UserService.getProfile(userId);
-		res.status(200).json({ user });
-	} catch (err: any) {
-		logger.error(err.message);
-		res.status(500).json({ message: err.message });
-	}
+    try {
+        const userId = req.userId as string;
+        const user = await UserService.getProfile(userId);
+        console.log(user);
+        res.status(200).json({ user });
+    } catch (err: any) {
+        logger.error(err.message);
+        res.status(500).json({ message: err.message });
+    }
 });
+// Lấy danh sách followers
+router.get('/followers', roleRequire(),  async (req: Request, res: Response) => {
+    try {
+        const userId = req.userId as string;
+        const followers = await UserService.getFollowers(userId);
+        res.status(200).json({ followers });
+    } catch (err: any) {
+        logger.error(err.message);
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// Lấy danh sách following
+router.get('/following', roleRequire(), async (req: Request, res: Response) => {
+    try {
+        const userId = req.userId as string;
+        const following = await UserService.getFollowing(userId);
+        res.status(200).json({ following });
+    } catch (err: any) {
+        logger.error(err.message);
+        res.status(500).json({ message: err.message });
+    }
+});
+
 //admin function user
 router.get('/all-user', roleRequire(['admin']), userController.getAllUser);
+
 router.get('/:id', roleRequire(['admin']), userController.getUserById);
 
 // Cập nhật thông tin user
 router.put('/', roleRequire(), async (req: Request, res: Response) => {
-	try {
-		const userId = req.userId as string;
-		const user = await UserService.updateProfile(userId, req.body);
-		res.status(200).json({ user });
-	} catch (err: any) {
-		logger.error(err.message);
-		res.status(500).json({ message: err.message });
-	}
+    try {
+        const userId = req.userId as string;
+        const user = await UserService.updateProfile(userId, req.body);
+        res.status(200).json({ user });
+    } catch (err: any) {
+        logger.error(err.message);
+        res.status(500).json({ message: err.message });
+    }
 });
 
 // Follow một user
@@ -71,29 +97,6 @@ router.get('/is-following/:targetUserId', roleRequire(), async (req: Request, re
     }
 });
 
-// Lấy danh sách followers
-router.get('/followers', roleRequire(), async (req: Request, res: Response) => {
-    try {
-        const userId = req.userId as string;
-        const followers = await UserService.getFollowers(userId);
-        res.status(200).json({ followers });
-    } catch (err: any) {
-        logger.error(err.message);
-        res.status(500).json({ message: err.message });
-    }
-});
-
-// Lấy danh sách following
-router.get('/following', roleRequire(), async (req: Request, res: Response) => {
-    try {
-        const userId = req.userId as string;
-        const following = await UserService.getFollowing(userId);
-        res.status(200).json({ following });
-    } catch (err: any) {
-        logger.error(err.message);
-        res.status(500).json({ message: err.message });
-    }
-});
 
 // Gửi yêu cầu "Become Artist"
 router.post('/request-become-artist', roleRequire(), async (req: Request, res: Response) => {
@@ -130,5 +133,26 @@ router.get('/pending-become-artist', roleRequire(['admin']), async (_req: Reques
     }
 });
 
+// Lấy profile của người dùng khác
+router.get('/profile/:userId', roleRequire(), async (req: Request, res: Response) => {
+    try {
+        const targetUserId = req.params.userId;
+        const userProfile = await UserService.getUserProfile(targetUserId);
+
+        // Nếu người dùng hiện tại đã đăng nhập, kiểm tra xem họ có đang follow người dùng này không
+        let isFollowing = false;
+        if (req.userId && req.userId !== targetUserId) {
+            isFollowing = userProfile!.followers.some(follower => follower._id.toString() === req.userId);
+        }
+
+        res.status(200).json({
+            user: userProfile,
+            isFollowing
+        });
+    } catch (err: any) {
+        logger.error(err.message);
+        res.status(500).json({ message: err.message });
+    }
+});
 
 export default router;

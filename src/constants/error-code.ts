@@ -9,7 +9,7 @@ export enum ErrorCode {
 	UNAUTHORIZED = 'unauthorized',
 	INTERNAL_SERVER_ERROR = 'internal_server_error',
 	FORBIDDEN = 'forbidden',
-	
+
 
 	//Database
 	DATABASE_ERROR = 'database_error',
@@ -25,9 +25,9 @@ export enum ErrorCode {
 	INVALID_REPORT_ID = 'invalid_report_id',
 	ACTION_REPORT_FAILED = 'action_report_failed',
 	INVALID_REPORTER_ID = 'invalid_reporter_id',
-	
+
 	NOTFOUND = 'notfound',
-	
+
 	SERVER_ERROR = 'server_error',
 
 	//Payment
@@ -48,4 +48,11 @@ export enum ErrorCode {
 	LINKNAME_EXISTS = 'linkname_exists',
 	TICKET_ALREADY_PURCHASED = 'ticket_already_purchased',
 	TICKET_NOT_CONFIGURED = 'ticket_not_configured',
+
+	//gallery
+	GALLERY_NAME_EXISTS = 'gallery_name_exists',
+
+	//baned
+	USER_BANNED = 'user_banned',
+
 }

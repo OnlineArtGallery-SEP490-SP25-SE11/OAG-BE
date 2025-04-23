@@ -1,6 +1,6 @@
 import logger from '@/configs/logger.config';
 import Collection from '@/models/collection.model';
-import { startSession, Types } from 'mongoose';
+import {  Types } from 'mongoose';
 import { injectable } from 'inversify';
 
 export interface MoveArtworkOptions {

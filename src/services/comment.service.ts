@@ -1,5 +1,5 @@
-  // comment.service.ts
-  import { injectable } from "inversify";
+// comment.service.ts
+import { injectable } from "inversify";
 import CommentModel, { CommentDocument } from "@/models/comment.model";
 import { ICommentService } from "@/interfaces/service.interface";
 import { Types } from "mongoose";
@@ -8,39 +8,52 @@ import { Types } from "mongoose";
 export class CommentService implements ICommentService {
   async createComment(
     userId: string,
-    blogId: string,
+    targetId: string,
     content: string,
-    parentId?: string
+    targetType: 'blog' | 'artwork',
+    onModel: 'blog' | 'artwork',
+    parentId?: string | null
   ): Promise<CommentDocument> {
     const comment = new CommentModel({
       author: new Types.ObjectId(userId),
-      blog: new Types.ObjectId(blogId),
+      target: new Types.ObjectId(targetId),
+      targetType,
       content,
-      parentId: parentId ? new Types.ObjectId(parentId) : null, // Gán parentId nếu có
+      onModel,  // Thêm onModel vào đây
+      parentComment: parentId ? new Types.ObjectId(parentId) : undefined,
     });
-  
+
     const savedComment = await comment.save();
   
-    // Nếu có parentId, cập nhật replies của comment cha
+    // Nếu có parentId thì push vào replies của comment cha
     if (parentId) {
       await CommentModel.findByIdAndUpdate(parentId, {
         $push: { replies: savedComment._id },
       });
     }
-  
-    return savedComment.toObject() as CommentDocument;
-  }  
 
-  async getCommentsByBlog(blogId: string): Promise<CommentDocument[]> {
-    return await CommentModel.find({ blog: new Types.ObjectId(blogId) })
+    return savedComment.toObject() as CommentDocument;
+  }
+  
+  async getCommentsByTarget(
+    targetId: string,
+    targetType: 'blog' | 'artwork'
+  ): Promise<CommentDocument[]> {
+    // Kiểm tra chuyển đổi ObjectId đúng
+    const objectId = new Types.ObjectId(targetId); // Convert targetId thành ObjectId
+  
+    return await CommentModel.find({
+      target: objectId,
+      onModel: targetType,
+    })
       .populate({
         path: 'author',
         select: 'name email image',
-        model: 'User'
+        model: 'User',
       })
       .sort({ createdAt: -1 })
-      .lean();
   }
+  
 
   async updateComment(
     commentId: string,
@@ -48,30 +61,32 @@ export class CommentService implements ICommentService {
     content?: string,
     replies?: Types.ObjectId[]
   ): Promise<CommentDocument> {
-    // Tìm comment cần update
     const comment = await CommentModel.findById(commentId);
     if (!comment) throw new Error("Comment not found");
-  
+
+
     if (content && comment.author.toString() !== userId) {
       throw new Error("Unauthorized to update content");
     }
-  
-    if (content) {
-      comment.content = content;
-    }
-  
-    if (replies) {
-      comment.replies = replies;
-    }
-  
+
+    if (content) comment.content = content;
+    if (replies) comment.replies = replies;
+
     const updatedComment = await comment.save();
     return updatedComment.toObject() as CommentDocument;
   }
-  
-  async deleteComment(commentId: string, userId: string, role: string[]): Promise<void> {
+
+  async deleteComment(
+    commentId: string,
+    userId: string,
+    role: string[]
+  ): Promise<void> {
     const comment = await CommentModel.findById(commentId);
     if (!comment) throw new Error("Comment not found");
-    if (comment.author.toString() !== userId && !role.includes("admin")) throw new Error("Unauthorized");
+
+    if (comment.author.toString() !== userId && !role.includes("admin")) {
+      throw new Error("Unauthorized");
+    }
 
     await comment.deleteOne();
   }

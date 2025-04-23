@@ -6,7 +6,7 @@ import { IGalleryController } from '@/interfaces/controller/gallery-controller.i
 import { GalleryService } from '@/services/gallery.service';
 
 @injectable()
-export class GalleryController implements IGalleryController{
+export class GalleryController implements IGalleryController {
     constructor(
         @inject(TYPES.GalleryService) private readonly _galleryService: GalleryService
     ) {
@@ -15,8 +15,10 @@ export class GalleryController implements IGalleryController{
         this.findById = this.findById.bind(this);
         this.update = this.update.bind(this);
         this.delete = this.delete.bind(this);
-    }       
- 
+        this.findAllPublic = this.findAllPublic.bind(this);
+        
+    }
+
     create = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
         try {
             const gallery = await this._galleryService.create(req.body);
@@ -33,12 +35,12 @@ export class GalleryController implements IGalleryController{
 
     findAll = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
         try {
-            const { 
-                page, 
-                limit, 
-                sort, 
-                filter, 
-                search 
+            const {
+                page,
+                limit,
+                sort,
+                filter,
+                search
             } = req.query;
 
             const options = {
@@ -50,11 +52,45 @@ export class GalleryController implements IGalleryController{
             };
 
             const result = await this._galleryService.findAll(options);
-            
+
             const response = BaseHttpResponse.success(
                 result,
                 200,
                 'Galleries retrieved successfully'
+            );
+            return res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    findAllPublic = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+        try {
+            const {
+                page,
+                limit,
+                sort,
+                filter,
+                search
+            } = req.query;
+
+            const options = {
+                page: parseInt(page as string) || 1,
+                limit: parseInt(limit as string) || 10,
+                sort: sort ? JSON.parse(sort as string) : { createdAt: -1 },
+                filter: {
+                    isActive: true,
+                    ...(filter ? JSON.parse(filter as string) : {})
+                },
+                search: search as string
+            };
+
+            const result = await this._galleryService.findAll(options);
+
+            const response = BaseHttpResponse.success(
+                result,
+                200,
+                'Public galleries retrieved successfully'
             );
             return res.status(response.statusCode).json(response);
         } catch (error) {
@@ -68,7 +104,7 @@ export class GalleryController implements IGalleryController{
                 req.params.id,
                 req.validatedData
             );
-            
+
             const response = BaseHttpResponse.success(
                 gallery,
                 200,
@@ -83,7 +119,7 @@ export class GalleryController implements IGalleryController{
     delete = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             await this._galleryService.delete(req.params.id);
-            
+
             const response = BaseHttpResponse.success(
                 null,
                 200,
@@ -98,9 +134,9 @@ export class GalleryController implements IGalleryController{
     findById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const gallery = await this._galleryService.findById(req.params.id);
-            
+
             const response = BaseHttpResponse.success(
-                {gallery},
+                { gallery },
                 200,
                 'Gallery retrieved successfully'
             );

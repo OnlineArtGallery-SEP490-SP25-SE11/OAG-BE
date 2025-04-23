@@ -16,7 +16,34 @@ export class CCCDController {
     this.getCCCDByUserId = this.getCCCDByUserId.bind(this);
     this.update = this.update.bind(this);
     this.delete = this.delete.bind(this);
+    this.getAll = this.getAll.bind(this);
   }
+
+  getAll = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    try {
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
+      const search = req.query.search as string;
+      const sortField = (req.query.sortField as string) || 'createdAt';
+      const sortOrder = (req.query.sortOrder as string) === 'asc' ? 1 : -1;
+
+      const result = await this.cccdService.findAll({
+        page,
+        limit,
+        sort: { [sortField]: sortOrder },
+        search
+      });
+
+      const response = BaseHttpResponse.success(
+        result,
+        200,
+        "CCCD records retrieved successfully"
+      );
+      return res.status(response.statusCode).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
 
   // Tạo CCCD mới
   create = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
