@@ -1,313 +1,368 @@
-import {TYPES} from '@/constants/types';
-import {BaseHttpResponse} from '@/lib/base-http-response';
-import {ArtworkService} from '@/services/artwork.service';
-import {NextFunction, Request, Response} from 'express';
-import {inject, injectable} from 'inversify';
+import { TYPES } from '@/constants/types';
+import { BaseHttpResponse } from '@/lib/base-http-response';
+import { ArtworkService } from '@/services/artwork.service';
+import { NextFunction, Request, Response } from 'express';
+import { inject, injectable } from 'inversify';
 
 @injectable()
 export class ArtworkController {
-    constructor(
-        @inject(TYPES.ArtworkService)
-        private readonly _artworkService: ArtworkService
-    ) {
-        this.get = this.get.bind(this);
-        this.getById = this.getById.bind(this);
-        this.getCategory = this.getCategory.bind(this);
-        this.getForArtist = this.getForArtist.bind(this);
-        this.getForAdmin = this.getForAdmin.bind(this);
-        this.add = this.add.bind(this);
-        this.update = this.update.bind(this);
-        this.delete = this.delete.bind(this);
-        this.reviewArtwork = this.reviewArtwork.bind(this);
+	constructor(
+		@inject(TYPES.ArtworkService)
+		private readonly _artworkService: ArtworkService
+	) {
+		this.get = this.get.bind(this);
+		this.getById = this.getById.bind(this);
+		this.getCategory = this.getCategory.bind(this);
+		this.getForArtist = this.getForArtist.bind(this);
+		this.getForAdmin = this.getForAdmin.bind(this);
+		this.add = this.add.bind(this);
+		this.update = this.update.bind(this);
+		this.delete = this.delete.bind(this);
+		this.reviewArtwork = this.reviewArtwork.bind(this);
 		this.getArtistArtwork = this.getArtistArtwork.bind(this);
 		this.purchase = this.purchase.bind(this);
 		this.downloadArtwork = this.downloadArtwork.bind(this);
 		this.checkPurchaseStatus = this.checkPurchaseStatus.bind(this);
 	}
 
-    async add(req: Request, res: Response, next: NextFunction): Promise<any> {
-        try {
-            const {
-                title,
-                description,
-                category,
-                dimensions,
-                url,
-                status,
-                price
-            } = req.body;
-            const artistId = req.userId;
-            // valid artistId
-            if (!artistId) {
-                const errorMessage = 'Invalid artist id';
-                throw new Error(errorMessage);
-            }
-            const artwork = await this._artworkService.add(
-                title,
-                description,
-                artistId,
-                category,
-                dimensions,
-                url,
-                status,
-                price
-            );
-            const response = BaseHttpResponse.success(
-                artwork,
-                201,
-                'Add artwork success'
-            );
-            return res.status(response.statusCode).json(response);
-        } catch (error) {
-            next(error);
-        }
-    }
+	async add(req: Request, res: Response, next: NextFunction): Promise<any> {
+		try {
+			const {
+				title,
+				description,
+				category,
+				dimensions,
+				url,
+				lowResUrl,
+				watermarkUrl,
+				status,
+				price
+			} = req.body;
+			const artistId = req.userId;
+			// valid artistId
+			console.log(url, lowResUrl, watermarkUrl);
 
-    async get(req: Request, res: Response, next: NextFunction): Promise<any> {
-        try {
-            const {skip: skipStr, take: takeStr, keyword, minPrice, maxPrice, ...restQuery} = req.query;
-            
-            // Create a properly typed queryOptions object
-            const queryOptions: any = {...restQuery};
-            
-            // Convert to numbers if provided, use defaults if not
-            const skip = skipStr ? parseInt(skipStr as string) : 0;
-            const take = takeStr ? parseInt(takeStr as string) : 10;
+			if (!artistId) {
+				const errorMessage = 'Invalid artist id';
+				throw new Error(errorMessage);
+			}
+			const artwork = await this._artworkService.add(
+				title,
+				description,
+				artistId,
+				category,
+				dimensions,
+				url,
+				lowResUrl,
+				watermarkUrl,
+				status,
+				price
+			);
+			const response = BaseHttpResponse.success(
+				artwork,
+				201,
+				'Add artwork success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
 
-            // Add keyword search if provided
-            if (keyword) {
-                queryOptions.keyword = keyword as string;
-            }
-            
-            // Handle price range separately to avoid type errors
-            if (minPrice || maxPrice) {
-                queryOptions.priceRange = {
-                    min: minPrice ? parseFloat(minPrice as string) : undefined,
-                    max: maxPrice ? parseFloat(maxPrice as string) : undefined
-                };
-            }
+	async get(req: Request, res: Response, next: NextFunction): Promise<any> {
+		try {
+			const {
+				skip: skipStr,
+				take: takeStr,
+				keyword,
+				minPrice,
+				maxPrice,
+				...restQuery
+			} = req.query;
 
-            const {artworks, total} = await this._artworkService.get(
-                queryOptions,
-                skip,
-                take,
-                {
-                    role: 'user'
-                }
-            );
+			// Create a properly typed queryOptions object
+			const queryOptions: any = { ...restQuery };
 
-            const response = BaseHttpResponse.success(
-                {
-                    artworks,
-                    total
-                },
-                200,
-                'Get artwork success'
-            );
-            return res.status(response.statusCode).json(response);
-        } catch (error) {
-            next(error);
-        }
-    }
+			// Convert to numbers if provided, use defaults if not
+			const skip = skipStr ? parseInt(skipStr as string) : 0;
+			const take = takeStr ? parseInt(takeStr as string) : 10;
 
-    async getForArtist(req: Request, res: Response, next: NextFunction): Promise<any> {
-        try {
-            const {skip: skipStr, take: takeStr, ...restQuery} = req.query;
-            
-            // Create a properly typed queryOptions object
-            const queryOptions: any = {...restQuery};
-            
-            // Convert to numbers if provided, use defaults if not
-            const skip = skipStr ? parseInt(skipStr as string) : 0;
-            const take = takeStr ? parseInt(takeStr as string) : 10;
-            
-            const userId = req.userId;
+			// Add keyword search if provided
+			if (keyword) {
+				queryOptions.keyword = keyword as string;
+			}
 
-            if (!userId) {
-                throw new Error('Unauthorized');
-            }
+			// Handle price range separately to avoid type errors
+			if (minPrice || maxPrice) {
+				queryOptions.priceRange = {
+					min: minPrice ? parseFloat(minPrice as string) : undefined,
+					max: maxPrice ? parseFloat(maxPrice as string) : undefined
+				};
+			}
 
-            // Use artistId from the authenticated user to filter artworks
-            queryOptions.artistId = userId;
+			const { artworks, total } = await this._artworkService.get(
+				queryOptions,
+				skip,
+				take,
+				{
+					role: 'user'
+				}
+			);
+			//remove url from artwork, and change watermarkUrl to url
+			const resolveArtworks = Promise.all(
+				artworks.map(async (artwork) => {
+					const { url, lowResUrl, watermarkUrl, ...rest } = artwork;
+					return {
+						...rest,
+						url: watermarkUrl
+					};
+				})
+			);
 
-            const {artworks, total} = await this._artworkService.get(
-                queryOptions,
-                skip,
-                take,
-                {userId, role: 'artist'}
-            );
+			const transformedArtworks = await resolveArtworks;
+			const response = BaseHttpResponse.success(
+				{
+					artworks: transformedArtworks,
+					total
+				},
+				200,
+				'Get artwork success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
 
-            const response = BaseHttpResponse.success(
-                {artworks, total},
-                200,
-                'Get artist artworks success'
-            );
-            return res.status(response.statusCode).json(response);
-        } catch (error) {
-            next(error);
-        }
-    }
+	async getForArtist(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> {
+		try {
+			const { skip: skipStr, take: takeStr, ...restQuery } = req.query;
 
-    async getForAdmin(
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): Promise<any> {
-        try {
-            const {skip: _skip, take: _take, ...queryOptions} = req.query;
-            void _skip;
-            void _take;
+			// Create a properly typed queryOptions object
+			const queryOptions: any = { ...restQuery };
 
-            const skip = parseInt(req.query.skip as string) || 0;
-            const take = parseInt(req.query.take as string) || 10;
+			// Convert to numbers if provided, use defaults if not
+			const skip = skipStr ? parseInt(skipStr as string) : 0;
+			const take = takeStr ? parseInt(takeStr as string) : 10;
 
-            const {artworks, total} = await this._artworkService.get(
-                queryOptions,
-                skip,
-                take,
-                {role: 'admin'} // Đặt context là admin để xem tất cả
-            );
+			const userId = req.userId;
 
-            const response = BaseHttpResponse.success(
-                {artworks, total},
-                200,
-                'Get all artworks success'
-            );
-            return res.status(response.statusCode).json(response);
-        } catch (error) {
-            next(error);
-        }
-    }
+			if (!userId) {
+				throw new Error('Unauthorized');
+			}
 
-    async getById(
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): Promise<any> {
-        try {
-            const {id} = req.params;
-            const artwork = await this._artworkService.getById(id);
-            const response = BaseHttpResponse.success(
-                artwork,
-                200,
-                'Get artwork by id success'
-            );
-            return res.status(response.statusCode).json(response);
-        } catch (error) {
-            next(error);
-        }
-    }
+			// Use artistId from the authenticated user to filter artworks
+			queryOptions.artistId = userId;
 
-    async update(
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): Promise<any> {
-        try {
-            const {id} = req.params;
-            const {title, description, category, status, price} = req.body;
-            const artistId = req.userId;
-            // valid artistId
-            if (!artistId) {
-                const errorMessage = 'Invalid artist id';
-                throw new Error(errorMessage);
-            }
-            const artwork = await this._artworkService.update(
-                {
-                    title,
-                    description,
-                    category,
-                    status,
-                    price
-                },
-                id,
-                artistId
-            );
-            const response = BaseHttpResponse.success(
-                artwork,
-                200,
-                'Update artwork success'
-            );
-            return res.status(response.statusCode).json(response);
-        } catch (error) {
-            next(error);
-        }
-    }
+			const { artworks, total } = await this._artworkService.get(
+				queryOptions,
+				skip,
+				take,
+				{ userId, role: 'artist' }
+			);
+			//remove url from artwork, and change lowResUrl to url
+			const resolveArtworks = Promise.all(
+				artworks.map(async (artwork) => {
+					const { url, lowResUrl, watermarkUrl, ...rest } = artwork;
+					return {
+						...rest,
+						url: lowResUrl
+					};
+				})
+			);
+			const transformedArtworks = await resolveArtworks;
+			const response = BaseHttpResponse.success(
+				{ artworks: transformedArtworks, total },
+				200,
+				'Get artist artworks success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
 
-    async delete(
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): Promise<any> {
-        try {
-            const {id} = req.params;
-            const artistId = req.userId;
-            // valid artistId
-            if (!artistId) {
-                const errorMessage = 'Invalid artist id';
-                throw new Error(errorMessage);
-            }
+	async getForAdmin(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> {
+		try {
+			const { skip: _skip, take: _take, ...queryOptions } = req.query;
+			void _skip;
+			void _take;
 
-            const isDeleted = await this._artworkService.delete(id, artistId);
-            const response = BaseHttpResponse.success(
-                isDeleted,
-                200,
-                'Delete artwork success'
-            );
-            return res.status(response.statusCode).json(response);
-        } catch (error) {
-            next(error);
-        }
-    }
+			const skip = parseInt(req.query.skip as string) || 0;
+			const take = parseInt(req.query.take as string) || 10;
 
-    async getCategory(
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): Promise<any> {
-        try {
-            const categories = await this._artworkService.getCategory();
-            const response = BaseHttpResponse.success(
-                categories,
-                200,
-                'Get category success'
-            );
-            return res.status(response.statusCode).json(response);
-        } catch (error) {
-            next(error);
-        }
-    }
+			const { artworks, total } = await this._artworkService.get(
+				queryOptions,
+				skip,
+				take,
+				{ role: 'admin' } // Đặt context là admin để xem tất cả
+			);
+			// loại bỏ url gốc và sử dụng file ảnh lowresurl cho việc get ảnh
+			const resolveArtworks = Promise.all(
+				artworks.map((artwork) => {
+					const { url, lowResUrl, watermarkUrl, ...rest } = artwork;
+					return {
+						...rest,
+						url: lowResUrl // Sử dụng lowResUrl thay vì url gốc
+					};
+				})
+			);
+			const response = BaseHttpResponse.success(
+				{ artworks, total },
+				200,
+				'Get all artworks success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
 
-    async reviewArtwork(
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ):Promise<any> {
-        try {
-            const {id} = req.params;
-            const {moderationStatus, moderationReason} = req.body;
-            const adminId = req.userId;
-            // valid artistId
-            if (!adminId) {
-                const errorMessage = 'Invalid admin id';
-                throw new Error(errorMessage);
-            }
-            const artwork = await this._artworkService.reviewArtwork(
-                id,
-                adminId,
-                moderationStatus,
-                moderationReason
-            );
-            const response = BaseHttpResponse.success(
-                artwork,
-                200,
-                'Review artwork success'
-            );
-            return res.status(response.statusCode).json(response);
-        } catch (error) {
-            next(error)
-        }
-    }
+	async getById(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> {
+		try {
+			const { id } = req.params;
+			const artwork = await this._artworkService.getById(id);
+            //loại bỏ url,lowResUrl,watermarkUrl thay thể url bằng watermarkUrl 
+            const {url, lowResUrl, watermarkUrl, ...rest} = artwork;
+            const transformedArtwork = {
+                ...rest,
+                url: watermarkUrl
+            };
+            // console.log(transformedArtwork);
+			const response = BaseHttpResponse.success(
+				// {artwork: transformedArtwork},
+                transformedArtwork,
+				200,
+				'Get artwork by id success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async update(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> {
+		try {
+			const { id } = req.params;
+			const { title, description, category, status, price } = req.body;
+			const artistId = req.userId;
+			// valid artistId
+			if (!artistId) {
+				const errorMessage = 'Invalid artist id';
+				throw new Error(errorMessage);
+			}
+			const artwork = await this._artworkService.update(
+				{
+					title,
+					description,
+					category,
+					status,
+					price
+				},
+				id,
+				artistId
+			);
+			const response = BaseHttpResponse.success(
+				artwork,
+				200,
+				'Update artwork success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async delete(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> {
+		try {
+			const { id } = req.params;
+			const artistId = req.userId;
+			// valid artistId
+			if (!artistId) {
+				const errorMessage = 'Invalid artist id';
+				throw new Error(errorMessage);
+			}
+
+			const isDeleted = await this._artworkService.delete(id, artistId);
+			const response = BaseHttpResponse.success(
+				isDeleted,
+				200,
+				'Delete artwork success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async getCategory(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> {
+		try {
+			const categories = await this._artworkService.getCategory();
+			const response = BaseHttpResponse.success(
+				categories,
+				200,
+				'Get category success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async reviewArtwork(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> {
+		try {
+			const { id } = req.params;
+			const { moderationStatus, moderationReason } = req.body;
+			const adminId = req.userId;
+			// valid artistId
+			if (!adminId) {
+				const errorMessage = 'Invalid admin id';
+				throw new Error(errorMessage);
+			}
+			const artwork = await this._artworkService.reviewArtwork(
+				id,
+				adminId,
+				moderationStatus,
+				moderationReason
+			);
+			const response = BaseHttpResponse.success(
+				artwork,
+				200,
+				'Review artwork success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
 
 	async getArtistArtwork(
 		req: Request,
@@ -315,10 +370,11 @@ export class ArtworkController {
 		next: NextFunction
 	): Promise<any> {
 		try {
-
-			const artworks = await this._artworkService.getArtistArtwork(req.userId!);
+			const artworks = await this._artworkService.getArtistArtwork(
+				req.userId!
+			);
 			const response = BaseHttpResponse.success(
-				{artworks},
+				{ artworks },
 				200,
 				'Get artist artwork success'
 			);
@@ -328,30 +384,34 @@ export class ArtworkController {
 		}
 	}
 
-	async purchase(req: Request, res: Response, next: NextFunction): Promise<any> {
+	async purchase(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> {
 		try {
 			const { id } = req.params;
 			const userId = req.userId;
-			
+
 			if (!userId) {
 				throw new Error('User not authenticated');
 			}
 
 			const result = await this._artworkService.purchase(id, userId);
-			
+
 			// Lấy thông tin artwork để tính toán hoa hồng (để hiển thị)
 			const artwork = await this._artworkService.getById(id);
 			const commissionRate = 0.03;
 			const commissionAmount = (artwork.price || 0) * commissionRate;
 			const artistAmount = (artwork.price || 0) - commissionAmount;
-			
+
 			const response = BaseHttpResponse.success(
 				{
 					...result,
 					price: artwork.price,
 					artistAmount,
 					commissionAmount,
-					commissionRate: "3%"
+					commissionRate: '3%'
 				},
 				200,
 				'Purchase artwork success'
@@ -362,64 +422,82 @@ export class ArtworkController {
 		}
 	}
 
-	async downloadArtwork(req: Request, res: Response, next: NextFunction): Promise<any> {
+	async downloadArtwork(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> {
 		try {
 			const { id } = req.params;
 			const userId = req.userId;
-			
+
 			if (!userId) {
 				throw new Error('User not authenticated');
 			}
-			
+
 			// Kiểm tra quyền truy cập trước khi cho phép tải xuống
-			const hasAccess = await this._artworkService.verifyDownloadAccess(id, userId);
-			
+			const hasAccess = await this._artworkService.verifyDownloadAccess(
+				id,
+				userId
+			);
+
 			if (!hasAccess) {
-				return res.status(403).json(
-					BaseHttpResponse.error('Unauthorized access to download this artwork', 403)
-				);
+				return res
+					.status(403)
+					.json(
+						BaseHttpResponse.error(
+							'Unauthorized access to download this artwork',
+							403
+						)
+					);
 			}
-			
+
 			// Lấy thông tin artwork
 			const artwork = await this._artworkService.getById(id);
-			
+
 			// Tạo tên file phù hợp
 			const fileName = artwork.title.replace(/\s+/g, '_') + '.jpg';
-			
+
 			// Thiết lập header để tải xuống
-			res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-			
+			res.setHeader(
+				'Content-Disposition',
+				`attachment; filename="${fileName}"`
+			);
+
 			// Chuyển hướng đến URL của file để tải xuống
 			res.redirect(artwork.url);
-			
 		} catch (error) {
 			next(error);
 		}
 	}
 
-	async checkPurchaseStatus(req: Request, res: Response, next: NextFunction): Promise<any> {
+	async checkPurchaseStatus(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> {
 		try {
 			const { id } = req.params;
 			const userId = req.userId;
-			
+
 			if (!userId) {
 				throw new Error('Người dùng chưa đăng nhập');
 			}
-			
-			const hasPurchased = await this._artworkService.hasPurchased(id, userId);
-			
+
+			const hasPurchased = await this._artworkService.hasPurchased(
+				id,
+				userId
+			);
+
 			const response = BaseHttpResponse.success(
 				{ hasPurchased },
 				200,
 				'Kiểm tra trạng thái mua tranh thành công'
 			);
-			
+
 			return res.status(response.statusCode).json(response);
 		} catch (error) {
 			next(error);
 		}
 	}
-
 }
-
-

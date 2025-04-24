@@ -70,6 +70,8 @@ export class ArtworkService {
 			height: number;
 		},
 		url: string,
+		lowResUrl: string,
+		watermarkUrl: string,
 		status: string,
 		price: number
 	): Promise<InstanceType<typeof Artwork>> {
@@ -140,6 +142,8 @@ export class ArtworkService {
 				category,
 				dimensions,
 				url,
+				lowResUrl,
+				watermarkUrl,
 				status,
 				price,
 				artistId,
