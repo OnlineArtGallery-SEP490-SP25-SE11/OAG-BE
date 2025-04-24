@@ -25,6 +25,37 @@ export class ArtworkController {
 		this.checkPurchaseStatus = this.checkPurchaseStatus.bind(this);
 	}
 
+    private validateArtworkData(
+        artType: string,
+        isSelling: boolean,
+        status: string
+    ): void {
+        // Validate artType
+        if (!['painting', 'digitalart'].includes(artType)) {
+            throw new Error('Loại tranh không hợp lệ');
+        }
+
+        // Validate trạng thái bán cho painting
+        if (artType === 'painting' && isSelling) {
+            throw new Error('Tranh painting không thể bán');
+        }
+
+        // Validate trạng thái selling
+        if (status === 'selling') {
+            if (artType !== 'digitalart') {
+                throw new Error('Chỉ tranh digitalart mới có thể có trạng thái selling');
+            }
+            if (!isSelling) {
+                throw new Error('Tranh có trạng thái selling phải có isSelling là true');
+            }
+        }
+
+        // Validate status hợp lệ
+        if (!['available', 'hidden', 'selling'].includes(status)) {
+            throw new Error('Trạng thái không hợp lệ');
+        }
+    }
+
     async add(req: Request, res: Response, next: NextFunction): Promise<any> {
         try {
             const {
@@ -34,6 +65,8 @@ export class ArtworkController {
                 dimensions,
                 url,
                 status,
+                artType,
+                isSelling = false,
                 price
             } = req.body;
             const artistId = req.userId;
@@ -42,6 +75,8 @@ export class ArtworkController {
                 const errorMessage = 'Invalid artist id';
                 throw new Error(errorMessage);
             }
+            // Kiểm tra loại tranh và trạng thái
+            this.validateArtworkData(artType, isSelling, status);
             const artwork = await this._artworkService.add(
                 title,
                 description,
@@ -50,7 +85,9 @@ export class ArtworkController {
                 dimensions,
                 url,
                 status,
-                price
+                price,
+                artType,
+                isSelling
             );
             const response = BaseHttpResponse.success(
                 artwork,
@@ -205,12 +242,35 @@ export class ArtworkController {
     ): Promise<any> {
         try {
             const {id} = req.params;
-            const {title, description, category, status, price} = req.body;
+            const {
+                title,
+                description,
+                category,
+                status,
+                artType,
+                isSelling,
+                price
+            } = req.body;
             const artistId = req.userId;
             // valid artistId
             if (!artistId) {
                 const errorMessage = 'Invalid artist id';
                 throw new Error(errorMessage);
+            }
+            // Nếu cập nhật status thành selling, phải kiểm tra artType
+            if (status === 'selling' && artType !== 'digitalart') {
+                throw new Error('Chỉ tranh digitalart mới có thể có trạng thái selling');
+            }
+            // Nếu có cập nhật các trường liên quan đến bán hàng, validate
+            if (artType !== undefined || isSelling !== undefined || status !== undefined) {
+                // Lấy artwork hiện tại để có thông tin đầy đủ cho validation
+                const currentArtwork = await this._artworkService.getById(id);
+                
+                this.validateArtworkData(
+                    artType || currentArtwork.artType,
+                    isSelling ?? currentArtwork.isSelling,
+                    status || currentArtwork.status
+                );
             }
             const artwork = await this._artworkService.update(
                 {
@@ -218,6 +278,8 @@ export class ArtworkController {
                     description,
                     category,
                     status,
+                    artType,
+                    isSelling,
                     price
                 },
                 id,
