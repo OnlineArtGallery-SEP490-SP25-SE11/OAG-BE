@@ -198,7 +198,7 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
             if (!Types.ObjectId.isValid(id)) {
                 throw new BadRequestException('Invalid exhibition ID format');
             }
-
+            console.log('data', data);
             // validate linkName uniqueness
             if (data.linkName) {
 
@@ -239,7 +239,7 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
 
             return exhibition;
         } catch (error) {
-            // logger.error(`Error updating exhibition ${id}:`, error);
+            console.error(`Error updating exhibition ${id}:`, error);
             if (error instanceof Error.ValidationError) {
                 throw new BadRequestException(
                     'Invalid exhibition data',

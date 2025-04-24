@@ -63,8 +63,7 @@ const languageOptionSchema = new Schema<ILanguageOption>({
     type: String, 
     required: true, 
     trim: true, 
-    minlength: 2, 
-    maxlength: 2 
+    minlength: 2
   },
   code: { 
     type: String, 
