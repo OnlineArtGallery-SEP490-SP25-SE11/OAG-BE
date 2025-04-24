@@ -86,6 +86,12 @@ export interface LikeArtworkResponse {
   artworkId: string;
 }
 
+export const updateExhibitionAnalyticsSchema = z.object({
+  totalTime: z.number()
+});
+
+export type UpdateExhibitionAnalyticsDto = z.infer<typeof updateExhibitionAnalyticsSchema>;
+
 // Types for use in controllers and services
 export type CreateEmptyExhibitionDto = z.infer<typeof createEmptyExhibitionSchema>;
 export type UpdateExhibitionDto = z.infer<typeof updateExhibitionSchema>;
