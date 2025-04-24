@@ -23,6 +23,8 @@ export class ArtworkController {
 		this.purchase = this.purchase.bind(this);
 		this.downloadArtwork = this.downloadArtwork.bind(this);
 		this.checkPurchaseStatus = this.checkPurchaseStatus.bind(this);
+        this.incrementView = this.incrementView.bind(this);
+        
 	}
 
     private validateArtworkData(
@@ -481,6 +483,32 @@ export class ArtworkController {
 			next(error);
 		}
 	}
+
+    /**
+     * Tăng lượt xem cho artwork
+     */
+    async incrementView(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<any> {
+        try {
+            const { id } = req.params;
+            
+            const newViews = await this._artworkService.incrementView(id);
+            
+            const response = BaseHttpResponse.success(
+                { views: newViews },
+                200,
+                'Tăng lượt xem thành công'
+            );
+            
+            return res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error);
+        }
+    }
+
 
 }
 
