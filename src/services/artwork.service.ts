@@ -48,6 +48,7 @@ export interface ArtworkUpdateOptions {
 		metadata: {};
 		improvements: string[];
 	};
+	views?: number;
 }
 
 @injectable()
@@ -842,4 +843,35 @@ export class ArtworkService {
 			throw error;
 		}
 	}
+
+	/**
+	 * Tăng lượt xem cho artwork và trả về số lượt xem mới
+	 * @param artworkId ID của artwork
+	 * @returns Số lượt xem mới của artwork
+	 */
+	async incrementView(artworkId: string): Promise<number> {
+		try {
+			if (!Types.ObjectId.isValid(artworkId)) {
+				throw new BadRequestException('ID artwork không hợp lệ');
+			}
+
+			const artwork = await Artwork.findByIdAndUpdate(
+				artworkId,
+				{ $inc: { views: 1 } }, // Tăng views lên 1
+				{ new: true } // Trả về document sau khi update
+			);
+
+			if (!artwork) {
+				throw new BadRequestException('Không tìm thấy artwork');
+			}
+
+			logger.info(`Tăng lượt xem cho artwork ${artworkId}: ${artwork.views}`);
+			return artwork.views || 0;
+		} catch (error) {
+			logger.error(`Lỗi khi tăng lượt xem artwork: ${error}`);
+			throw error;
+		}
+	}
+
+
 }
