@@ -13,6 +13,8 @@ export interface IArtwork extends Document {
   dimensions: IDimensions;
   url: string;
   status: string;
+  artType: 'painting' | 'digitalart';
+  isSelling: boolean;
   views?: number;
   price?: number;
   artistId?: mongoose.Types.ObjectId;
@@ -69,6 +71,15 @@ const artworkSchema = new Schema({
     enum: ['available', 'hidden', 'selling'],
     required: true
   },
+  artType:{
+    type : String,
+    enum: ['painting', 'digitalart'],
+    require: true
+  },
+isSelling :{
+     type: Boolean,
+     default:false
+},
   views: {
     type: Number,
     required: true,

@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema, model, Types } from 'mongoose';
 import { Role } from '@/constants/enum';
 
+
 // Define provider type for type safety
 type ProviderType = 'google' | 'facebook' | 'phone';
 
@@ -14,9 +15,7 @@ interface IUser extends Document {
   email: string;
   image?: string;
   role: Role[];
-  isPremium: boolean; // marked for removal
-  premiumSince?: Date; // marked for removal
-  premiumSubscription?: mongoose.Types.ObjectId;
+  premiumStatus: mongoose.Types.ObjectId;
   isBanned: boolean;
   isRequestBecomeArtist: boolean;
   artistProfile?: {
@@ -94,24 +93,11 @@ const userSchema = new Schema<IUser>(
         message: `Please provide valid roles (${Object.values(Role).join(', ')})`
       }
     },
-    // marked for removal
-    isPremium: {
-      type: Boolean,
-      default: false
-    },
-    // marked for removal
-    premiumSince: {
-      type: Date
-    },
-    premiumSubscription: {
+    premiumStatus: {
       type: Schema.Types.ObjectId,
       ref: 'PremiumSubscription'
     },
     isBanned: {
-      type: Boolean,
-      default: false
-    },
-    isRequestBecomeArtist: {
       type: Boolean,
       default: false
     },

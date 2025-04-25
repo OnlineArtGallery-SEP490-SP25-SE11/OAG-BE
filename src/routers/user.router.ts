@@ -10,14 +10,40 @@ router.get('/', roleRequire(), async (req: Request, res: Response) => {
     try {
         const userId = req.userId as string;
         const user = await UserService.getProfile(userId);
+        console.log(user);
         res.status(200).json({ user });
     } catch (err: any) {
         logger.error(err.message);
         res.status(500).json({ message: err.message });
     }
 });
+// Lấy danh sách followers
+router.get('/followers', roleRequire(),  async (req: Request, res: Response) => {
+    try {
+        const userId = req.userId as string;
+        const followers = await UserService.getFollowers(userId);
+        res.status(200).json({ followers });
+    } catch (err: any) {
+        logger.error(err.message);
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// Lấy danh sách following
+router.get('/following', roleRequire(), async (req: Request, res: Response) => {
+    try {
+        const userId = req.userId as string;
+        const following = await UserService.getFollowing(userId);
+        res.status(200).json({ following });
+    } catch (err: any) {
+        logger.error(err.message);
+        res.status(500).json({ message: err.message });
+    }
+});
+
 //admin function user
 router.get('/all-user', roleRequire(['admin']), userController.getAllUser);
+
 router.get('/:id', roleRequire(['admin']), userController.getUserById);
 
 // Cập nhật thông tin user
@@ -71,29 +97,6 @@ router.get('/is-following/:targetUserId', roleRequire(), async (req: Request, re
     }
 });
 
-// Lấy danh sách followers
-router.get('/followers',  async (req: Request, res: Response) => {
-    try {
-        const userId = req.userId as string;
-        const followers = await UserService.getFollowers(userId);
-        res.status(200).json({ followers });
-    } catch (err: any) {
-        logger.error(err.message);
-        res.status(500).json({ message: err.message });
-    }
-});
-
-// Lấy danh sách following
-router.get('/following', roleRequire(), async (req: Request, res: Response) => {
-    try {
-        const userId = req.userId as string;
-        const following = await UserService.getFollowing(userId);
-        res.status(200).json({ following });
-    } catch (err: any) {
-        logger.error(err.message);
-        res.status(500).json({ message: err.message });
-    }
-});
 
 // Gửi yêu cầu "Become Artist"
 router.post('/request-become-artist', roleRequire(), async (req: Request, res: Response) => {

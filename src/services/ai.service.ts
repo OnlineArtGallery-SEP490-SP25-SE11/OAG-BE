@@ -34,19 +34,28 @@ Reference URL: ${artworkDetails.url}
 
 Analyze this artwork submission thoroughly according to platform guidelines.`;
 
-        const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [{
-            role: 'system', content: `You are an expert art curator and moderator responsible for reviewing artwork submissions.
+const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [{
+    role: 'system', content: `You are an expert art curator and moderator responsible for reviewing artwork submissions.
 
 REVIEW CRITERIA:
-1. Content appropriateness - Check for prohibited content (explicit material, hate speech, violence)
+1. Content appropriateness (HIGHEST PRIORITY) - Perform thorough analysis for prohibited content including:
+   - Explicit sexual material
+   - Hate speech or discriminatory imagery
+   - Graphic violence or disturbing content
+   - Illegal content depictions
+   - Hidden inappropriate symbols or coded messages
+   - Subliminal harmful content
+
 2. Quality standards - Evaluate artistic merit and technical execution
-3. Metadata accuracy - Assess if title, description and categories match the artwork
-4. Originality - Flag potential copyright issues or derivative works
+
+3. Metadata flexibility - Allow for metaphorical, abstract descriptions that capture the essence or feeling of the artwork rather than requiring literal accuracy
+
+4. Originality - Flag obvious copyright violations but allow for artistic inspiration and interpretation
 
 RESPONSE FORMAT (JSON only):
 {
   "decision": "APPROVE" or "REJECT",
-  "reason": "Clear, constructive explanation of decision with specific details",
+  "reason": "Clear, constructive explanation of decision with specific details, must be have 'reject' or 'approved' in reason.",
   "generatedDescription": "Refined, compelling 800-1200 character description highlighting key artistic elements",
   "keywords": ["relevant", "descriptive", "searchable", "terms"],
   "suggestedCategories": {
@@ -62,7 +71,7 @@ RESPONSE FORMAT (JSON only):
   }
 }
 
-Be constructive and specific in your feedback. If rejecting, explain exactly what needs to be changed.`
+Be strict with prohibited content while allowing creative expression in descriptions. If rejecting, specify exactly which elements violate community standards.`
         }, {
             role: 'user', content: textPrompt
         }];
@@ -156,13 +165,25 @@ Reviewed By: ${artwork.moderatedBy || 'Not specified'}
 
 Evaluate if the updated submission addresses the previous rejection reasons and meets platform standards.`;
 
-        const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [{
-            role: 'system', content: `You are an expert art curator evaluating a resubmitted artwork that was previously rejected.
+const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [{
+    role: 'system', content: `You are an expert art curator evaluating a resubmitted artwork that was previously rejected.
 
 REVIEW CRITERIA:
-1. Assess if the updates address the specific reasons for initial rejection
-2. Verify the artwork now meets all platform guidelines and standards
-3. Evaluate overall quality and appropriateness
+1. Content appropriateness (HIGHEST PRIORITY) - Perform thorough detection of:
+   - Explicit sexual material (including subtle or symbolically suggestive content)
+   - Hate speech, discriminatory imagery, or coded extremist symbols
+   - Violence, gore, self-harm, or disturbing imagery
+   - Illegal activities or substances
+   - Hidden inappropriate content or steganography
+   - Content that could normalize harmful behaviors
+   - Text within images containing prohibited content
+   - Double meanings or coded language with inappropriate connotations
+
+2. Previous rejection resolution - Verify the updates specifically address the initial rejection reasons
+
+3. Metadata flexibility - Allow for metaphorical, abstract, or poetic descriptions that capture the artwork's essence rather than requiring literal descriptive accuracy
+
+4. Quality standards - Evaluate artistic merit and technical execution
 
 RESPONSE FORMAT (JSON only):
 {
@@ -185,7 +206,7 @@ RESPONSE FORMAT (JSON only):
   }
 }
 
-Be specific about what has improved and what still needs attention.`
+Apply zero tolerance for prohibited content while encouraging artistic expression in descriptions. Be specific about improvements and remaining issues.`
         }, {
             role: 'user', content: textPrompt
         }];

@@ -52,7 +52,6 @@ export class CommentService implements ICommentService {
         model: 'User',
       })
       .sort({ createdAt: -1 })
-      .lean();
   }
   
 

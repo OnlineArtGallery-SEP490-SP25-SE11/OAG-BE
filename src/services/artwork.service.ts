@@ -33,6 +33,8 @@ export interface ArtworkUpdateOptions {
 	description?: string;
 	category?: [string];
 	status?: string;
+	artType?: 'painting' | 'digitalart';
+	isSelling?: boolean;
 	price?: number;
 
 	//AI
@@ -46,6 +48,7 @@ export interface ArtworkUpdateOptions {
 		metadata: {};
 		improvements: string[];
 	};
+	views?: number;
 }
 
 @injectable()
@@ -60,6 +63,23 @@ export class ArtworkService {
 		@inject(Symbol.for('AiService')) private readonly aiService: AiService
 	) { }
 
+	private validateArtworkStatus(artType: string, isSelling: boolean, status: string): void {
+		// Kiểm tra tranh painting không được phép bán
+		if (artType === 'painting' && isSelling) {
+			throw new Error('Tranh painting không thể bán');
+		}
+
+		// Kiểm tra chỉ tranh digitalart mới có thể có trạng thái selling
+		if (status === 'selling') {
+			if (artType !== 'digitalart') {
+				throw new Error('Chỉ tranh digitalart mới có thể có trạng thái selling');
+			}
+			if (!isSelling) {
+				throw new Error('Tranh có trạng thái selling phải có isSelling là true');
+			}
+		}
+	}
+
 	async add(
 		title: string,
 		description: string,
@@ -71,15 +91,21 @@ export class ArtworkService {
 		},
 		url: string,
 		status: string,
-		price: number
+		price: number,
+		artType: 'painting' | 'digitalart',
+		isSelling: boolean = false
 	): Promise<InstanceType<typeof Artwork>> {
 		try {
-			// Kiểm tra artistId có hợp lệ không
+			// Validate artistId
 			if (!Types.ObjectId.isValid(artistId)) {
-				const errorMessage = 'Invalid artist id';
-				logger.error(errorMessage);
-				throw new Error(errorMessage);
+				throw new Error('Invalid artist id');
 			}
+
+			// Validate artType và isSelling
+			this.validateArtworkStatus(artType, isSelling, status);
+
+			// Nếu là painting, đảm bảo isSelling luôn là false
+			const finalIsSelling = artType === 'painting' ? false : isSelling;
 
 			let moderationStatus = 'pending';
 			let moderationReason = '';
@@ -141,6 +167,8 @@ export class ArtworkService {
 				dimensions,
 				url,
 				status,
+				artType,
+				isSelling: finalIsSelling,
 				price,
 				artistId,
 				moderationStatus,
@@ -421,159 +449,49 @@ export class ArtworkService {
 		artistId: string
 	): Promise<InstanceType<typeof Artwork>> {
 		try {
-			// Kiểm tra id hợp lệ
-			if (!Types.ObjectId.isValid(id)) {
-				const errorMessage = 'Invalid artwork id';
-				logger.error(errorMessage);
-				throw new Error(errorMessage);
+			// Validate IDs
+			if (!Types.ObjectId.isValid(id) || !Types.ObjectId.isValid(artistId)) {
+				throw new Error('Invalid ID format');
 			}
 
-			// Tìm artwork để xác minh quyền update
+			// Tìm artwork hiện tại
 			const existingArtwork = await Artwork.findById(id);
-
-			// Kiểm tra artwork có tồn tại không
 			if (!existingArtwork) {
-				const errorMessage = 'Artwork not found';
-				logger.error(errorMessage);
-				throw new Error(errorMessage);
+				throw new Error('Artwork not found');
 			}
 
-			// Kiểm tra xem người update có phải là chủ sở hữu của artwork không
-			if (!existingArtwork.artistId) {
-				const errorMessage = 'Artwork does not have an artistId';
-				logger.error(errorMessage);
-				throw new Error(errorMessage);
+			// Kiểm tra quyền sở hữu
+			if (existingArtwork.artistId?.toString() !== artistId) {
+				throw new Error('Unauthorized to update this artwork');
 			}
 
-			if (existingArtwork.artistId.toString() !== artistId) {
-				const errorMessage =
-					'You are not authorized to update this artwork';
-				logger.error(errorMessage);
-				throw new Error(errorMessage);
-			}
+			// Xác định các giá trị cuối cùng cho validation
+			const finalArtType = options.artType || existingArtwork.artType;
+			const finalIsSelling = options.isSelling ?? existingArtwork.isSelling;
+			const finalStatus = options.status || existingArtwork.status;
 
-			// Validate status nếu được update
-			if (
-				options.status &&
-				!['available', 'sold', 'hidden', 'selling'].includes(
-					options.status
-				)
-			) {
-				const errorMessage = 'Invalid artwork status';
-				logger.error(errorMessage);
-				throw new Error(errorMessage);
-			}
+			// Validate trạng thái
+			this.validateArtworkStatus(finalArtType, finalIsSelling, finalStatus);
 
-			// Initialize update options with the provided options
-			let updatedOptions = { ...options };
-
-			// Prepare artwork data for AI review
-			const artworkForReview = {
-				title: options.title || existingArtwork.title,
-				description: options.description || existingArtwork.description,
-				category: options.category || existingArtwork.category,
-				dimensions: existingArtwork.dimensions,
-				url: existingArtwork.url,
-				moderationStatus: existingArtwork.moderationStatus,
-				moderationReason: existingArtwork.moderationReason,
-				moderatedBy: existingArtwork.moderatedBy,
-				aiReview: existingArtwork.aiReview
-			};
-
-			try {
-				// Use AI to review the updated artwork
-				const aiReviewResult = await this.aiService.reviewUpdateArtwork(
-					artworkForReview
-				);
-
-				// Update options with AI review results
-				updatedOptions = {
-					...updatedOptions,
-					moderationStatus: aiReviewResult.approved
-						? 'approved'
-						: 'pending',
-					moderationReason: aiReviewResult.reason,
-					moderatedBy: 'ai',
-					aiReview: {
-						keywords: aiReviewResult.keywords || [],
-						suggestedCategories:
-							aiReviewResult.suggestedCategories || [],
-						description: aiReviewResult.description || '',
-						metadata: aiReviewResult.metadata || {},
-						improvements: aiReviewResult.improvements || []
-					}
-				};
-
-				if (
-					existingArtwork.moderationStatus === 'rejected' &&
-					aiReviewResult.approved
-				) {
-					logger.info(
-						`Previously rejected artwork ${id} is now approved by AI after updates`
-					);
-				}
-
-				logger.info(
-					`AI review completed for updated artwork ${id}: ${
-						aiReviewResult.approved ? 'approved' : 'pending'
-					}`
-				);
-			} catch (aiError: any) {
-				// If AI review fails, set the artwork to pending for manual review
-				logger.error(
-					`AI review failed for updated artwork ${id}: ${aiError.message}`
-				);
-				updatedOptions = {
-					...updatedOptions,
-					moderationStatus: 'pending',
-					moderationReason: 'AI review failed, needs manual review'
-				};
+			// Điều chỉnh isSelling nếu là painting
+			if (finalArtType === 'painting') {
+				options.isSelling = false;
 			}
 
 			// Thực hiện update
 			const updatedArtwork = await Artwork.findOneAndUpdate(
 				{ _id: id, artistId },
-				updatedOptions,
+				options,
 				{
-					new: true, // Trả về document mới sau khi update
-					runValidators: true // Chạy các validator của schema
+					new: true,
+					runValidators: true
 				}
-			).exec();
+			);
 
 			if (!updatedArtwork) {
-				const errorMessage = 'Update failed';
-				logger.error(errorMessage);
-				throw new Error(errorMessage);
+				throw new Error('Update failed');
 			}
 
-			const prevStatus = existingArtwork.moderationStatus;
-			const newStatus = updatedOptions.moderationStatus;
-
-			// Gửi thông báo nếu trạng thái đã thay đổi
-			if (newStatus !== prevStatus && (newStatus === 'approved' || newStatus === 'rejected')) {
-				let notificationTitle = '';
-				let notificationContent = '';
-				
-				if (newStatus === 'approved') {
-					notificationTitle = 'Updated Artwork Approved';
-					notificationContent = `Your updated artwork "${updatedArtwork.title}" has been approved and is now visible to others.`;
-				} else {
-					notificationTitle = 'Updated Artwork Rejected';
-					notificationContent = `Your updated artwork "${updatedArtwork.title}" has been rejected. Reason: ${updatedOptions.moderationReason || 'No reason provided'}`;
-				}
-				
-				await NotificationService.createNotification({
-					title: notificationTitle,
-					content: notificationContent,
-					userId: artistId,
-					isSystem: true,
-					refType: 'artwork',
-					refId: id
-				});
-				
-				logger.info(`Notification sent to artist ${artistId} about updated artwork status: ${newStatus}`);
-			}
-			
 			return updatedArtwork;
 		} catch (error) {
 			logger.error(`Error updating artwork: ${error}`);
@@ -750,14 +668,20 @@ export class ArtworkService {
 
 	async purchase(artworkId: string, userId: string): Promise<{url: string, fileName: string}> {
 		try {
-			// Kiểm tra artwork có tồn tại và đang bán không
-			const artwork = await Artwork.findOne({
-				_id: artworkId,
-				status: 'selling'
-			});
-
+			// Tìm artwork và validate
+			const artwork = await Artwork.findById(artworkId);
+			
 			if (!artwork) {
-				throw new Error('Artwork not found or not available for purchase');
+				throw new Error('Artwork không tìm thấy');
+			}
+
+			// Validate điều kiện mua
+			if (artwork.artType !== 'digitalart') {
+				throw new Error('Chỉ có thể mua tranh digitalart');
+			}
+
+			if (!artwork.isSelling || artwork.status !== 'selling') {
+				throw new Error('Artwork này không được bán');
 			}
 
 			// Kiểm tra xem người dùng đã mua artwork này chưa
@@ -919,4 +843,35 @@ export class ArtworkService {
 			throw error;
 		}
 	}
+
+	/**
+	 * Tăng lượt xem cho artwork và trả về số lượt xem mới
+	 * @param artworkId ID của artwork
+	 * @returns Số lượt xem mới của artwork
+	 */
+	async incrementView(artworkId: string): Promise<number> {
+		try {
+			if (!Types.ObjectId.isValid(artworkId)) {
+				throw new BadRequestException('ID artwork không hợp lệ');
+			}
+
+			const artwork = await Artwork.findByIdAndUpdate(
+				artworkId,
+				{ $inc: { views: 1 } }, // Tăng views lên 1
+				{ new: true } // Trả về document sau khi update
+			);
+
+			if (!artwork) {
+				throw new BadRequestException('Không tìm thấy artwork');
+			}
+
+			logger.info(`Tăng lượt xem cho artwork ${artworkId}: ${artwork.views}`);
+			return artwork.views || 0;
+		} catch (error) {
+			logger.error(`Lỗi khi tăng lượt xem artwork: ${error}`);
+			throw error;
+		}
+	}
+
+
 }

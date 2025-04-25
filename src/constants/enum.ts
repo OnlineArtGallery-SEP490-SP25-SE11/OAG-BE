@@ -46,6 +46,13 @@ export enum ReportStatus {
 	RESOLVED = 'RESOLVED',
 }
 
+
+export enum ArtistRequestStatus {
+	PENDING = 'pending',
+	APPROVED = 'approved',
+	REJECTED = 'rejected',
+}
+
 //Ban/unban user, warning
 export enum actionReport{
 	BAN = 'BAN',
