@@ -20,6 +20,7 @@ export class ExhibitionController implements IExhibitionController {
     this.approveExhibition = this.approveExhibition.bind(this);
     this.rejectExhibition = this.rejectExhibition.bind(this);
     this.purchaseTicket = this.purchaseTicket.bind(this);
+    this.updateAnalytics = this.updateAnalytics.bind(this);
   }
 
   create = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
@@ -307,4 +308,22 @@ export class ExhibitionController implements IExhibitionController {
     }
   };
 
+    updateAnalytics = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      console.log('Update Analytics:', req.validatedData);
+      const exhibition = await this._exhibitionService.updateAnalytics(
+        req.params.id,
+        req.validatedData
+      );
+
+      const response = BaseHttpResponse.success(
+        { exhibition },
+        200,
+        'Exhibition analytics updated successfully'
+      );
+      res.status(response.statusCode).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
