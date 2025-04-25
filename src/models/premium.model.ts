@@ -1,14 +1,17 @@
 import mongoose, { Document, Schema, model } from 'mongoose';
 
 // Define status type for type safety
-type SubscriptionStatus = 'active' | 'expired' | 'cancelled';
+export type SubscriptionStatus = 'active' | 'cancelled' | 'expired';
 
 // Define interface for PremiumSubscription document
-interface IPremiumSubscription extends Document {
+export interface IPremiumSubscription extends Document {
   userId: mongoose.Types.ObjectId;
   startDate: Date;
   endDate: Date;
   status: SubscriptionStatus;
+  autoRenew: boolean;
+  lastPaymentDate: Date;
+  nextPaymentDate: Date;
   orderId?: string;
   paymentId?: string;
   createdAt?: Date;
@@ -33,8 +36,12 @@ const premiumSubscriptionSchema = new Schema<IPremiumSubscription>(
     },
     status: {
       type: String,
-      enum: ['active', 'expired', 'cancelled'],
-      required: true
+      enum: ['active', 'cancelled', 'expired'],
+      required: true,
+    },
+    autoRenew: {
+      type: Boolean,
+      default: true
     },
     orderId: {
       type: String
@@ -45,6 +52,15 @@ const premiumSubscriptionSchema = new Schema<IPremiumSubscription>(
   },
   { timestamps: true }
 );
+
+// Middleware để tự động cập nhật trạng thái khi hết hạn
+premiumSubscriptionSchema.pre('save', function(next) {
+  const now = new Date();
+  if (this.endDate < now && this.status !== 'cancelled') {
+    this.status = 'expired';
+  }
+  next();
+});
 
 // Create and export the model
 const PremiumSubscription = model<IPremiumSubscription>('PremiumSubscription', premiumSubscriptionSchema);
