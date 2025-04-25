@@ -139,9 +139,8 @@ export class ExhibitionService implements IExhibitionService {
 
             // Use projection for better performance on public queries
             const projection = isPublicQuery ? {
-                'contents.name': 1,
-                'contents.description': 1,
-                'contents.category': 1,
+                'contents': 1,
+                'languageOptions': 1,
                 'linkName': 1,
                 'status': 1,
                 'startDate': 1,
@@ -150,7 +149,7 @@ export class ExhibitionService implements IExhibitionService {
                 'isFeatured': 1,
                 'discovery': 1,
                 'author': 1,
-                'coverImage': 1,
+                'welcomeImage': 1,
                 'createdAt': 1,
                 'updatedAt': 1
             } : undefined;

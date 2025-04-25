@@ -20,6 +20,7 @@ const blogController = container.get<BlogController>(TYPES.BlogController);
 
 router.get("/", blogController.find);
 router.get("/published", blogController.findPublished);
+router.get("/most-hearted", blogController.getMostHearted);
 router.get('/last-edited', roleRequire([Role.ARTIST, Role.ADMIN]), blogController.findLastEditedByUser);
 router.get('/user-blogs', roleRequire([Role.ARTIST, Role.ADMIN]), blogController.findUserBlogs);
 router.get('/:id', blogController.findById);

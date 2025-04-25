@@ -21,7 +21,7 @@ interface IUser extends Document {
   isRequestBecomeArtist: boolean;
   artistProfile?: {
     bio?: string;
-    genre?: string;
+    genre?: string[];
     experience?: string;
     socialLinks?: {
       instagram?: string;
@@ -33,6 +33,7 @@ interface IUser extends Document {
   followers: Types.ObjectId[];
   createdAt?: Date;
   updatedAt?: Date;
+  isFeatured?: boolean;
 }
 
 // Create the user schema
@@ -43,27 +44,27 @@ const userSchema = new Schema<IUser>(
       required: true,
       enum: ['google', 'facebook', 'phone'],
       validate: {
-        validator: (value: string): value is ProviderType => 
+        validator: (value: string): value is ProviderType =>
           ['google', 'facebook', 'phone'].includes(value),
         message: 'Please provide a valid provider (google, facebook, phone)'
       }
     },
     providerId: {
       type: String,
-      required: function(this: IUser) {
+      required: function (this: IUser) {
         return this.provider !== 'phone';
       }
     },
     phone: {
       type: String,
-      required: function(this: IUser) {
+      required: function (this: IUser) {
         return this.provider === 'phone';
       },
       match: [/^(0[35789])+([0-9]{8})$/, 'Please provide a valid phone number (0xxxxxxxxx)']
     },
     password: {
       type: String,
-      required: function(this: IUser) {
+      required: function (this: IUser) {
         return this.provider === 'phone';
       },
       select: false
@@ -74,7 +75,7 @@ const userSchema = new Schema<IUser>(
     },
     email: {
       type: String,
-      required: function(this: IUser) {
+      required: function (this: IUser) {
         return this.provider !== 'phone';
       },
       match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email address']
@@ -89,7 +90,7 @@ const userSchema = new Schema<IUser>(
       required: true,
       default: [Role.USER],
       validate: {
-        validator: (value: string[]) => 
+        validator: (value: string[]) =>
           value.every((role) => Object.values(Role).includes(role as Role)),
         message: `Please provide valid roles (${Object.values(Role).join(', ')})`
       }
@@ -113,7 +114,7 @@ const userSchema = new Schema<IUser>(
     },
     artistProfile: {
       bio: String,
-      genre: String,
+      genre: [String],
       experience: String,
       socialLinks: {
         instagram: String,
@@ -130,6 +131,11 @@ const userSchema = new Schema<IUser>(
       type: [Schema.Types.ObjectId],
       ref: 'User',
       default: []
+    },
+    isFeatured: {
+      type: Boolean,
+      default: false,
+      index: true
     }
   },
   { timestamps: true }

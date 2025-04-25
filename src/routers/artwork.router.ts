@@ -12,6 +12,7 @@ const artworkController = container.get<ArtworkController>(
 	TYPES.ArtworkController
 );
 router.get('/', artworkController.get);
+router.get('/recommendations/following', roleRequire(), artworkController.getFollowingRecommendations);
 router.get('/artist', roleRequire([Role.ARTIST]), artworkController.getForArtist);
 router.get('/admin',roleRequire([Role.ADMIN]), artworkController.getForAdmin)
 router.post('/admin/:id',roleRequire([Role.ADMIN]), artworkController.reviewArtwork)

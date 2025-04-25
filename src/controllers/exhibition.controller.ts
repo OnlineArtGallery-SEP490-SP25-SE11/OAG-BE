@@ -5,6 +5,8 @@ import { TYPES } from '@/constants/types';
 import { IExhibitionController } from '@/interfaces/controller/exhibition-controller.interface';
 import { ExhibitionService } from '@/services/exhibition.service';
 import { ExhibitionStatus } from '@/constants/enum';
+import { ExhibitionQueryDto } from '@/dto/exhibition.dto';
+import { ParseQueryOptions } from '@/utils/query-parser';
 @injectable()
 export class ExhibitionController implements IExhibitionController {
   constructor(
@@ -216,43 +218,35 @@ export class ExhibitionController implements IExhibitionController {
     }
   }
 
-  public findPublishedExhibitions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const {
-        page,
-        limit,
-        sort,
-        filter,
-        search
-      } = req.query;
+  public findPublishedExhibitions = async (
+        req: Request,
+        res: Response, 
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const queryOptions = ParseQueryOptions.parse<ExhibitionQueryDto>(req.query, {
+                defaultSort: { createdAt: -1 },
+                defaultLimit: 10,
+                defaultPage: 1,
+                forceFilters: {
+                    discovery: true,
+                    status: ExhibitionStatus.PUBLISHED
+                }
+            });
+                    
+            const result = await this._exhibitionService.findAll(queryOptions);
 
-      // Force status to be PUBLISHED regardless of what was passed in the request
-      const statusParam: ExhibitionStatus = ExhibitionStatus.PUBLISHED;
-
-      const options = {
-        page: parseInt(page as string) || 1,
-        limit: parseInt(limit as string) || 10,
-        sort: sort ? JSON.parse(sort as string) : { createdAt: -1 },
-        filter: {
-          ...filter ? JSON.parse(filter as string) : {},
-          discovery: true // Force discovery to be true
-        },
-        status: statusParam,
-        search: search as string
-      };
-
-      const result = await this._exhibitionService.findAll(options);
-
-      const response = BaseHttpResponse.success(
-        result,
-        200,
-        'Published exhibitions retrieved successfully'
-      );
-      res.status(response.statusCode).json(response);
-    } catch (error) {
-      next(error);
-    }
-  };
+            const response = BaseHttpResponse.success(
+                result,
+                200,
+                'Published exhibitions retrieved successfully'
+            );
+            
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error);
+        }
+    };
 
   public findPublishedExhibitionById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
