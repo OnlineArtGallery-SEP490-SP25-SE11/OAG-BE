@@ -198,7 +198,6 @@ export class ExhibitionService implements IExhibitionService {
             if (!Types.ObjectId.isValid(id)) {
                 throw new BadRequestException('Invalid exhibition ID format');
             }
-            console.log('data', data);
             // validate linkName uniqueness
             if (data.linkName) {
 
