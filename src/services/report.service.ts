@@ -332,7 +332,7 @@ export class ReportService {
 			}
 
 			// Set fixed ban period to 30 days
-			const banPeriod = 30; ///test 1' 0.0007
+			const banPeriod = 0.0007; ///test 1' 0.0007
 
 			// Ban the reported user
 			const user = await User.findByIdAndUpdate(
@@ -357,9 +357,17 @@ export class ReportService {
 				{ status: ReportStatus.RESOLVED }
 			);
 
-			// Import node-cron at the top of your file if not already done
-			const cron = require('node-cron');
-
+			// Send notification about temporary ban
+			await NotificationService.createNotification({
+				title: 'Account Temporarily Banned',
+				content: `Your account has been temporarily banned for ${banPeriod} days due to policy violations. Contact support for more information.`,
+				userId: reportedUserId.toString(),
+				isSystem: true,
+				refType: 'ban',
+				refId: reportId
+			});
+			
+			
 			// Calculate when to unban (30 days in milliseconds)
 			const unbanTime = banPeriod * 24 * 60 * 60 * 1000;
 
@@ -377,6 +385,16 @@ export class ReportService {
 						logger.info(
 							`User ${reportedUserId} has been automatically unbanned after ${banPeriod} days`
 						);
+						
+						// Send notification about the account being unbanned
+						await NotificationService.createNotification({
+							title: 'Account Unbanned',
+							content: 'Your account ban period has ended and your account is now active.',
+							userId: reportedUserId.toString(),
+							isSystem: true,
+							refType: 'ban',
+							refId: reportId
+						});
 					} else {
 						logger.warn(
 							`Failed to unban user ${reportedUserId}: User not found`
