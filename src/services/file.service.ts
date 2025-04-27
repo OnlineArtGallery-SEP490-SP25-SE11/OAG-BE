@@ -15,7 +15,7 @@ class FileService {
 			cloudinary.uploader
 				.upload_stream(
 					{
-						resource_type: 'image', // Explicitly set resource type to image
+						resource_type: 'auto', // Explicitly set resource type to image
 						folder: env.CLOUD_IMG_FOLDER,
 						public_id: publicId,
 						use_filename: false // Use the generated public_id
