@@ -91,6 +91,8 @@ export class ArtworkService {
 			height: number;
 		},
 		url: string,
+		lowResUrl: string,
+		watermarkUrl: string,
 		status: string,
 		price: number,
 		artType: 'painting' | 'digitalart',
@@ -167,6 +169,8 @@ export class ArtworkService {
 				category,
 				dimensions,
 				url,
+				lowResUrl,
+				watermarkUrl,
 				status,
 				artType,
 				isSelling: finalIsSelling,
