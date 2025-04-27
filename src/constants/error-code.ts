@@ -9,6 +9,7 @@ export enum ErrorCode {
 	UNAUTHORIZED = 'unauthorized',
 	INTERNAL_SERVER_ERROR = 'internal_server_error',
 	FORBIDDEN = 'forbidden',
+	INVALID_QUERY_PARAMETERS = 'invalid_query_parameters',
 
 
 	//Database

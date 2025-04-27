@@ -30,7 +30,7 @@ export class BlogService implements IBlogService {
 				.populate({
 					path: 'author',
 					select: 'name email image',
-					model: 'User' 
+					model: 'User'
 				}).lean();
 			return blogs as BlogDocument[];
 		} catch (error) {
@@ -70,11 +70,11 @@ export class BlogService implements IBlogService {
 				);
 			}
 			const blog = await BlogModel.findById(id)
-			.populate({
-				path: 'author',
-				select: 'name email image',
-				model: 'User' 
-			}).lean();
+				.populate({
+					path: 'author',
+					select: 'name email image',
+					model: 'User'
+				}).lean();
 
 			if (!blog) {
 				throw new CouldNotFindBlogException();
@@ -239,7 +239,7 @@ export class BlogService implements IBlogService {
 				.populate({
 					path: 'author',
 					select: 'name email image',
-					model: 'User' 
+					model: 'User'
 				}).lean();
 			return blogs as BlogDocument[];
 		} catch (error) {
@@ -507,7 +507,7 @@ export class BlogService implements IBlogService {
 				.populate({
 					path: 'author',
 					select: 'name email image',
-					model: 'User' 
+					model: 'User'
 				})
 				.populate('tags')
 				.lean();
@@ -516,7 +516,7 @@ export class BlogService implements IBlogService {
 			const pages = Math.ceil(total / limit);
 			const hasNext = page < pages;
 			const hasPrev = page > 1;
-		
+
 			return {
 				blogs: blogs as BlogDocument[],
 				pagination: {
@@ -544,11 +544,11 @@ export class BlogService implements IBlogService {
 				{ $addToSet: { hearts: userId } },
 				{ new: true }
 			);
-	
+
 			if (!updatedBlog) {
 				throw new CouldNotFindBlogException();
 			}
-	
+
 			return updatedBlog;
 		} catch (error) {
 			logger.error(error, 'Error adding heart');
@@ -558,7 +558,7 @@ export class BlogService implements IBlogService {
 			);
 		}
 	}
-	
+
 
 	async removeHeart(blogId: string, userId: string): Promise<BlogDocument> {
 		try {
@@ -567,11 +567,11 @@ export class BlogService implements IBlogService {
 				{ $pull: { hearts: userId } },
 				{ new: true }
 			);
-	
+
 			if (!updatedBlog) {
 				throw new CouldNotFindBlogException();
 			}
-	
+
 			return updatedBlog;
 		} catch (error) {
 			logger.error(error, 'Error removing heart');
@@ -581,7 +581,7 @@ export class BlogService implements IBlogService {
 			);
 		}
 	}
-	
+
 	async getHeartCount(blogId: string): Promise<number> {
 		try {
 			const blog = await BlogModel.findById(blogId).select('hearts');
@@ -614,7 +614,7 @@ export class BlogService implements IBlogService {
 			);
 		}
 	}
-	
+
 	async getHeartUsers(blogId: string): Promise<string[]> {
 		try {
 			const blog = await BlogModel.findById(blogId).select('hearts');
@@ -627,6 +627,42 @@ export class BlogService implements IBlogService {
 			logger.error(error, 'Error fetching heart users');
 			throw new InternalServerErrorException(
 				'Error fetching heart users',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
+
+	async getMostHearted(limit: number = 7): Promise<BlogDocument[]> {
+		try {
+			const blogs = await BlogModel.aggregate([
+				{
+					$match: {
+						status: Status.PUBLISHED
+					}
+				},
+				{
+					$addFields: {
+						heartCount: { $size: '$hearts' }
+					}
+				},
+				{
+					$sort: {
+						heartCount: -1
+					}
+				},
+				{
+					$limit: limit
+				}
+			]).exec();
+
+			return await BlogModel.populate(blogs, {
+				path: 'author',
+				select: 'name image'
+			});
+		} catch (error) {
+			logger.error('Error getting most hearted blogs:', error);
+			throw new InternalServerErrorException(
+				'Error retrieving most hearted blogs',
 				ErrorCode.DATABASE_ERROR
 			);
 		}

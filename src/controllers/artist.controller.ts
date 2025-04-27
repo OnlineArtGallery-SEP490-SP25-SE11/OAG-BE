@@ -20,6 +20,9 @@ export class ArtistController implements IArtistController {
         this.searchArtists = this.searchArtists.bind(this);
         this.editProfile = this.editProfile.bind(this);
         this.updateUserToArtist = this.updateUserToArtist.bind(this);
+        this.getFeaturedArtist = this.getFeaturedArtist.bind(this);
+        this.setFeaturedArtist = this.setFeaturedArtist.bind(this);
+        this.getTrendingArtists = this.getTrendingArtists.bind(this);
     }
 
     getProfile = async (
@@ -55,7 +58,7 @@ export class ArtistController implements IArtistController {
             const updateData: ArtistProfileUpdate = {
                 bio: req.body.bio,
                 genre: req.body.genre,
-               
+
             };
 
             const result = await this._artistService.updateArtistProfile(
@@ -184,4 +187,63 @@ export class ArtistController implements IArtistController {
             next(error);
         }
     };
+    setFeaturedArtist = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const { artistId } = req.params;
+
+            const result = await this._artistService.setFeaturedArtist(artistId);
+
+            const response = BaseHttpResponse.success(
+                { artist: result },
+                200,
+                'Featured artist set successfully'
+            );
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getFeaturedArtist = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const result = await this._artistService.getFeaturedArtist();
+
+            const response = BaseHttpResponse.success(
+                { artist: result },
+                200,
+                'Featured artist retrieved successfully'
+            );
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getTrendingArtists = async (
+        req: Request,
+        res: Response, 
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const artists = await this._artistService.getTrendingArtists();
+
+            const response = BaseHttpResponse.success(
+                { artists },
+                200,
+                'Trending artists retrieved successfully'
+            );
+            res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error);
+        }
+    }
+
 } 

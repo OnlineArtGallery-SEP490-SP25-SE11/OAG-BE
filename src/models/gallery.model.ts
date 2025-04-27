@@ -31,9 +31,9 @@ interface IGallery extends Document {
   modelRotation: number[];
   modelPosition: number[];
   previewImage?: string;
-  planImage?: string;
   isPremium: boolean;
   isActive: boolean;
+  // planImage?: string;
   customColliders?: ICustomCollider[];
   artworkPlacements: IArtworkPlacement[];
   createdAt?: Date;
@@ -154,9 +154,9 @@ const gallerySchema = new Schema<IGallery>(
     previewImage: {
       type: String
     },
-    planImage: {
-      type: String
-    },
+    // planImage: {
+    //   type: String
+    // },
     isPremium: {
       type: Boolean,
       default: false
