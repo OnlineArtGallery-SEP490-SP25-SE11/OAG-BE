@@ -41,7 +41,7 @@ const notificationSchema = new Schema<INotification>(
     },
     refType: {
       type: String,
-      enum: ['system', 'announcement', 'marketing', 'feature', 'maintenance', 'artwork', 'event', 'chat', 'transaction', 'artist-request'],
+      enum: ['system', 'announcement', 'marketing', 'feature', 'maintenance', 'artwork', 'event', 'chat', 'transaction', 'artist-request', 'ban', 'withdrawal'],
       default: 'system'
     },
     refId: {

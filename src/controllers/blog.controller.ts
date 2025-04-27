@@ -27,6 +27,7 @@ export class BlogController implements IBlogController {
 		this.removeHeart = this.removeHeart.bind(this);
 		// this.getLikes = this.getLikes.bind(this);
 		this.getHeartCount = this.getHeartCount.bind(this);
+		this.getMostHearted = this.getMostHearted.bind(this);
 	}
 
 	findAll = async (
@@ -388,4 +389,18 @@ export class BlogController implements IBlogController {
 			next(error);
 		}
 	};
+
+	getMostHearted = async (req: Request, res: Response, next: NextFunction): Promise<any>  => {
+		try {
+			const blogs = await this._blogService.getMostHearted();
+			const response = BaseHttpResponse.success(
+				{blogs},
+				200,
+				'Get most hearted blogs success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}	
+	}
 }

@@ -157,6 +157,22 @@ export class GalleryService implements IGalleryService {
                 throw new BadRequestException('Invalid gallery ID format');
             }
 
+            if (data.name) {
+                const existingGallery = await GalleryModel.findOne({
+                    _id: { $ne: id }, // Exclude current gallery
+                    name: {
+                        $regex: new RegExp(`^${data.name}$`, 'i') // Case insensitive match
+                    }
+                });
+
+                if (existingGallery) {
+                    throw new BadRequestException(
+                        'Gallery with this name already exists',
+                        ErrorCode.GALLERY_NAME_EXISTS
+                    );
+                }
+            }
+
             const gallery = await GalleryModel.findByIdAndUpdate(
                 id,
                 { $set: data },

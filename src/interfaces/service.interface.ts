@@ -112,6 +112,7 @@ export interface IBlogService {
 	getHeartCount(blogId: string): Promise<number>;
 	isHeart(blogId: string, userId: string): Promise<boolean>;
 	getHeartUsers(blogId: string): Promise<string[]>;
+	getMostHearted(limit?: number): Promise<BlogDocument[]>;
 }
 
 export interface IInteractionService {
