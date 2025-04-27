@@ -18,7 +18,7 @@ interface IEvent extends Document {
   organizer: string;
   participants?: IParticipant[];
   userId: mongoose.Types.ObjectId;
-  link: string;
+  link?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -79,7 +79,7 @@ const eventSchema = new Schema<IEvent>(
     },
     link: {
       type: String,
-      required: true
+      default: 'Updating'
     }
   },
   { timestamps: true }
