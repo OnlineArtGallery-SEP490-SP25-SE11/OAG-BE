@@ -7,27 +7,27 @@ import { ErrorCode } from '@/constants/error-code';
 import { CreateEmptyExhibitionDto, LikeArtworkResponse, TicketPurchaseResponse, UpdateExhibitionAnalyticsDto, UpdateExhibitionDto } from '@/dto/exhibition.dto';
 import { IExhibitionService, ExhibitionQueryOptions, PaginatedExhibitionResponse } from '@/interfaces/service/exhibition-service.interface';
 import { ExhibitionFactory } from '@/factorires/exhitition.factory';
-import GalleryModel from '@/models/gallery.model';
 import { ExhibitionStatus } from '@/constants/enum';
 import NotificationService from '@/services/notification.service';
 import { TYPES } from '@/constants/types';
 import WalletService from './wallet.service';
 import Wallet from '@/models/wallet.model';
 import { AiService } from './ai.service';
+import { GalleryService } from './gallery.service';
 
 @injectable()
 export class ExhibitionService implements IExhibitionService {
     constructor(
         @inject(TYPES.WalletService) private _walletService: WalletService,
-        @inject(Symbol.for('AiService')) private readonly aiService: AiService
-
+        @inject(Symbol.for('AiService')) private readonly aiService: AiService,
+        @inject(TYPES.GalleryService) private _galleryService: GalleryService
     ) { }
 
     async create(data: CreateEmptyExhibitionDto & { author: string }): Promise<ExhibitionDocument> {
         try {
             // Validate gallery existence
-            const galleryExists = await GalleryModel.exists({ _id: data.gallery });
-            if (!galleryExists) {
+            const gallery = await this._galleryService.findById(data.gallery);
+            if (!gallery) {
                 throw new BadRequestException('Gallery not found', ErrorCode.NOT_FOUND);
             }
             // Use factory to create exhibition object
@@ -139,9 +139,8 @@ export class ExhibitionService implements IExhibitionService {
 
             // Use projection for better performance on public queries
             const projection = isPublicQuery ? {
-                'contents.name': 1,
-                'contents.description': 1,
-                'contents.category': 1,
+                'contents': 1,
+                'languageOptions': 1,
                 'linkName': 1,
                 'status': 1,
                 'startDate': 1,
@@ -150,7 +149,7 @@ export class ExhibitionService implements IExhibitionService {
                 'isFeatured': 1,
                 'discovery': 1,
                 'author': 1,
-                'coverImage': 1,
+                'welcomeImage': 1,
                 'createdAt': 1,
                 'updatedAt': 1
             } : undefined;
@@ -198,7 +197,6 @@ export class ExhibitionService implements IExhibitionService {
             if (!Types.ObjectId.isValid(id)) {
                 throw new BadRequestException('Invalid exhibition ID format');
             }
-            console.log('data', data);
             // validate linkName uniqueness
             if (data.linkName) {
 

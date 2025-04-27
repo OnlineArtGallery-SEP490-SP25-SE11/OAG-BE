@@ -24,6 +24,7 @@ export class ArtworkController {
 		this.downloadArtwork = this.downloadArtwork.bind(this);
 		this.checkPurchaseStatus = this.checkPurchaseStatus.bind(this);
         this.incrementView = this.incrementView.bind(this);
+        this.getFollowingRecommendations = this.getFollowingRecommendations.bind(this);
         
 	}
 
@@ -508,6 +509,29 @@ export class ArtworkController {
             next(error);
         }
     }
+
+    async getFollowingRecommendations(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<any> {
+        try {
+            const userId = req.userId;
+
+            const artworks = await this._artworkService.getFollowingRecommendations(userId!);
+            
+            const response = BaseHttpResponse.success(
+                {artworks},
+                200,
+                'Get following recommendation artworks success'
+            );
+            
+            return res.status(response.statusCode).json(response);
+        } catch (error) {
+            next(error);
+        }
+    }
+
 
 
 }

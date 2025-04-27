@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { z } from 'zod';
 import { ExhibitionStatus } from '@/constants/enum';
 
@@ -104,3 +105,77 @@ export type TicketPurchaseResponse = {
   price: number;
   status: 'COMPLETED';
 }
+
+
+
+const SORT_FIELDS = [
+  'createdAt',
+  'startDate',
+  'endDate',
+  'result.visits',
+  'result.totalTime'
+] as const;
+
+// Define allowed sort orders
+const SORT_ORDERS = [-1, 1] as const;
+
+// Create sort field validation
+const sortFieldSchema = z.enum(SORT_FIELDS);
+const sortOrderSchema = z.enum(['-1', '1']).transform(val => parseInt(val));
+
+// Validate sort object
+const sortSchema = z.record(sortFieldSchema, sortOrderSchema);
+
+// Define filter fields validation
+const filterSchema = z.object({
+  discovery: z.boolean().optional(),
+  status: z.nativeEnum(ExhibitionStatus).optional(),
+  startDate: z.object({
+    $gte: z.string().datetime().optional(),
+    $lte: z.string().datetime().optional()
+  }).optional(),
+  endDate: z.object({
+    $gte: z.string().datetime().optional(),
+    $lte: z.string().datetime().optional()
+  }).optional(),
+  isFeatured: z.boolean().optional(),
+  gallery: z.string().optional(),
+  author: z.string().optional()
+}).strict(); // This ensures no additional fields are allowed
+
+
+export interface ExhibitionQueryDto {
+  page?: number;
+  limit?: number;
+  sort?: z.infer<typeof sortSchema>;
+  filter?: z.infer<typeof filterSchema>;
+  search?: string;
+  status?: ExhibitionStatus;
+}
+
+export const exhibitionQuerySchema = z.object({
+  page: z.number().int().positive().optional().default(1),
+  limit: z.number().int().positive().max(100).optional().default(10),
+  sort: z.string()
+    .transform((str) => {
+      try {
+        return JSON.parse(str);
+      } catch {
+        throw new Error('Invalid JSON in sort parameter');
+      }
+    })
+    .pipe(sortSchema)
+    .optional(),
+  filter: z.string()
+    .transform((str) => {
+      try {
+        return JSON.parse(str);
+      } catch {
+        throw new Error('Invalid JSON in filter parameter');
+      }
+    })
+    .pipe(filterSchema)
+    .optional(),
+  search: z.string().optional(),
+  status: z.nativeEnum(ExhibitionStatus).optional()
+});
