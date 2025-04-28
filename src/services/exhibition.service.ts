@@ -151,7 +151,8 @@ export class ExhibitionService implements IExhibitionService {
                 'author': 1,
                 'welcomeImage': 1,
                 'createdAt': 1,
-                'updatedAt': 1
+                'updatedAt': 1,
+                'result': 1
             } : undefined;
 
             // Execute queries in parallel for better performance
