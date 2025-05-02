@@ -167,7 +167,7 @@ export interface IChatService {
 }
 
 export interface ICCCDService {
-	createCCCD(data: CreateCccdDto): Promise<CCCDDocument>;
+	createCCCD(userId: string, data: CreateCccdDto): Promise<CCCDDocument>;
 	getCCCDById(id: string): Promise<CCCDDocument | null>;
 	getCccdByUserId(userId: string): Promise<CCCDDocument | null>;
 	updateCCCD(id: string, data: UpdateCccdDto): Promise<CCCDDocument | null>;
