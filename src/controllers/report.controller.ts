@@ -86,7 +86,8 @@ export class ReportController {
 			if (!reporterId) {
 				throw new ForbiddenException('Forbidden');
 			}
-
+			
+			console.log(`from report controller ${refId},${refType},${reason}`)
 			if (!refId || !refType || !reason) {
 				throw new ForbiddenException('Missing required fields');
 			}

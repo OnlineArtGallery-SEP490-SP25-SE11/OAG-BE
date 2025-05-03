@@ -143,6 +143,7 @@ export class ReportService {
 
 			return await report.save();
 		} catch (error) {
+			console.log(error)
 			logger.error(error, 'Error creating report');
 			throw new InternalServerErrorException(
 				'Error creating report',
