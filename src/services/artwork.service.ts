@@ -64,23 +64,6 @@ export class ArtworkService {
 		@inject(Symbol.for('AiService')) private readonly aiService: AiService
 	) { }
 
-	private validateArtworkStatus(artType: string, isSelling: boolean, status: string): void {
-		// Kiểm tra tranh painting không được phép bán
-		if (artType === 'painting' && isSelling) {
-			throw new Error('Tranh painting không thể bán');
-		}
-
-		// Kiểm tra chỉ tranh digitalart mới có thể có trạng thái selling
-		if (status === 'selling') {
-			if (artType !== 'digitalart') {
-				throw new Error('Chỉ tranh digitalart mới có thể có trạng thái selling');
-			}
-			if (!isSelling) {
-				throw new Error('Tranh có trạng thái selling phải có isSelling là true');
-			}
-		}
-	}
-
 	async add(
 		title: string,
 		description: string,
@@ -103,9 +86,6 @@ export class ArtworkService {
 			if (!Types.ObjectId.isValid(artistId)) {
 				throw new Error('Invalid artist id');
 			}
-
-			// Validate artType và isSelling
-			this.validateArtworkStatus(artType, isSelling, status);
 
 			// Nếu là painting, đảm bảo isSelling luôn là false
 			const finalIsSelling = artType === 'painting' ? false : isSelling;
@@ -456,50 +436,80 @@ export class ArtworkService {
 		try {
 			// Validate IDs
 			if (!Types.ObjectId.isValid(id) || !Types.ObjectId.isValid(artistId)) {
-				throw new Error('Invalid ID format');
+				throw new BadRequestException('ID không hợp lệ');
 			}
 
 			// Tìm artwork hiện tại
 			const existingArtwork = await Artwork.findById(id);
 			if (!existingArtwork) {
-				throw new Error('Artwork not found');
+				throw new NotFoundException('Không tìm thấy artwork');
 			}
 
 			// Kiểm tra quyền sở hữu
 			if (existingArtwork.artistId?.toString() !== artistId) {
-				throw new Error('Unauthorized to update this artwork');
+				throw new BadRequestException('Bạn không có quyền cập nhật artwork này');
 			}
 
-			// Xác định các giá trị cuối cùng cho validation
-			const finalArtType = options.artType || existingArtwork.artType;
-			const finalIsSelling = options.isSelling ?? existingArtwork.isSelling;
-			const finalStatus = options.status || existingArtwork.status;
+			// Clone options để không ảnh hưởng đến object gốc
+			const updateData = { ...options };
 
-			// Validate trạng thái
-			this.validateArtworkStatus(finalArtType, finalIsSelling, finalStatus);
+			// Xác định artType cuối cùng
+			const artType = updateData.artType || existingArtwork.artType;
 
-			// Điều chỉnh isSelling nếu là painting
-			if (finalArtType === 'painting') {
-				options.isSelling = false;
+			// Kiểm tra artType hợp lệ
+			if (artType !== 'painting' && artType !== 'digitalart') {
+				throw new BadRequestException('Loại artwork không hợp lệ');
 			}
+
+			// Xử lý cho painting
+			if (artType === 'painting') {
+				updateData.isSelling = false;
+				if (updateData.status === 'selling') {
+					throw new BadRequestException('Tranh painting không thể bán');
+				}
+			}
+
+			// Xử lý cho digitalart
+			if (artType === 'digitalart') {
+				// Nếu đang cập nhật status thành selling, tự động set isSelling = true
+				if (updateData.status === 'selling') {
+					updateData.isSelling = true;
+				}
+				// Nếu đang cập nhật status khác selling, tự động set isSelling = false
+				else if (updateData.status && updateData.status !== 'selling') {
+					updateData.isSelling = false;
+				}
+			}
+
+			// Log thông tin update để debug
+			logger.info(`Updating artwork ${id}:`, {
+				existingType: existingArtwork.artType,
+				newType: artType,
+				updateData
+			});
 
 			// Thực hiện update
 			const updatedArtwork = await Artwork.findOneAndUpdate(
 				{ _id: id, artistId },
-				options,
+				{ $set: updateData },
 				{
 					new: true,
 					runValidators: true
 				}
-			);
+			).populate({
+				path: 'artistId',
+				select: 'name image',
+				model: 'User'
+			});
 
 			if (!updatedArtwork) {
-				throw new Error('Update failed');
+				throw new InternalServerErrorException('Cập nhật artwork thất bại');
 			}
 
+			logger.info(`Updated artwork ${id} successfully`);
 			return updatedArtwork;
 		} catch (error) {
-			logger.error(`Error updating artwork: ${error}`);
+			logger.error(`Error updating artwork ${id}:`, error);
 			throw error;
 		}
 	}
