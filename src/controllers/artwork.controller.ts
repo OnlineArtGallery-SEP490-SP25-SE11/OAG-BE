@@ -43,14 +43,9 @@ export class ArtworkController {
             throw new Error('Tranh painting không thể bán');
         }
 
-        // Validate trạng thái selling
-        if (status === 'selling') {
-            if (artType !== 'digitalart') {
-                throw new Error('Chỉ tranh digitalart mới có thể có trạng thái selling');
-            }
-            if (!isSelling) {
-                throw new Error('Tranh có trạng thái selling phải có isSelling là true');
-            }
+        // Validate trạng thái selling cho painting
+        if (status === 'selling' && artType !== 'digitalart') {
+            throw new Error('Chỉ tranh digitalart mới có thể có trạng thái selling');
         }
 
         // Validate status hợp lệ
@@ -309,26 +304,30 @@ export class ArtworkController {
                 price
             } = req.body;
             const artistId = req.userId;
+            
             // valid artistId
             if (!artistId) {
-                const errorMessage = 'Invalid artist id';
-                throw new Error(errorMessage);
+                throw new Error('Invalid artist id');
             }
-            // Nếu cập nhật status thành selling, phải kiểm tra artType
-            if (status === 'selling' && artType !== 'digitalart') {
+
+            // Lấy artwork hiện tại để kiểm tra
+            const currentArtwork = await this._artworkService.getById(id);
+            
+            // Xác định artType cuối cùng
+            const finalArtType = artType || currentArtwork.artType;
+
+            // Kiểm tra nếu muốn chuyển sang trạng thái selling
+            if (status === 'selling' && finalArtType !== 'digitalart') {
                 throw new Error('Chỉ tranh digitalart mới có thể có trạng thái selling');
             }
-            // Nếu có cập nhật các trường liên quan đến bán hàng, validate
-            if (artType !== undefined || isSelling !== undefined || status !== undefined) {
-                // Lấy artwork hiện tại để có thông tin đầy đủ cho validation
-                const currentArtwork = await this._artworkService.getById(id);
 
-                this.validateArtworkData(
-                    artType || currentArtwork.artType,
-                    isSelling ?? currentArtwork.isSelling,
-                    status || currentArtwork.status
-                );
-            }
+            // Validate các trường liên quan đến bán hàng
+            this.validateArtworkData(
+                finalArtType,
+                isSelling ?? currentArtwork.isSelling,
+                status || currentArtwork.status
+            );
+
             const artwork = await this._artworkService.update(
                 {
                     title,
@@ -342,6 +341,7 @@ export class ArtworkController {
                 id,
                 artistId
             );
+
             const response = BaseHttpResponse.success(
                 artwork,
                 200,
