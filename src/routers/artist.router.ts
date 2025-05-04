@@ -9,6 +9,13 @@ const router = express.Router();
 const artistController = container.get<ArtistController>(TYPES.ArtistController);
 
 router.get(
+    '/',
+    async (req: Request, res: Response, next: NextFunction) => {
+        await artistController.getAllArtists(req, res, next);
+    }
+);
+
+router.get(
     '/profile',
     roleRequire([Role.ARTIST]),
     async (req: Request, res: Response, next: NextFunction) => {

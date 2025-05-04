@@ -11,4 +11,5 @@ router.post('/deposit', roleRequire(), validate(depositSchema), walletController
 router.post('/withdraw', roleRequire(), validate(WithdrawSchema), walletController.withdraw);
 router.get('/transactions', roleRequire(), validate(TransactionHistoryQuerySchema, 'query'), walletController.getTransactionHistory);
 router.get('/', roleRequire(), walletController.getWallet);
+router.get('/admin/transactions', roleRequire('admin'), walletController.getAllTransaction);
 export default router;

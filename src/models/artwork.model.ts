@@ -12,6 +12,8 @@ export interface IArtwork extends Document {
   category: string[];
   dimensions: IDimensions;
   url: string;
+  lowResUrl: string;
+  watermarkUrl: string;
   status: string;
   artType: 'painting' | 'digitalart';
   isSelling: boolean;
@@ -63,6 +65,14 @@ const artworkSchema = new Schema({
     required: true
   },
   url: {
+    type: String,
+    required: true
+  },
+  lowResUrl: {
+    type: String,
+    required: true
+  },
+  watermarkUrl: {
     type: String,
     required: true
   },

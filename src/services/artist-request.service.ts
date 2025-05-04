@@ -177,7 +177,7 @@ export class ArtistRequestService {
             }
 
             //save new cccd
-            const cccd = await this.cccdService.createCCCD(data.cccd);
+            const cccd = await this.cccdService.createCCCD(userId,data.cccd);
             if (!cccd) {
                 throw new InternalServerErrorException('Failed to create CCCD');
             }
@@ -194,7 +194,7 @@ export class ArtistRequestService {
             // Send notification to admins
             await NotificationService.createNotification({
                 title: 'New Artist Application',
-                content: `A user has submitted an application to become an artist`,
+                content: `Request has been submitted an application to become an artist`,
                 userId: userId,
                 isSystem: true,
                 refType: 'artist-request',
@@ -203,7 +203,6 @@ export class ArtistRequestService {
 
             logger.info(`User ${userId} submitted artist request with ID ${artistRequest._id}`);
             return artistRequest;
-
 
         } catch (error: any) {
             logger.error(`Error creating artist request: ${error.message}`);
@@ -285,6 +284,11 @@ export class ArtistRequestService {
                     refId: artistRequest._id as string
                 });
             } else {
+
+                //delete cccd
+                await this.cccdService.deleteCCCD(artistRequest.cccd!.toString());
+                //delete artist request
+                await ArtistRequestModel.deleteOne({ _id: artistRequest._id });
                 // Notify user about rejection
                 await NotificationService.createNotification({
                     title: 'Artist Status Update',

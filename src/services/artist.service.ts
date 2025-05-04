@@ -136,43 +136,55 @@ export class ArtistService {
     }
 
     // Get all artists with pagination
-    async getAllArtists(
-        page: number = 1,
-        limit: number = 10
-    ): Promise<PaginationResult<InstanceType<typeof User>>> {
-        try {
-            // Validate pagination params
-            if (page < 1) page = 1;
-            if (limit < 1) limit = 10;
-            if (limit > 100) limit = 100; // Maximum limit
+ async getAllArtists(
+    page: number = 1,
+    limit: number = 10
+): Promise<{
+        artists: InstanceType<typeof User>[];
+        pagination: {
+            total: number;
+            page: number;
+            limit: number;
+            pages: number;
+            hasNext: boolean;
+            hasPrev: boolean;
+        }
+    }> {
+    try {
+        // Validate pagination params
+        if (page < 1) page = 1;
+        if (limit < 1) limit = 10;
+        if (limit > 100) limit = 100; // Maximum limit
 
-            const skip = (page - 1) * limit;
+        const skip = (page - 1) * limit;
 
-            const [artists, total] = await Promise.all([
-                User.find({ isArtist: true })
-                    .select('-password')
-                    .skip(skip)
-                    .limit(limit)
-                    .sort({ createdAt: -1 }),
-                User.countDocuments({ isArtist: true })
-            ]);
+        const [artists, total] = await Promise.all([
+            User.find({ role: { $in: [Role.ARTIST] } })
+                .select('_id name email image artistProfile following followers createdAt updatedAt')
+                .skip(skip)
+                .limit(limit)
+                .sort({ createdAt: -1 }),
+            User.countDocuments({ role: { $in: [Role.ARTIST] } })
+        ]);
 
-            const totalPages = Math.ceil(total / limit);
+        const pages = Math.ceil(total / limit);
 
-            return {
-                items: artists,
+        return {
+            artists: artists,
+            pagination: {
                 total,
                 page,
-                totalPages,
-                hasNextPage: page < totalPages,
-                hasPreviousPage: page > 1
-            };
-        } catch (err: any) {
-            logger.error(`Get all artists failed: ${err.message}`);
-            throw err;
-        }
+                limit,
+                pages,
+                hasNext: page < pages,
+                hasPrev: page > 1
+            }
+        };
+    } catch (err: any) {
+        logger.error(`Get all artists failed: ${err.message}`);
+        throw err;
     }
-
+}
     // Search artists with pagination
     async searchArtists(
         searchTerm: string,
@@ -344,7 +356,7 @@ export class ArtistService {
         try {
             // Find featured artist
             const user = await User.findOne({
-                isFeatured: true,
+            'artistProfile.isFeatured': true,
                 role: { $in: [Role.ARTIST] }
             })
                 .select('name image artistProfile')
@@ -404,33 +416,33 @@ export class ArtistService {
     }
 
     async setFeaturedArtist(artistId: string): Promise<InstanceType<typeof User>> {
-        try {
-            // First remove featured flag from any existing featured artist
-            await User.updateMany(
-                { isFeatured: true },
-                { $set: { isFeatured: false } }
-            );
+    try {
+        // First remove featured flag from any existing featured artist
+        await User.updateMany(
+            { 'artistProfile.isFeatured': true },
+            { $set: { 'artistProfile.isFeatured': false } }
+        );
 
-            // Set the new featured artist
-            const artist = await User.findOneAndUpdate(
-                {
-                    _id: artistId,
-                    role: { $in: [Role.ARTIST] } // Ensure user is an artist
-                },
-                { $set: { isFeatured: true } },
-                { new: true }
-            );
+        // Set the new featured artist
+        const artist = await User.findOneAndUpdate(
+            {
+                _id: artistId,
+                role: { $in: [Role.ARTIST] } // Ensure user is an artist
+            },
+            { $set: { 'artistProfile.isFeatured': true } },
+            { new: true }
+        );
 
-            if (!artist) {
-                throw new NotFoundException('Artist not found');
-            }
-
-            return artist;
-        } catch (error) {
-            logger.error('Error setting featured artist:', error);
-            throw error;
+        if (!artist) {
+            throw new NotFoundException('Artist not found');
         }
+
+        return artist;
+    } catch (error) {
+        logger.error('Error setting featured artist:', error);
+        throw error;
     }
+}
 
     //  async getTrendingArtists(limit: number = 5): Promise<TrendingArtist[]> {
     //     try {
