@@ -13,7 +13,7 @@ export const CreateCCCDSchema = z.object({
   issue_loc: z.string().nonempty({ message: "Issue location is required" }),
   features: z.string().optional(),
   mrz: z.string().optional(),
-  user: z.string().nonempty({ message: "User ID is required" }),
+  // user: z.string().nonempty({ message: "User ID is required" }),
   imageFront: z.string().optional(),
   imageBack: z.string().optional(),
 });

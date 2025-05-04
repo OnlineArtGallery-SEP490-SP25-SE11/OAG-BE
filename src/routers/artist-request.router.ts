@@ -54,12 +54,5 @@ router.patch(
   }
 );
 
-router.get(
-  '/my-request',
-  roleRequire([Role.USER, Role.ARTIST]),
-  async (req, res, next) => {
-        await artistRequestController.getRequests(req, res, next);
-    }
-);
 
 export default router;
