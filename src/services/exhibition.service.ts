@@ -473,7 +473,7 @@ export class ExhibitionService implements IExhibitionService {
 
                     await this._walletService.addFunds(artistWallet._id as string, artistAmount, {
                         userId: exhibition.author.toString(),
-                        type: 'TICKET_SALE',
+                        type: 'DEPOSIT',
                         description: `Ticket sale for exhibition: ${exhibition.contents[0]?.name || exhibitionId}`,
                         status: 'PAID'
                     });
@@ -485,11 +485,11 @@ export class ExhibitionService implements IExhibitionService {
             await exhibition.save();
 
             // Send notification to user
-            await NotificationService.createNotification({
-                title: 'Ticket Purchased',
-                content: `You have successfully purchased a ticket for exhibition: ${exhibition.contents[0]?.name || exhibitionId}`,
-                userId: userId
-            });
+            // await NotificationService.createNotification({
+            //     title: 'Ticket Purchased',
+            //     content: `You have successfully purchased a ticket for exhibition: ${exhibition.contents[0]?.name || exhibitionId}`,
+            //     userId: userId
+            // });
 
             return {
                 exhibitionId: exhibition._id as string,
