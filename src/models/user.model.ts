@@ -27,12 +27,16 @@ interface IUser extends Document {
       twitter?: string;
       website?: string;
     };
+    isFeatured?: {
+      type: boolean,
+      default: false,
+      index: true
+    }
   };
   following: Types.ObjectId[];
   followers: Types.ObjectId[];
   createdAt?: Date;
   updatedAt?: Date;
-  isFeatured?: boolean;
 }
 
 // Create the user schema
@@ -110,7 +114,8 @@ const userSchema = new Schema<IUser>(
         instagram: String,
         twitter: String,
         website: String
-      }
+      },
+      isFeatured: Boolean
     },
     following: {
       type: [Schema.Types.ObjectId],
@@ -122,11 +127,6 @@ const userSchema = new Schema<IUser>(
       ref: 'User',
       default: []
     },
-    isFeatured: {
-      type: Boolean,
-      default: false,
-      index: true
-    }
   },
   { timestamps: true }
 );

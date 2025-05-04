@@ -89,7 +89,7 @@ export class ArtistController implements IArtistController {
             const result = await this._artistService.getAllArtists(page, limit);
 
             const response = BaseHttpResponse.success(
-                result,
+                {data : result},
                 200,
                 'Get all artists success'
             );
