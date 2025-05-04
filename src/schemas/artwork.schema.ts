@@ -10,7 +10,7 @@ export const artworkSchema = z.object({
 	description: z
 		.string()
 		.trim()
-		.min(50, { message: 'Description must be at least 50 characters' })
+		.min(10, { message: 'Description must be at least 10 characters' })
 		.max(5000, { message: 'Description cannot exceed 5000 characters' }),
 
 	category: z
@@ -37,7 +37,7 @@ export const artworkSchema = z.object({
 		.url({ message: 'Invalid URL format' })
 		.max(2048, { message: 'URL cannot exceed 2048 characters' }),
 
-	status: z.enum(['available', 'sold', 'hidden', 'selling'], {
+	status: z.enum(['available', 'hidden', 'selling'], {
 		errorMap: () => ({ message: 'Invalid status value' })
 	}),
 

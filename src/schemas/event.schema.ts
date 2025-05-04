@@ -10,5 +10,5 @@ export const eventSchema = z.object({
     status: z.nativeEnum(EventStatus),
     organizer: z.string(),
     image: z.string().url().nonempty(),
-    link: z.string().url().nonempty(),
+    link: z.string().url().optional().or(z.literal(''))
 });

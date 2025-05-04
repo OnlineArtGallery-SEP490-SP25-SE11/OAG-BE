@@ -4,6 +4,7 @@ import {
   createEmptyExhibitionSchema, 
   likeArtworkSchema, 
   rejectExhibitionSchema, 
+  updateExhibitionAnalyticsSchema, 
   updateExhibitionSchema 
 } from '@/dto/exhibition.dto';
 import { Role } from '@/constants/enum';
@@ -84,6 +85,12 @@ router.patch(
   roleRequire([Role.ADMIN]),
   validate(rejectExhibitionSchema),
   exhibitionController.rejectExhibition
+);
+
+router.patch(
+  '/:id/analytics',
+  validate(updateExhibitionAnalyticsSchema),
+  exhibitionController.updateAnalytics
 );
 
 export default router;

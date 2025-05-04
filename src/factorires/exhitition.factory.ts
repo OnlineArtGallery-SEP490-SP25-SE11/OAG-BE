@@ -1,5 +1,4 @@
 import { ExhibitionStatus } from '@/constants/enum';
-import { Exhibition } from '@/models/exhibition.model';
 
 export class ExhibitionFactory {
   /**

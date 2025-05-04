@@ -3,6 +3,7 @@ import BankRequest from '@/models/bank-request.model';
 import Transaction from '@/models/transaction.model';
 import Wallet from '@/models/wallet.model';
 import { injectable } from 'inversify';
+import NotificationService from '@/services/notification.service';
 
 @injectable()
 class BankRequestService {
@@ -95,7 +96,18 @@ class BankRequestService {
             },
             { new: true }
         );
-        
+        const userId = wallet.userId.toString();
+    if (wallet) {
+        // Send notification to user about rejected withdrawal
+        await NotificationService.createNotification({
+            title: 'Withdrawal Request Approved',
+            content: `Your withdrawal request for ${bankRequest.amount} to ${bankRequest.bankName} has been approve. Please check your bank account for the amount.`,
+            userId: userId,
+            isSystem: true,
+            refType: 'withdrawal',
+            refId: bankRequestId
+        });
+    }
         return updatedBankRequest;
     }
 
@@ -118,7 +130,6 @@ class BankRequestService {
         if (!bankRequest) {
             throw new BadRequestException('Bank request not found');
         }
-        
         // Update the entire bank request with new status - PUT operation
         const updatedBankRequest = await BankRequest.findByIdAndUpdate(
             bankRequestId,
@@ -142,6 +153,18 @@ class BankRequestService {
             },
             { new: true }
         );
+        const wallet = await Wallet.findById(bankRequest.walletId);
+    if (wallet) {
+        // Send notification to user about rejected withdrawal
+        await NotificationService.createNotification({
+            title: 'Withdrawal Request Rejected',
+            content: `Your withdrawal request for ${bankRequest.amount} to ${bankRequest.bankName} has been rejected. Please contact support for more information or double check the information in the withdrawal section for accuracy.`,
+            userId: wallet.userId.toString(),
+            isSystem: true,
+            refType: 'withdrawal',
+            refId: bankRequestId
+        });
+    }
         
         return updatedBankRequest;
     }

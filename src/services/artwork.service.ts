@@ -10,7 +10,8 @@ import WalletService from '@/services/wallet.service';
 import { TYPES } from '@/constants/types';
 import ArtworkWarehouseModel from '@/models/artwork-warehouse.model';
 import Transaction from '@/models/transaction.model';
-import { BadRequestException } from '@/exceptions/http-exception';
+import { BadRequestException, InternalServerErrorException, NotFoundException } from '@/exceptions/http-exception';
+import { ErrorCode } from '@/constants/error-code';
 
 export interface ArtworkQueryOptions {
 	select?: string;
@@ -33,6 +34,8 @@ export interface ArtworkUpdateOptions {
 	description?: string;
 	category?: [string];
 	status?: string;
+	artType?: 'painting' | 'digitalart';
+	isSelling?: boolean;
 	price?: number;
 
 	//AI
@@ -46,6 +49,7 @@ export interface ArtworkUpdateOptions {
 		metadata: {};
 		improvements: string[];
 	};
+	views?: number;
 }
 
 @injectable()
@@ -54,7 +58,7 @@ export class ArtworkService {
 	/**
 	 * Thêm artwork mới.
 	*/
-	
+
 	constructor(
 		@inject(TYPES.WalletService) private walletService: WalletService,
 		@inject(Symbol.for('AiService')) private readonly aiService: AiService
@@ -70,16 +74,21 @@ export class ArtworkService {
 			height: number;
 		},
 		url: string,
+		lowResUrl: string,
+		watermarkUrl: string,
 		status: string,
-		price: number
+		price: number,
+		artType: 'painting' | 'digitalart',
+		isSelling: boolean = false
 	): Promise<InstanceType<typeof Artwork>> {
 		try {
-			// Kiểm tra artistId có hợp lệ không
+			// Validate artistId
 			if (!Types.ObjectId.isValid(artistId)) {
-				const errorMessage = 'Invalid artist id';
-				logger.error(errorMessage);
-				throw new Error(errorMessage);
+				throw new Error('Invalid artist id');
 			}
+
+			// Nếu là painting, đảm bảo isSelling luôn là false
+			const finalIsSelling = artType === 'painting' ? false : isSelling;
 
 			let moderationStatus = 'pending';
 			let moderationReason = '';
@@ -140,7 +149,11 @@ export class ArtworkService {
 				category,
 				dimensions,
 				url,
+				lowResUrl,
+				watermarkUrl,
 				status,
+				artType,
+				isSelling: finalIsSelling,
 				price,
 				artistId,
 				moderationStatus,
@@ -155,7 +168,7 @@ export class ArtworkService {
 			if (moderationStatus === 'approved' || moderationStatus === 'rejected') {
 				let notificationTitle = '';
 				let notificationContent = '';
-				
+
 				if (moderationStatus === 'approved') {
 					notificationTitle = 'Artwork Approved';
 					notificationContent = `Your artwork "${title}" has been automatically approved and is now visible to others.`;
@@ -163,16 +176,16 @@ export class ArtworkService {
 					notificationTitle = 'Artwork Rejected';
 					notificationContent = `Your artwork "${title}" has been rejected. Reason: ${moderationReason || 'No reason provided'}`;
 				}
-				
+
 				await NotificationService.createNotification({
 					title: notificationTitle,
 					content: notificationContent,
 					userId: artistId,
 					isSystem: true,
 					refType: 'artwork',
-					refId: savedArtwork._id.toString()
+					refId: savedArtwork._id as string
 				});
-				
+
 				logger.info(`Notification sent to artist ${artistId} about new artwork status: ${moderationStatus}`);
 			}
 
@@ -227,11 +240,11 @@ export class ArtworkService {
 					query.category = { $regex: options.category, $options: 'i' };
 				}
 			}
-			
+
 			// Tìm kiếm theo tên nghệ sĩ (hỗ trợ nhiều tên)
 			if (artistName) {
 				let artistQuery;
-				
+
 				if (Array.isArray(artistName)) {
 					// Nhiều tên nghệ sĩ - tìm kiếm với $or
 					artistQuery = {
@@ -243,11 +256,11 @@ export class ArtworkService {
 						name: { $regex: artistName, $options: 'i' }
 					};
 				}
-				
+
 				const artistIds = await User.find(artistQuery)
 					.select('_id')
 					.exec();
-					
+
 				query.artistId = { $in: artistIds.map(a => a._id) };
 			}
 
@@ -260,7 +273,7 @@ export class ArtworkService {
 				const artistIds = await User.find(artistQuery)
 					.select('_id')
 					.exec();
-					
+
 				// Tạo điều kiện $or để tìm trong nhiều trường
 				query.$or = [
 					{ title: { $regex: keyword, $options: 'i' } },
@@ -421,162 +434,82 @@ export class ArtworkService {
 		artistId: string
 	): Promise<InstanceType<typeof Artwork>> {
 		try {
-			// Kiểm tra id hợp lệ
-			if (!Types.ObjectId.isValid(id)) {
-				const errorMessage = 'Invalid artwork id';
-				logger.error(errorMessage);
-				throw new Error(errorMessage);
+			// Validate IDs
+			if (!Types.ObjectId.isValid(id) || !Types.ObjectId.isValid(artistId)) {
+				throw new BadRequestException('ID không hợp lệ');
 			}
 
-			// Tìm artwork để xác minh quyền update
+			// Tìm artwork hiện tại
 			const existingArtwork = await Artwork.findById(id);
-
-			// Kiểm tra artwork có tồn tại không
 			if (!existingArtwork) {
-				const errorMessage = 'Artwork not found';
-				logger.error(errorMessage);
-				throw new Error(errorMessage);
+				throw new NotFoundException('Không tìm thấy artwork');
 			}
 
-			// Kiểm tra xem người update có phải là chủ sở hữu của artwork không
-			if (!existingArtwork.artistId) {
-				const errorMessage = 'Artwork does not have an artistId';
-				logger.error(errorMessage);
-				throw new Error(errorMessage);
+			// Kiểm tra quyền sở hữu
+			if (existingArtwork.artistId?.toString() !== artistId) {
+				throw new BadRequestException('Bạn không có quyền cập nhật artwork này');
 			}
 
-			if (existingArtwork.artistId.toString() !== artistId) {
-				const errorMessage =
-					'You are not authorized to update this artwork';
-				logger.error(errorMessage);
-				throw new Error(errorMessage);
+			// Clone options để không ảnh hưởng đến object gốc
+			const updateData = { ...options };
+
+			// Xác định artType cuối cùng
+			const artType = updateData.artType || existingArtwork.artType;
+
+			// Kiểm tra artType hợp lệ
+			if (artType !== 'painting' && artType !== 'digitalart') {
+				throw new BadRequestException('Loại artwork không hợp lệ');
 			}
 
-			// Validate status nếu được update
-			if (
-				options.status &&
-				!['available', 'sold', 'hidden', 'selling'].includes(
-					options.status
-				)
-			) {
-				const errorMessage = 'Invalid artwork status';
-				logger.error(errorMessage);
-				throw new Error(errorMessage);
-			}
-
-			// Initialize update options with the provided options
-			let updatedOptions = { ...options };
-
-			// Prepare artwork data for AI review
-			const artworkForReview = {
-				title: options.title || existingArtwork.title,
-				description: options.description || existingArtwork.description,
-				category: options.category || existingArtwork.category,
-				dimensions: existingArtwork.dimensions,
-				url: existingArtwork.url,
-				moderationStatus: existingArtwork.moderationStatus,
-				moderationReason: existingArtwork.moderationReason,
-				moderatedBy: existingArtwork.moderatedBy,
-				aiReview: existingArtwork.aiReview
-			};
-
-			try {
-				// Use AI to review the updated artwork
-				const aiReviewResult = await this.aiService.reviewUpdateArtwork(
-					artworkForReview
-				);
-
-				// Update options with AI review results
-				updatedOptions = {
-					...updatedOptions,
-					moderationStatus: aiReviewResult.approved
-						? 'approved'
-						: 'pending',
-					moderationReason: aiReviewResult.reason,
-					moderatedBy: 'ai',
-					aiReview: {
-						keywords: aiReviewResult.keywords || [],
-						suggestedCategories:
-							aiReviewResult.suggestedCategories || [],
-						description: aiReviewResult.description || '',
-						metadata: aiReviewResult.metadata || {},
-						improvements: aiReviewResult.improvements || []
-					}
-				};
-
-				if (
-					existingArtwork.moderationStatus === 'rejected' &&
-					aiReviewResult.approved
-				) {
-					logger.info(
-						`Previously rejected artwork ${id} is now approved by AI after updates`
-					);
+			// Xử lý cho painting
+			if (artType === 'painting') {
+				updateData.isSelling = false;
+				if (updateData.status === 'selling') {
+					throw new BadRequestException('Tranh painting không thể bán');
 				}
-
-				logger.info(
-					`AI review completed for updated artwork ${id}: ${
-						aiReviewResult.approved ? 'approved' : 'pending'
-					}`
-				);
-			} catch (aiError: any) {
-				// If AI review fails, set the artwork to pending for manual review
-				logger.error(
-					`AI review failed for updated artwork ${id}: ${aiError.message}`
-				);
-				updatedOptions = {
-					...updatedOptions,
-					moderationStatus: 'pending',
-					moderationReason: 'AI review failed, needs manual review'
-				};
 			}
+
+			// Xử lý cho digitalart
+			if (artType === 'digitalart') {
+				// Nếu đang cập nhật status thành selling, tự động set isSelling = true
+				if (updateData.status === 'selling') {
+					updateData.isSelling = true;
+				}
+				// Nếu đang cập nhật status khác selling, tự động set isSelling = false
+				else if (updateData.status && updateData.status !== 'selling') {
+					updateData.isSelling = false;
+				}
+			}
+
+			// Log thông tin update để debug
+			logger.info(`Updating artwork ${id}:`, {
+				existingType: existingArtwork.artType,
+				newType: artType,
+				updateData
+			});
 
 			// Thực hiện update
 			const updatedArtwork = await Artwork.findOneAndUpdate(
 				{ _id: id, artistId },
-				updatedOptions,
+				{ $set: updateData },
 				{
-					new: true, // Trả về document mới sau khi update
-					runValidators: true // Chạy các validator của schema
+					new: true,
+					runValidators: true
 				}
-			).exec();
+			).populate({
+				path: 'artistId',
+				select: 'name image',
+				model: 'User'
+			});
 
 			if (!updatedArtwork) {
-				const errorMessage = 'Update failed';
-				logger.error(errorMessage);
-				throw new Error(errorMessage);
+				throw new InternalServerErrorException('Cập nhật artwork thất bại');
 			}
 
-			const prevStatus = existingArtwork.moderationStatus;
-			const newStatus = updatedOptions.moderationStatus;
-
-			// Gửi thông báo nếu trạng thái đã thay đổi
-			if (newStatus !== prevStatus && (newStatus === 'approved' || newStatus === 'rejected')) {
-				let notificationTitle = '';
-				let notificationContent = '';
-				
-				if (newStatus === 'approved') {
-					notificationTitle = 'Updated Artwork Approved';
-					notificationContent = `Your updated artwork "${updatedArtwork.title}" has been approved and is now visible to others.`;
-				} else {
-					notificationTitle = 'Updated Artwork Rejected';
-					notificationContent = `Your updated artwork "${updatedArtwork.title}" has been rejected. Reason: ${updatedOptions.moderationReason || 'No reason provided'}`;
-				}
-				
-				await NotificationService.createNotification({
-					title: notificationTitle,
-					content: notificationContent,
-					userId: artistId,
-					isSystem: true,
-					refType: 'artwork',
-					refId: id
-				});
-				
-				logger.info(`Notification sent to artist ${artistId} about updated artwork status: ${newStatus}`);
-			}
-			
+			logger.info(`Updated artwork ${id} successfully`);
 			return updatedArtwork;
 		} catch (error) {
-			logger.error(`Error updating artwork: ${error}`);
+			logger.error(`Error updating artwork ${id}:`, error);
 			throw error;
 		}
 	}
@@ -651,40 +584,39 @@ export class ArtworkService {
 				moderatedBy: artwork.moderatedBy
 			});
 			logger.info(
-				`Admin ${adminId} reviewed artwork ${artworkId}: ${
-					approved
+				`Admin ${adminId} reviewed artwork ${artworkId}: ${approved
 				}`
 			);
 			if (artwork.artistId) {
-            let notificationTitle = '';
-            let notificationContent = '';
-            
-            switch (approved) {
-                case 'approved':
-                    notificationTitle = 'Artwork Approved by Admin';
-                    notificationContent = `Your artwork "${artwork.title}" has been approved by an administrator and is now visible to others.`;
-                    break;
-                case 'rejected':
-                    notificationTitle = 'Artwork Rejected by Admin';
-                    notificationContent = `Your artwork "${artwork.title}" has been rejected by an administrator. Reason: ${reason || 'No reason provided'}`;
-                    break;
-                case 'suspended':
-                    notificationTitle = 'Artwork Suspended by Admin';
-                    notificationContent = `Your artwork "${artwork.title}" has been temporarily suspended by an administrator. Reason: ${reason || 'No reason provided'}`;
-                    break;
-            }
-            
-            await NotificationService.createNotification({
-                title: notificationTitle,
-                content: notificationContent,
-                userId: artwork.artistId.toString(),
-                isSystem: true,
-                refType: 'artwork',
-                refId: artworkId
-            });
-            
-            logger.info(`Notification sent to artist ${artwork.artistId} about artwork ${artworkId} status: ${approved}`);
-        }
+				let notificationTitle = '';
+				let notificationContent = '';
+
+				switch (approved) {
+					case 'approved':
+						notificationTitle = 'Artwork Approved by Admin';
+						notificationContent = `Your artwork "${artwork.title}" has been approved by an administrator and is now visible to others.`;
+						break;
+					case 'rejected':
+						notificationTitle = 'Artwork Rejected by Admin';
+						notificationContent = `Your artwork "${artwork.title}" has been rejected by an administrator. Reason: ${reason || 'No reason provided'}`;
+						break;
+					case 'suspended':
+						notificationTitle = 'Artwork Suspended by Admin';
+						notificationContent = `Your artwork "${artwork.title}" has been temporarily suspended by an administrator. Reason: ${reason || 'No reason provided'}`;
+						break;
+				}
+
+				await NotificationService.createNotification({
+					title: notificationTitle,
+					content: notificationContent,
+					userId: artwork.artistId.toString(),
+					isSystem: true,
+					refType: 'artwork',
+					refId: artworkId
+				});
+
+				logger.info(`Notification sent to artist ${artwork.artistId} about artwork ${artworkId} status: ${approved}`);
+			}
 			return updatedArtwork;
 		} catch (error) {
 			logger.error(`Error during admin review of artwork: ${error}`);
@@ -748,16 +680,22 @@ export class ArtworkService {
 		}
 	}
 
-	async purchase(artworkId: string, userId: string): Promise<{url: string, fileName: string}> {
+	async purchase(artworkId: string, userId: string): Promise<{ url: string, fileName: string }> {
 		try {
-			// Kiểm tra artwork có tồn tại và đang bán không
-			const artwork = await Artwork.findOne({
-				_id: artworkId,
-				status: 'selling'
-			});
+			// Tìm artwork và validate
+			const artwork = await Artwork.findById(artworkId);
 
 			if (!artwork) {
-				throw new Error('Artwork not found or not available for purchase');
+				throw new Error('Artwork không tìm thấy');
+			}
+
+			// Validate điều kiện mua
+			if (artwork.artType !== 'digitalart') {
+				throw new Error('Chỉ có thể mua tranh digitalart');
+			}
+
+			if (!artwork.isSelling || artwork.status !== 'selling') {
+				throw new Error('Artwork này không được bán');
 			}
 
 			// Kiểm tra xem người dùng đã mua artwork này chưa
@@ -790,7 +728,7 @@ export class ArtworkService {
 			const commissionRate = 0.03;
 			const commissionAmount = artwork.price * commissionRate;
 			const artistAmount = artwork.price - commissionAmount;
-			
+
 			// Cộng tiền vào ví của artist (đã trừ hoa hồng)
 			let artistWallet = await Wallet.findOne({ userId: artwork.artistId });
 			if (!artistWallet) {
@@ -801,14 +739,14 @@ export class ArtworkService {
 			}
 
 			// Sử dụng phương thức addFunds mới
-			await this.walletService.addFunds(artistWallet._id?.toString(), artistAmount, {
+			await this.walletService.addFunds(artistWallet._id as string, artistAmount, {
 				userId: artwork.artistId?.toString() || '',
 				type: 'SALE',
 				status: 'PAID',
 				description: `Sold artwork: ${artwork.title} (after 3% commission)`,
 				orderCode: Date.now().toString()
 			});
-			
+
 			// Tạo transaction ghi nhận phí hoa hồng
 			await Transaction.create({
 				walletId: artistWallet._id,
@@ -824,7 +762,7 @@ export class ArtworkService {
 			// Cập nhật danh sách người mua mà KHÔNG thay đổi trạng thái
 			await Artwork.findByIdAndUpdate(
 				artworkId,
-				{ 
+				{
 					$addToSet: { buyers: userId }
 					// Không thay đổi status thành 'sold' nữa
 				}
@@ -854,17 +792,17 @@ export class ArtworkService {
 	async verifyDownloadAccess(artworkId: string, userId: string): Promise<boolean> {
 		try {
 			const artwork = await this.getById(artworkId);
-			
+
 			if (!artwork) {
 				throw new Error('Artwork not found');
 			}
-			
+
 			// Cho phép người dùng tải xuống nếu:
 			// 1. Họ là artist của artwork, hoặc
 			// 2. Họ đã mua artwork này
 			const isArtist = artwork.artistId?.toString() === userId;
 			const hasPurchased = artwork.buyers?.includes(userId);
-			
+
 			return isArtist || hasPurchased || false;
 		} catch (error) {
 			logger.error(`Error verifying download access: ${error}`);
@@ -883,40 +821,118 @@ export class ArtworkService {
 			if (!Types.ObjectId.isValid(artworkId)) {
 				throw new BadRequestException('ID tranh không hợp lệ');
 			}
-			
+
 			if (!Types.ObjectId.isValid(userId)) {
 				throw new BadRequestException('ID người dùng không hợp lệ');
 			}
-			
+
 			// Kiểm tra trong danh sách buyers của artwork
 			const artwork = await Artwork.findById(artworkId);
-			
+
 			if (!artwork) {
 				throw new BadRequestException('Không tìm thấy tranh');
 			}
-			
+
 			// Kiểm tra nếu người dùng là artist của tranh
 			if (artwork.artistId?.toString() === userId) {
 				return true; // Artist luôn có quyền truy cập tranh của mình
 			}
-			
+
 			// Kiểm tra nếu người dùng đã mua tranh
 			const hasBought = artwork.buyers?.includes(userId) || false;
-			
+
 			// Kiểm tra thêm trong kho tranh của người dùng
 			if (!hasBought) {
 				const artworkInWarehouse = await ArtworkWarehouseModel.findOne({
 					artworkId,
 					userId
 				});
-				
+
 				return !!artworkInWarehouse;
 			}
-			
+
 			return hasBought;
 		} catch (error) {
 			logger.error(`Lỗi khi kiểm tra quyền sở hữu tranh: ${error}`);
 			throw error;
 		}
 	}
+
+	/**
+	 * Tăng lượt xem cho artwork và trả về số lượt xem mới
+	 * @param artworkId ID của artwork
+	 * @returns Số lượt xem mới của artwork
+	 */
+	async incrementView(artworkId: string): Promise<number> {
+		try {
+			if (!Types.ObjectId.isValid(artworkId)) {
+				throw new BadRequestException('ID artwork không hợp lệ');
+			}
+
+			const artwork = await Artwork.findByIdAndUpdate(
+				artworkId,
+				{ $inc: { views: 1 } }, // Tăng views lên 1
+				{ new: true } // Trả về document sau khi update
+			);
+
+			if (!artwork) {
+				throw new BadRequestException('Không tìm thấy artwork');
+			}
+
+			logger.info(`Tăng lượt xem cho artwork ${artworkId}: ${artwork.views}`);
+			return artwork.views || 0;
+		} catch (error) {
+			logger.error(`Lỗi khi tăng lượt xem artwork: ${error}`);
+			throw error;
+		}
+	}
+
+
+	async getFollowingRecommendations(userId: string, limit: number = 5): Promise<InstanceType<typeof Artwork>[]> {
+		try {
+			// Find user and populate following
+			const user = await User.findById(userId).populate('following');
+			if (!user) {
+				throw new NotFoundException('User not found');
+			}
+
+			// Check if user is following any artists
+			if (!user.following || user.following.length === 0) {
+				return [];
+			}
+
+			// Get IDs of followed artists
+			const followingIds = user.following.map(artist => artist._id);
+
+			// Find artworks from followed artists
+			return await Artwork.find({
+				artistId: { $in: followingIds }, // Changed from 'artist' to 'artistId' to match schema
+				status: { $in: ['published', 'selling'] },
+				moderationStatus: 'approved' // Add moderation status check
+			})
+			.select({
+                title: 1,
+                url: 1,
+                price: 1,
+                artType: 1,
+                isSelling: 1,
+				description : 1,
+                artistId: 1,
+                createdAt: 1,
+				dimensions: 1
+            })
+				.sort({ createdAt: -1 })
+				.limit(limit)
+				.populate('artistId', 'name image') // Changed from 'artist' to 'artistId' and added 'image'
+				.exec();
+
+		} catch (error) {
+			logger.error('Error getting following artworks:', error);
+			throw new InternalServerErrorException(
+				'Error retrieving following artworks',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
+
 }

@@ -4,30 +4,30 @@ import ExhibitionModel, { ExhibitionDocument } from '@/models/exhibition.model';
 import logger from '@/configs/logger.config';
 import { BadRequestException, NotFoundException, InternalServerErrorException } from '@/exceptions/http-exception';
 import { ErrorCode } from '@/constants/error-code';
-import { CreateEmptyExhibitionDto, LikeArtworkResponse, TicketPurchaseResponse, UpdateExhibitionDto } from '@/dto/exhibition.dto';
+import { CreateEmptyExhibitionDto, LikeArtworkResponse, TicketPurchaseResponse, UpdateExhibitionAnalyticsDto, UpdateExhibitionDto } from '@/dto/exhibition.dto';
 import { IExhibitionService, ExhibitionQueryOptions, PaginatedExhibitionResponse } from '@/interfaces/service/exhibition-service.interface';
 import { ExhibitionFactory } from '@/factorires/exhitition.factory';
-import  GalleryModel from '@/models/gallery.model';
 import { ExhibitionStatus } from '@/constants/enum';
 import NotificationService from '@/services/notification.service';
 import { TYPES } from '@/constants/types';
 import WalletService from './wallet.service';
 import Wallet from '@/models/wallet.model';
 import { AiService } from './ai.service';
+import { GalleryService } from './gallery.service';
 
 @injectable()
 export class ExhibitionService implements IExhibitionService {
     constructor(
         @inject(TYPES.WalletService) private _walletService: WalletService,
-                @inject(Symbol.for('AiService')) private readonly aiService: AiService
-        
+        @inject(Symbol.for('AiService')) private readonly aiService: AiService,
+        @inject(TYPES.GalleryService) private _galleryService: GalleryService
     ) { }
 
     async create(data: CreateEmptyExhibitionDto & { author: string }): Promise<ExhibitionDocument> {
         try {
             // Validate gallery existence
-            const galleryExists = await GalleryModel.exists({ _id: data.gallery });
-            if (!galleryExists) {
+            const gallery = await this._galleryService.findById(data.gallery);
+            if (!gallery) {
                 throw new BadRequestException('Gallery not found', ErrorCode.NOT_FOUND);
             }
             // Use factory to create exhibition object
@@ -92,113 +92,112 @@ export class ExhibitionService implements IExhibitionService {
     }
 
 
-async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibitionResponse> {
-    try {
-        const {
-            page = 1,
-            limit = 10,
-            sort = { startDate: 1 },
-            filter = {},
-            search = '',
-            userId,
-            status
-        } = options;
+    async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibitionResponse> {
+        try {
+            const {
+                page = 1,
+                limit = 10,
+                sort = { startDate: 1 },
+                filter = {},
+                search = '',
+                userId,
+                status
+            } = options;
 
-        // Build the base query with provided filters
-        const query: Record<string, any> = { ...filter };
-        
-        // For public requests, only show exhibitions with discovery=true
-        // if they aren't explicitly filtering on discovery
-        if (status) {
-            if (Array.isArray(status)) {
-                query.status = { $in: status };
-            } else {
-                query.status = status;
+            // Build the base query with provided filters
+            const query: Record<string, any> = { ...filter };
+
+            // For public requests, only show exhibitions with discovery=true
+            // if they aren't explicitly filtering on discovery
+            if (status) {
+                if (Array.isArray(status)) {
+                    query.status = { $in: status };
+                } else {
+                    query.status = status;
+                }
             }
-        }
-        
-        // Enhanced search to include tags
-        if (search) {
-            query.$or = [
-                { 'contents.name': { $regex: search, $options: 'i' } },
-                { 'contents.description': { $regex: search, $options: 'i' } },
-                { 'linkName': { $regex: search, $options: 'i' } }
-            ];
-        }
 
-        // Filter by user ID if provided
-        if (userId) {
-            query.author = new Types.ObjectId(userId);
-        }
-
-        // Determine if we should use projection and lean for better performance
-        const isPublicQuery = filter.status === ExhibitionStatus.PUBLISHED;
-        
-        // Calculate pagination
-        const skip = (page - 1) * limit;
-        
-        // Use projection for better performance on public queries
-        const projection = isPublicQuery ? {
-            'contents.name': 1,
-            'contents.description': 1, 
-            'contents.category': 1,
-            'linkName': 1,
-            'status': 1,
-            'startDate': 1,
-            'endDate': 1,
-            'ticket': 1,
-            'isFeatured': 1,
-            'discovery': 1,
-            'author': 1,
-            'coverImage': 1,
-            'createdAt': 1,
-            'updatedAt': 1
-        } : undefined;
-
-        // Execute queries in parallel for better performance
-        const [exhibitions, total] = await Promise.all([
-            ExhibitionModel.find(query, projection)
-                .populate({
-                    path: 'author',
-                    select: 'name email image',
-                    model: 'User'
-                })
-                .sort(sort)
-                .skip(skip)
-                .limit(limit),
-            ExhibitionModel.countDocuments(query)
-        ]);
-
-        // Calculate pagination info
-        const pages = Math.ceil(total / limit);
-        
-        return {
-            exhibitions,
-            pagination: {
-                total,
-                page,
-                limit,
-                pages,
-                hasNext: page < pages,
-                hasPrev: page > 1
+            // Enhanced search to include tags
+            if (search) {
+                query.$or = [
+                    { 'contents.name': { $regex: search, $options: 'i' } },
+                    { 'contents.description': { $regex: search, $options: 'i' } },
+                    { 'linkName': { $regex: search, $options: 'i' } }
+                ];
             }
-        };
 
-    } catch (error) {
-        logger.error('Error retrieving exhibitions:', error);
-        throw new InternalServerErrorException(
-            'Error retrieving exhibitions',
-            ErrorCode.DATABASE_ERROR
-        );
+            // Filter by user ID if provided
+            if (userId) {
+                query.author = new Types.ObjectId(userId);
+            }
+
+            // Determine if we should use projection and lean for better performance
+            const isPublicQuery = filter.status === ExhibitionStatus.PUBLISHED;
+
+            // Calculate pagination
+            const skip = (page - 1) * limit;
+
+            // Use projection for better performance on public queries
+            const projection = isPublicQuery ? {
+                'contents': 1,
+                'languageOptions': 1,
+                'linkName': 1,
+                'status': 1,
+                'startDate': 1,
+                'endDate': 1,
+                'ticket': 1,
+                'isFeatured': 1,
+                'discovery': 1,
+                'author': 1,
+                'welcomeImage': 1,
+                'createdAt': 1,
+                'updatedAt': 1,
+                'result': 1
+            } : undefined;
+
+            // Execute queries in parallel for better performance
+            const [exhibitions, total] = await Promise.all([
+                ExhibitionModel.find(query, projection)
+                    .populate({
+                        path: 'author',
+                        select: 'name email image',
+                        model: 'User'
+                    })
+                    .sort(sort)
+                    .skip(skip)
+                    .limit(limit),
+                ExhibitionModel.countDocuments(query)
+            ]);
+
+            // Calculate pagination info
+            const pages = Math.ceil(total / limit);
+
+            return {
+                exhibitions,
+                pagination: {
+                    total,
+                    page,
+                    limit,
+                    pages,
+                    hasNext: page < pages,
+                    hasPrev: page > 1
+                }
+            };
+
+        } catch (error) {
+            logger.error('Error retrieving exhibitions:', error);
+            throw new InternalServerErrorException(
+                'Error retrieving exhibitions',
+                ErrorCode.DATABASE_ERROR
+            );
+        }
     }
-}
 
     async update(id: string, data: UpdateExhibitionDto): Promise<ExhibitionDocument | null> {
         try {
             if (!Types.ObjectId.isValid(id)) {
                 throw new BadRequestException('Invalid exhibition ID format');
             }
-
             // validate linkName uniqueness
             if (data.linkName) {
 
@@ -239,7 +238,7 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
 
             return exhibition;
         } catch (error) {
-            // logger.error(`Error updating exhibition ${id}:`, error);
+            console.error(`Error updating exhibition ${id}:`, error);
             if (error instanceof Error.ValidationError) {
                 throw new BadRequestException(
                     'Invalid exhibition data',
@@ -434,7 +433,8 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
                     throw new BadRequestException(
                         `Insufficient balance. Required: ${exhibition.ticket.price}, Available: 0`,
                         ErrorCode.INSUFFICIENT_BALANCE
-                    );                }
+                    );
+                }
 
                 // Check if user has enough balance
                 if (userWallet.balance < exhibition.ticket.price) {
@@ -517,27 +517,27 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
             if (!Types.ObjectId.isValid(id)) {
                 throw new BadRequestException('Invalid exhibition ID format');
             }
-    
+
             // Find exhibition with populated fields
             const exhibition = await ExhibitionModel.findOne({
                 _id: id,
                 status: ExhibitionStatus.PUBLISHED
             })
-            .populate({
-                path: 'author',
-                select: 'name email image',
-                model: 'User'
-            })
-            .populate('gallery')
-            .populate({
-                path: 'artworkPositions.artwork',
-                model: 'Artwork'
-            });
-    
+                .populate({
+                    path: 'author',
+                    select: 'name email image',
+                    model: 'User'
+                })
+                .populate('gallery')
+                .populate({
+                    path: 'artworkPositions.artwork',
+                    model: 'Artwork'
+                });
+
             if (!exhibition) {
                 throw new NotFoundException('Exhibition not found', ErrorCode.NOT_FOUND);
             }
-    
+
             return exhibition;
         } catch (error) {
             logger.error('Error finding published exhibition by ID:', error);
@@ -551,7 +551,7 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
             );
         }
     }
-    
+
     public async findPublishedByLinkName(linkName: string): Promise<ExhibitionDocument | null> {
         try {
             // Validate linkName
@@ -563,21 +563,21 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
                 linkName,
                 status: ExhibitionStatus.PUBLISHED
             })
-            .populate({
-                path: 'author',
-                select: 'name email image',
-                model: 'User'
-            })
-            .populate('gallery')
-            .populate({
-                path: 'artworkPositions.artwork',
-                model: 'Artwork'
-            });
-    
+                .populate({
+                    path: 'author',
+                    select: 'name email image',
+                    model: 'User'
+                })
+                .populate('gallery')
+                .populate({
+                    path: 'artworkPositions.artwork',
+                    model: 'Artwork'
+                });
+
             if (!exhibition) {
                 throw new NotFoundException('Exhibition not found', ErrorCode.NOT_FOUND);
             }
-    
+
             return exhibition;
         } catch (error) {
             logger.error('Error finding published exhibition by link name:', error);
@@ -597,43 +597,43 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
             if (!Types.ObjectId.isValid(exhibitionId) || !Types.ObjectId.isValid(artworkId)) {
                 throw new BadRequestException('Invalid exhibition or artwork ID format');
             }
-    
+
             // First check if exhibition exists and contains the artwork
             const exhibition = await ExhibitionModel.findById(exhibitionId);
-            
+
             if (!exhibition) {
                 throw new NotFoundException('Exhibition not found', ErrorCode.NOT_FOUND);
             }
-            
+
             // Verify the artwork is part of this exhibition
             const artworkExists = exhibition.artworkPositions.some(
                 position => position.artwork.toString() === artworkId
             );
-            
+
             if (!artworkExists) {
                 throw new BadRequestException(
                     'Artwork is not part of this exhibition',
                     ErrorCode.VALIDATION_ERROR
                 );
             }
-    
+
             // Initialize likes array if it doesn't exist
             if (!exhibition.result.likes) {
                 exhibition.result.likes = [];
             }
-    
+
             // Check if the user has already liked this artwork in this exhibition
             const existingLikeIndex = exhibition.result.likes.findIndex(
                 like => like.artworkId.toString() === artworkId && like.userId?.toString() === userId
             );
-    
+
             let updatedExhibition;
-            
+
             if (existingLikeIndex !== -1) {
                 // User already liked this artwork, so unlike it
                 updatedExhibition = await ExhibitionModel.findByIdAndUpdate(
                     exhibitionId,
-                    { 
+                    {
                         $pull: { 'result.likes': { artworkId, userId } }
                     },
                     { new: true }
@@ -642,27 +642,27 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
                 // User hasn't liked this artwork, so add like
                 updatedExhibition = await ExhibitionModel.findByIdAndUpdate(
                     exhibitionId,
-                    { 
+                    {
                         $push: { 'result.likes': { artworkId, userId, count: 1 } }
                     },
                     { new: true }
                 );
             }
-    
+
             if (!updatedExhibition) {
                 throw new InternalServerErrorException(
                     'Failed to update exhibition',
                     ErrorCode.DATABASE_ERROR
                 );
             }
-    
+
             // Count total likes for this artwork in this exhibition
             const artworkLikes = updatedExhibition.result.likes?.filter(
                 like => like.artworkId.toString() === artworkId
             ) || [];
-            
+
             const likesCount = artworkLikes.reduce((total, like) => total + (like.count || 0), 0);
-    
+
             return {
                 liked: existingLikeIndex === -1, // True if we just added a like, false if we removed it
                 likesCount,
@@ -670,13 +670,58 @@ async findAll(options: ExhibitionQueryOptions = {}): Promise<PaginatedExhibition
             };
         } catch (error) {
             logger.error('Error toggling artwork like:', error);
-            if (error instanceof BadRequestException || 
-                error instanceof NotFoundException || 
+            if (error instanceof BadRequestException ||
+                error instanceof NotFoundException ||
                 error instanceof InternalServerErrorException) {
                 throw error;
             }
             throw new InternalServerErrorException(
                 'Error toggling artwork like',
+                ErrorCode.DATABASE_ERROR
+            );
+        }
+    }
+
+    async updateAnalytics(
+        id: string,
+        data: UpdateExhibitionAnalyticsDto
+    ): Promise<ExhibitionDocument> {
+        try {
+
+            console.log('data', data);
+            if (!Types.ObjectId.isValid(id)) {
+                throw new BadRequestException('Invalid exhibition ID format');
+            }
+
+            const exhibition = await ExhibitionModel.findById(id);
+            if (!exhibition) {
+                throw new NotFoundException('Exhibition not found', ErrorCode.NOT_FOUND);
+            }
+
+            const updatedExhibition = await ExhibitionModel.findByIdAndUpdate(
+                id,
+                {
+                    $inc: {
+                        'result.visits': 1,
+                        'result.totalTime': data.totalTime
+                    }
+                },
+                { new: true }
+            );
+
+            if (!updatedExhibition) {
+                throw new NotFoundException('Exhibition not found', ErrorCode.NOT_FOUND);
+            }
+
+            return updatedExhibition;
+        } catch (error) {
+            logger.error('Error updating exhibition analytics:', error);
+            if (error instanceof BadRequestException ||
+                error instanceof NotFoundException) {
+                throw error;
+            }
+            throw new InternalServerErrorException(
+                'Error updating exhibition analytics',
                 ErrorCode.DATABASE_ERROR
             );
         }

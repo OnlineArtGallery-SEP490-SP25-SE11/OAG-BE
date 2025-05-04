@@ -10,6 +10,9 @@ import {
 import Event from '@/models/event.model';
 import User from '@/models/user.model';
 import { FilterQuery, Types } from 'mongoose';
+import NotificationService from '@/services/notification.service';
+import { UpdateEventSchema } from '@/dto/event.dto';
+
 export interface EventQueryOptions {
 	title?: string;
 	description?: string;
@@ -65,7 +68,7 @@ export class EventService {
 		}
 	}
 	async add(title: string, description: string, type: string, startDate: Date, endDate: Date,
-		status: EventStatus, organizer: string, image: string, link:string, userId: string): Promise<InstanceType<typeof Event>> {
+		status: EventStatus, organizer: string, image: string, link: string='Updating',userId: string): Promise<InstanceType<typeof Event>> {
 		try {
 			const event = new Event({
 				title,
@@ -73,7 +76,7 @@ export class EventService {
 				type,
 				startDate,
 				endDate,
-				status: EventStatus.UPCOMING,
+				status: EventStatus.UPCOMING || status,
 				organizer,
 				image,
 				link,
@@ -142,7 +145,28 @@ export class EventService {
 				logger.error(errorMessage);
 				throw new Error(errorMessage);
 			}
-
+			const participants = updatedEvent.participants;
+			if (participants && participants.length > 0) {
+				const resolvedParticipation = await Promise.all(
+				  participants.map(async (participant) => {
+					// Extract the userId correctly from the participant object
+					const userId = participant.userId as unknown as string;
+					
+					// Create a notification with relevant event update message
+					return await NotificationService.createNotification({
+					  title: 'Event Update',
+					  content: `The event "${updatedEvent.title}" has been updated. Check the latest details.`,
+					  userId: userId,
+					  isSystem: true,
+					  refType: 'event',
+					  refId: id,
+					});
+				  })
+				);
+				
+				// Log notification results if needed
+				logger.info(`Sent notifications to ${resolvedParticipation.length} participants for event ${id}`);
+			  }
 			return updatedEvent;
 		} catch (error) {
 			logger.error(error, 'Error updating event');
@@ -223,44 +247,102 @@ export class EventService {
 		try {
 			// Tìm kiếm user theo id
 			const user = await User.findById(userId);
-			if (!user) throw new CouldNotFindBlogException();
-
+			if (!user) throw new BadRequestException('User not found', ErrorCode.NOTFOUND);
+			if (user.isBanned) throw new BadRequestException('User is banned', ErrorCode.USER_BANNED);
+			
 			// Lấy thông tin event
 			const event = await Event.findById(eventId);
-			if (!event) throw new CouldNotFindBlogException();
-
-			// Tạo set từ danh sách participants hiện tại
-			const participantsSet = new Set(
-				event.participants?.map(participant => participant.userId as unknown as string) || []
+			if (!event) throw new BadRequestException('Event not found', ErrorCode.NOTFOUND);
+			// Check if user is already in participants
+			const isParticipating = event.participants?.some(
+				participant => participant.userId as unknown as string === userId
 			);
-
-			// Nếu user đã tham gia, xóa khỏi set, ngược lại thêm vào set
-			if (participantsSet.has(userId)) {
-				participantsSet.delete(userId);
-			} else {
-				participantsSet.add(userId);
+	
+			// If already participating, throw error
+			if (isParticipating) {
+				throw new BadRequestException('User is already participating in this event');
 			}
-
-			// Cập nhật event với danh sách participants mới dùng $set
-			// Giả sử định dạng của participant là { userId: string }
+	
+			// Add participant if not participating
 			const updatedEvent = await Event.findByIdAndUpdate(
 				eventId,
 				{
-					$set: {
-						participants: Array.from(participantsSet).map(id => ({ userId: id }))
+					$addToSet: {
+						participants: { userId: new Types.ObjectId(userId) }
 					}
 				},
 				{ new: true }
 			);
+	
 			if (!updatedEvent) {
 				throw new CouldNotFindBlogException();
 			}
-
+	
 			return updatedEvent;
 		} catch (error) {
+			// Kiểm tra loại lỗi và chuyển tiếp đúng loại lỗi
+			if (error instanceof BadRequestException || 
+				error instanceof CouldNotFindBlogException) {
+				throw error;
+			}
+			
 			logger.error(error, 'Error participating in event');
 			throw new InternalServerErrorException(
 				'Error participating in event',
+				ErrorCode.DATABASE_ERROR
+			);
+		}
+	}
+	
+	async cancelParticipation(eventId: string, userId: string): Promise<InstanceType<typeof Event>> {
+		try {
+			// Tìm kiếm user theo id
+			const user = await User.findById(userId);
+			if (!user) throw new BadRequestException('User not found', ErrorCode.NOTFOUND);
+			if (user.isBanned) throw new BadRequestException('User is banned', ErrorCode.USER_BANNED);
+			
+			// Lấy thông tin event
+			const event = await Event.findById(eventId);
+			if (!event) throw new BadRequestException('Event not found', ErrorCode.NOTFOUND);
+			console.log('participants', event.participants);
+			
+			// check if user is in array participants or not
+			const isParticipating = event.participants && event.participants?.some(
+				participant => participant.userId as unknown as string === userId
+				
+			);
+
+			// If not participating, throw error
+			// if (!isParticipating) {
+			// 	throw new BadRequestException('User is not participating in this event');
+			// }
+			
+			// Remove participant
+			const updatedEvent = await Event.findByIdAndUpdate(
+				eventId,
+				{
+					$pull: {
+						participants: { userId: new Types.ObjectId(userId) }
+					}
+				},
+				{ new: true }
+			);
+	
+			if (!updatedEvent) {
+				throw new CouldNotFindBlogException();
+			}
+	
+			return updatedEvent;
+		} catch (error) {
+			// Kiểm tra loại lỗi và chuyển tiếp đúng loại lỗi
+			if (error instanceof BadRequestException || 
+				error instanceof CouldNotFindBlogException) {
+				throw error;
+			}
+			
+			logger.error(error, 'Error canceling participation in event');
+			throw new InternalServerErrorException(
+				'Error canceling participation in event',
 				ErrorCode.DATABASE_ERROR
 			);
 		}
@@ -279,5 +361,34 @@ export class EventService {
 		}
 	}
 
+	async getEventParticipated(userId: string): Promise<InstanceType<typeof Event>[]> {
+		try {
+		  // Validate userId
+		  if (!Types.ObjectId.isValid(userId)) {
+			throw new BadRequestException(
+			  'Invalid user id',
+			  ErrorCode.NOTFOUND
+			);
+		  }
+		  
+		  // Find events where the user's ID is in the participants array
+		  const userEvents = await Event.find({
+			'participants.userId': new Types.ObjectId(userId)
+		  });
+		  
+		  return userEvents;
+		} catch (error) {
+		  // Handle specific error types
+		  if (error instanceof BadRequestException) {
+			throw error;
+		  }
+		  
+		  logger.error(error, `Error fetching events participated by user ${userId}`);
+		  throw new InternalServerErrorException(
+			'Error fetching participated events from database',
+			ErrorCode.DATABASE_ERROR
+		  );
+		}
+	  }
 }
 

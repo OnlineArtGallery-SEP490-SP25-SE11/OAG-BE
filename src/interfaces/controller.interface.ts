@@ -25,6 +25,7 @@ export interface IBlogController {
   getHeartCount(req: Request, res: Response, next: NextFunction): Promise<any>;
   isHeart(req: Request, res: Response, next: NextFunction): Promise<any>;
   getHeartUsers(req: Request, res: Response, next: NextFunction): Promise<any>;
+  getMostHearted(req: Request, res: Response, next: NextFunction): Promise<any>;
 }
 
 export interface IInteractionController {
@@ -40,6 +41,9 @@ export interface IArtistController {
   updateProfile(req: Request, res: Response, next: NextFunction): Promise<any>;
   getAllArtists(req: Request, res: Response, next: NextFunction): Promise<any>;
   searchArtists(req: Request, res: Response, next: NextFunction): Promise<any>;
+  getFeaturedArtist(req: Request, res: Response, next: NextFunction): Promise<any>;
+  setFeaturedArtist(req: Request, res: Response, next: NextFunction): Promise<any>;
+  getTrendingArtists(req: Request, res: Response, next: NextFunction): Promise<any>;
 }
 
 export interface ArtistProfileUpdate {

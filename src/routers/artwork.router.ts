@@ -12,6 +12,7 @@ const artworkController = container.get<ArtworkController>(
 	TYPES.ArtworkController
 );
 router.get('/', artworkController.get);
+router.get('/recommendations/following', roleRequire(), artworkController.getFollowingRecommendations);
 router.get('/artist', roleRequire([Role.ARTIST]), artworkController.getForArtist);
 router.get('/admin',roleRequire([Role.ADMIN]), artworkController.getForAdmin)
 router.post('/admin/:id',roleRequire([Role.ADMIN]), artworkController.reviewArtwork)
@@ -35,4 +36,9 @@ router.post(
 );
 router.get('/:id/check-purchased', roleRequire([Role.USER, Role.ARTIST]), artworkController.checkPurchaseStatus);
 // router.get('/download/:id',roleRequire([Role.USER, Role.ARTIST]), artworkController.downloadArtwork);
+
+// Routes cho việc xử lý view
+router.post('/:id/view', artworkController.incrementView); // Tăng lượt xem
+
+
 export default router;

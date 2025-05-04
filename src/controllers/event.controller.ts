@@ -14,6 +14,8 @@ export class EventController {
 		this.get = this.get.bind(this);
 		this.participate = this.participate.bind(this);
 		this.getUpcomingEvents = this.getUpcomingEvents.bind(this);
+		this.cancelParticipation = this.cancelParticipation.bind(this);
+		this.getEventParticipated = this.getEventParticipated.bind(this);
 	}
 
 	async get(req: Request, res: Response, next: NextFunction): Promise<any>{
@@ -192,6 +194,22 @@ export class EventController {
 		}
 	}
 
+	async cancelParticipation(req: Request, res: Response, next: NextFunction): Promise<any> {
+		const userId = req.userId;
+		if (!userId) {
+			throw new ForbiddenException('Forbidden');
+		}
+		const eventId = req.params.id;
+		try{
+			const event = await this._eventService.cancelParticipation(eventId, userId);
+			const response = BaseHttpResponse.success(event, 200, 'Cancel participation in event success');
+			return res.status(response.statusCode).json(response);
+		}
+		catch(error){
+			next(error);
+		}
+	}
+
 	async getUpcomingEvents(req: Request, res: Response, next: NextFunction): Promise<any> {
 		try {
 			const events = await this._eventService.getUpcomingEvent();
@@ -199,6 +217,24 @@ export class EventController {
 				events,
 				200,
 				'Get upcoming events success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async getEventParticipated(req: Request, res: Response, next: NextFunction): Promise<any> {
+		try {
+			const userId = req.userId;
+			if (!userId) {
+				throw new ForbiddenException('Forbidden');
+			}
+			const events = await this._eventService.getEventParticipated(userId);
+			const response = BaseHttpResponse.success(
+				events,
+				200,
+				'Get events participated success'
 			);
 			return res.status(response.statusCode).json(response);
 		} catch (error) {
