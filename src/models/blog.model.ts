@@ -1,60 +1,60 @@
 import { Status } from "@/constants/enum";
-import { getModelForClass, modelOptions, prop, type Ref } from "@typegoose/typegoose";
-import { Types } from "mongoose";
-import User from "./user.model";
+import mongoose, { Schema, Document, Model, Types } from "mongoose";
 
-@modelOptions({ schemaOptions: { timestamps: true } })
-export class Blog {
-	@prop({ required: true })
-	title!: string;
-
-	@prop()
-	content?: string;
-
-	@prop({ required: true })
-	image!: string;
-
-	@prop({ ref: () => User, required: true, index: true })
-	author!: Ref<typeof User>;
-
-	@prop({
-		required: true,
-		type: String,
-		enum: Status,
-		default: Status.DRAFT,
-		index: true // Index cho status filters
-	})
-	status!: Status;
-
-	@prop({ default: 0 })
-	heartCount?: number;
-
-	@prop({ default: 0 })
-	views?: number;
-
-	@prop({ type: () => [String], default: [] })
-	tags?: string[];
-
-	static async incrementHeartCount(postId: string) {
-		return getModelForClass(Blog).findByIdAndUpdate(
-			postId,
-			{ $inc: { heartCount: 1 } },
-			{ new: true }
-		);
-	}
-
-	static async decrementHeartCount(postId: string) {
-		return getModelForClass(Blog).findByIdAndUpdate(
-			postId,
-			{ $inc: { heartCount: -1 } },
-			{ new: true }
-		);
-	}
+export interface IBlog extends Document {
+  title: string;
+  content?: string;
+  image: string;
+  author: Types.ObjectId;
+  status: Status;
+  hearts: Types.ObjectId[];
+  views?: number;
+  tags?: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export type BlogDocument = Blog & {
-	_id: Types.ObjectId;
-	createdAt: Date;
-	updatedAt: Date;
+interface BlogModel extends Model<IBlog> {
+  incrementHeartCount(postId: string): Promise<IBlog | null>;
+  decrementHeartCount(postId: string): Promise<IBlog | null>;
+}
+
+const blogSchema = new Schema<IBlog, BlogModel>(
+  {
+    title: { type: String, required: true },
+    content: { type: String, required: false },
+    image: { type: String, required: true },
+    author: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    status: { 
+      type: String, 
+      enum: Object.values(Status), 
+      default: Status.DRAFT, 
+      required: true,
+      index: true 
+    },
+    hearts: { type: [Schema.Types.ObjectId], ref: 'User', default: [] },
+    views: { type: Number, default: 0 },
+    tags: { type: [String], default: [], required: false }
+  },
+  { timestamps: true }
+);
+
+blogSchema.statics.incrementHeartCount = function(postId: string) {
+  return this.findByIdAndUpdate(
+    postId,
+    { $inc: { heartCount: 1 } },
+    { new: true }
+  );
 };
-export default getModelForClass(Blog, { schemaOptions: { timestamps: true } });
+
+blogSchema.statics.decrementHeartCount = function(postId: string) {
+  return this.findByIdAndUpdate(
+    postId,
+    { $inc: { heartCount: -1 } },
+    { new: true }
+  );
+};
+
+const Blog = mongoose.model<IBlog, BlogModel>('Blog', blogSchema);
+export type BlogDocument = IBlog;
+export default Blog;

@@ -23,7 +23,7 @@ export class BlogTagController {
                 201,
                 'Create tag success'
             );
-            return res.status(response.statusCode).json(response.data);
+            return res.status(response.statusCode).json(response);
         } catch (error) {
             next(error);
         }
@@ -33,11 +33,11 @@ export class BlogTagController {
         try {
             const tags = await this._blogTagService.getTags();
             const response = BaseHttpResponse.success(
-                tags,
+                {tags},
                 200,
                 'Get tags success'
             );
-            return res.status(response.statusCode).json(response.data);
+            return res.status(response.statusCode).json(response);
         } catch (error) {
             next(error);
         }
@@ -52,7 +52,7 @@ export class BlogTagController {
                 204,
                 'Delete tag success'
             );
-            return res.status(response.statusCode).json(response.data);
+            return res.status(response.statusCode).json(response);
         } catch (error) {
             next(error);
         }

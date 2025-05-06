@@ -7,6 +7,15 @@ export enum Status {
     REJECTED = 'REJECTED',     // Admin rejected the blog
     ARCHIVED = 'ARCHIVED'      // No longer active but kept for records
 }
+
+export enum ExhibitionStatus {
+	DRAFT = 'DRAFT',
+	PENDING = 'PENDING',
+	PUBLISHED = 'PUBLISHED',
+	PRIVATE = 'PRIVATE',
+	REJECTED = 'REJECTED'
+}
+
 export enum InteractionType {
 	HEART = 'HEART'
 }
@@ -23,3 +32,29 @@ export enum EventStatus {
 	COMPLETED = 'COMPLETED',
 }
 
+export enum ReasonReport {
+	INAPPROPRIATE = 'INAPPROPRIATE',
+	COPYRIGHT = 'COPYRIGHT',
+	HARASSMENT = 'HARASSMENT',
+	SPAM = 'SPAM',
+	Other = 'Other',
+}
+
+export enum ReportStatus {
+	PENDING = 'PENDING',
+	DISMISSED = 'DISMISSED',
+	RESOLVED = 'RESOLVED',
+}
+
+
+export enum ArtistRequestStatus {
+	PENDING = 'pending',
+	APPROVED = 'approved',
+	REJECTED = 'rejected',
+}
+
+//Ban/unban user, warning
+export enum actionReport{
+	BAN = 'BAN',
+	WARNING = 'WARNING',
+}

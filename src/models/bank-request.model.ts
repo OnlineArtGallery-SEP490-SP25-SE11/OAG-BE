@@ -1,42 +1,48 @@
-import { getModelForClass, modelOptions, prop, type Ref } from '@typegoose/typegoose';
-import Wallet from './wallet.model';
+import mongoose, { Document, Schema } from 'mongoose';
 
-@modelOptions({
-    schemaOptions: {
-        timestamps: true
-    }
-})
-class BankRequest {
-    @prop({
-        ref: () => Wallet,
-        required: true
-    })
-    public walletId!: Ref<typeof Wallet>;
-
-    @prop({
-        type: () => Number,
-        required: true
-    })
-    public amount!: number;
-
-    @prop({
-        enum: ['PENDING', 'APPROVED', 'REJECTED'],
-        required: true,
-        default: 'PENDING'
-    })
-    public status!: 'PENDING' | 'APPROVED' | 'REJECTED';
-
-    @prop({
-        type: () => String,
-        required: true
-    })
-    public bankName!: string;
-
-    @prop({
-        type: () => String,
-        required: true
-    })
-    public bankAccountName!: string;
+// Define interface for the document
+export interface IBankRequest extends Document {
+  walletId: mongoose.Types.ObjectId;
+  amount: number;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  bankName: string;
+  bankAccountName: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export default getModelForClass(BankRequest, { schemaOptions: { timestamps: true } });
+// Create schema
+const bankRequestSchema = new Schema({
+  walletId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Wallet',
+    required: true
+  },
+  amount: {
+    type: Number,
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['PENDING', 'APPROVED', 'REJECTED'],
+    required: true,
+    default: 'PENDING'
+  },
+  bankName: {
+    type: String,
+    required: true
+  },
+  bankAccountName: {
+    type: String,
+    required: true
+  },
+  idBankAccount: {
+    type: String,
+    required: true
+  },
+}, {
+  timestamps: true
+});
+
+// Export model
+export default mongoose.model<IBankRequest>('BankRequest', bankRequestSchema);

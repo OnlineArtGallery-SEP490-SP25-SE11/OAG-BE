@@ -1,36 +1,64 @@
-// comment.model.ts 
-//new pull
-import { getModelForClass, modelOptions, prop, type Ref } from "@typegoose/typegoose";
-import User from "./user.model";
-import { Blog } from "./blog.model";
-import { Types } from "mongoose";
+// comment.model.ts
+import mongoose, { Schema, Document, Types } from "mongoose";
 
-@modelOptions({ schemaOptions: { timestamps: true } })
-export class Comment {
-  @prop({ ref: () => Blog, required: true, index: true })
-  blog!: Ref<Blog>;
-
-  @prop({ ref: () => User, required: true, index: true })
-  author!: Ref<typeof User>;
-
-  @prop({ required: true, trim: true })
-  content!: string;
-
-  @prop({ default: 0 })
-  likeCount?: number;
-
-  @prop({ ref: () => Comment })
-  parentComment?: Ref<Comment>;
-
-  @prop({ ref: () => Comment, default: [], type: () => [Types.ObjectId] })
-  replies!: Types.ObjectId[];
-
-  createdAt!: Date;
-  updatedAt!: Date;
+// Define the interface for the document
+export interface CommentDocument extends Document {
+  onModel: 'blog' | 'artwork';
+  target: Types.ObjectId;
+  author: Types.ObjectId;
+  content: string;
+  likeCount: number;
+  parentComment?: Types.ObjectId;
+  replies: Types.ObjectId[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export type CommentDocument = Comment & {
-  _id: Types.ObjectId;
-};
+// Create the schema
+const CommentSchema = new Schema<CommentDocument>(
+  {
+    // refPath to support multiple content types (Blog, Artwork)
+    onModel: {
+      type: String,
+      required: true,
+      enum: ['blog', 'artwork']
+    },
+    target: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      refPath: 'onModel',
+      index: true
+    },
+    author: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true
+    },
+    content: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    likeCount: {
+      type: Number,
+      default: 0
+    },
+    parentComment: {
+      type: Schema.Types.ObjectId,
+      ref: 'Comment'
+    },
+    replies: {
+      type: [Schema.Types.ObjectId],
+      ref: 'Comment',
+      default: []
+    }
+  },
+  {
+    timestamps: true
+  }
+);
 
-export default getModelForClass(Comment);
+// Create and export the model
+const CommentModel = mongoose.model<CommentDocument>('Comment', CommentSchema);
+export default CommentModel;

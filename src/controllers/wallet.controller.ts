@@ -13,6 +13,7 @@ class WalletController {
         this.withdraw = this.withdraw.bind(this);
         this.getTransactionHistory = this.getTransactionHistory.bind(this);
         this.getWallet = this.getWallet.bind(this);
+        this.getAllTransaction = this.getAllTransaction.bind(this);
     }
 
     async deposit(req: Request, res: Response, next: NextFunction): Promise<any> {
@@ -93,6 +94,20 @@ class WalletController {
             next(error);
         }
     }
+    async getAllTransaction(req: Request, res: Response, next: NextFunction): Promise<any> {
+        try {
+            const transactions = await this.walletService.getAllTransaction();
+            const response = BaseHttpResponse.success(
+                transactions,
+                200,
+                'Get all transactions success'
+            );
+            res.status(200).json(response);
+        } catch (error) {
+            next(error);
+        }
+    }
+
 }
 
 export default WalletController;

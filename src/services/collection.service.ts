@@ -1,6 +1,6 @@
 import logger from '@/configs/logger.config';
 import Collection from '@/models/collection.model';
-import { startSession, Types } from 'mongoose';
+import {  Types } from 'mongoose';
 import { injectable } from 'inversify';
 
 export interface MoveArtworkOptions {
@@ -21,13 +21,17 @@ export interface UpdateCollectionOptions {
 @injectable()
 export class CollectionService {
 	async add(
+		userId: string,
+		isArtist: boolean,
 		title: string,
 		description: string,
 		artworks?: string[]
 	): Promise<InstanceType<typeof Collection>> {
 		try {
 			const collection = new Collection({
+				userId,
 				title,
+				isArtist,
 				description,
 				artworks: artworks || []
 			});
@@ -38,7 +42,7 @@ export class CollectionService {
 		}
 	}
 
-	async get(
+	async getById(
 		id?: string
 	): Promise<
 		InstanceType<typeof Collection> | InstanceType<typeof Collection>[]
@@ -53,139 +57,164 @@ export class CollectionService {
 			return Collection.find();
 		}
 	}
-
-	async update(
-		options: UpdateCollectionOptions
-	): Promise<InstanceType<typeof Collection>> {
-		const session = await startSession();
-		session.startTransaction();
-
+	// get my collections
+	async getByUserId(userId: string): Promise<InstanceType<typeof Collection>[]> {
 		try {
-			const collection = await Collection.findById(options.id).session(
-				session
-			);
-			if (!collection) {
-				logger.error('Collection not found');
+			if(!userId){
+				throw new Error('User not found');
+			}
+			const collections = await Collection.find({ userId, isArtist: false })
+			.populate({
+				path: 'artworks',
+				select: 'title url',
+				model: 'Artwork' // Explicitly specify the model name
+			})
+			.exec();
+			if(!collections){
 				throw new Error('Collection not found');
 			}
-			// Ensure artworks is defined
+			return collections;
+		}
+		catch(error){
+			logger.error(error);
+			throw error;
+		}
+	}
+	//get collection of artist
+	async getByArtistId(artistId: string): Promise<InstanceType<typeof Collection>[]> {
+		try{
+			if(!artistId){
+				throw new Error('Artist not found');
+			}
+			const collections = await Collection.find({ userId: artistId, isArtist: true })
+			.populate({
+				path: 'artworks',
+				select: 'title url',
+				model: 'Artwork' // Explicitly specify the model name
+			})
+			.exec();
+			if(!collections){
+				throw new Error('Collection not found');
+			}
+			return collections;
+		}
+		catch(error){
+			logger.error(error);
+			throw error;
+		}
+	}
+	// //get collection of others
+	// async getByOtherUserId(userId: string): Promise<InstanceType<typeof Collection>[]> {
+	// 	try{
+	// 		if(!userId){
+	// 			throw new Error('User not found');
+	// 		}
+	// 		const collections = await Collection.find({ userId });
+	// 		if(!collections){
+	// 			throw new Error('Collection not found');
+	// 		}
+	// 		return collections;
+	// 	}
+	// 	catch(error){
+	// 		logger.error(error);
+	// 		throw error;
+	// 	}
+	// }
+	// add artwork to collection or my favorite
+	async update(
+		id: string,
+		artId: string | string[]
+	): Promise<InstanceType<typeof Collection>> {
+		try {
+			if (!id) {
+				throw new Error('Collection not found');
+			}
+			const collection = await Collection.findById(id);
+			if (!collection) {
+				throw new Error('Collection not found');
+			}
+
+			// Ensure artworks array exists
 			collection.artworks = collection.artworks || [];
 
-			// Update fields
-			if (options.title) {
-				collection.title = options.title;
-			}
-			if (options.description) {
-				collection.description = options.description;
-			}
+			// Handle both single artwork ID or array of IDs
+			const artworkIds = Array.isArray(artId) ? artId : [artId];
 
-			if (options.artworks) {
-				for (const artworkId of options.artworks) {
-					const sourceCollection = await Collection.findOne({
-						_id: { $ne: collection._id },
-						artworks: artworkId
-					}).session(session);
+			// Add each artwork to collection if not already present
+			for (const artwork of artworkIds) {
+				const artworkObjectId = new Types.ObjectId(artwork);
+				const existsInCollection = collection.artworks.some(
+					(existingArt) =>
+						existingArt instanceof Types.ObjectId &&
+						existingArt.toString() === artworkObjectId.toString()
+				);
 
-					if (sourceCollection) {
-						await this.move({
-							oldCollectionId: sourceCollection._id.toString(),
-							newCollectionId: collection._id.toString(),
-							artworks: [artworkId]
-						});
-					} else {
-						const existsInCurrentCollection =
-							collection.artworks.some(
-								(ref) =>
-									ref instanceof Types.ObjectId &&
-									ref.toString() === artworkId
-							);
-						if (!existsInCurrentCollection) {
-							collection.artworks.push(
-								new Types.ObjectId(artworkId)
-							);
-						}
-					}
+				if (!existsInCollection) {
+					collection.artworks.push(artworkObjectId);
 				}
 			}
-			await collection.save({ session });
-			await session.commitTransaction();
+
+			// Save updated collection
+			await collection.save();
 			return collection;
 		} catch (error) {
 			logger.error(error);
-			await session.abortTransaction();
-			await session.endSession();
 			throw error;
 		}
 	}
-
-	async move(options: MoveArtworkOptions): Promise<{
-		oldCollection: InstanceType<typeof Collection>;
-		newCollection: InstanceType<typeof Collection>;
-	}> {
-		const session = await startSession();
-		session.startTransaction();
-
+	// delete artwork from collection or my favorite
+	async delArt(id: string, artIdInput: string | string[]): Promise<InstanceType<typeof Collection>> {
 		try {
-			const oldCollection = await Collection.findById(
-				options.oldCollectionId
-			).session(session);
-			const newCollection = await Collection.findById(
-				options.newCollectionId
-			).session(session);
-
-			if (!oldCollection || !newCollection) {
-				logger.error('Collection not found');
+			if (!id) {
 				throw new Error('Collection not found');
 			}
-
-			// Ensure artworks are defined
-			oldCollection.artworks = oldCollection.artworks || [];
-			newCollection.artworks = newCollection.artworks || [];
-
-			let artworks: Types.ObjectId[] = [];
-			if (options.moveAll) {
-				artworks = oldCollection.artworks.map(
-					(ref) => new Types.ObjectId(ref.toString())
-				);
-			} else {
-				artworks = (options.artworks || []).map(
-					(id) => new Types.ObjectId(id)
-				);
+			const collection = await Collection.findById(id);
+			if (!collection) {
+				throw new Error('Collection not found');
 			}
-
-			oldCollection.artworks = oldCollection.artworks.filter(
-				(artworkId) =>
-					!artworks.some((id) =>
-						id.equals(artworkId as Types.ObjectId)
-					)
-			);
-
-			const newArtworkSet = new Set(
-				newCollection.artworks.map((ref) => ref.toString())
-			);
-			artworks.forEach((id) => {
-				if (!newArtworkSet.has(id.toString())) {
-					newCollection.artworks = newCollection.artworks || [];
-					newCollection.artworks.push(id);
-				}
+			
+			// Ensure artworks array exists
+			collection.artworks = collection.artworks || [];
+			
+			// Handle both single string and array input
+			const artIds = Array.isArray(artIdInput) ? artIdInput : [artIdInput];
+			
+			// Log for debugging
+			console.log("Collection before:", collection.artworks);
+			console.log("Attempting to remove artwork IDs:", artIds);
+			
+			// Filter out the artworks to be removed - using string comparison
+			collection.artworks = collection.artworks.filter(existingArt => {
+				const existingArtString = existingArt.toString();
+				return !artIds.includes(existingArtString);
 			});
-
-			await oldCollection.save({ session });
-			await newCollection.save({ session });
-
-			await session.commitTransaction();
-			await session.endSession();
-			return {
-				oldCollection,
-				newCollection
-			};
+			
+			// Log after filtering
+			console.log("Collection after filtering:", collection.artworks);
+			
+			// Save the updated collection
+			await collection.save();
+			return collection;
 		} catch (error) {
 			logger.error(error);
-			await session.abortTransaction();
-			await session.endSession();
 			throw error;
 		}
 	}
+
+	//delete collection
+	async delCollection(id: string): Promise<InstanceType<typeof Collection>> {
+		try {
+			const collection = await Collection.findByIdAndDelete(id);
+			if (!collection) {
+				throw new Error('Collection not found');
+			}
+			return collection;
+		} catch (error) {
+			logger.error(error);
+			throw error;
+		}
+	}
+
 }
 
 // export default new CollectionService();

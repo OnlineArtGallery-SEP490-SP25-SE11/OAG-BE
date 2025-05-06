@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+//controller.interface.ts
 import { Request, Response, NextFunction } from "express";
 
 export interface IBlogTagController {
@@ -20,6 +20,12 @@ export interface IBlogController {
   requestPublish(req: Request, res: Response, next: NextFunction): Promise<any>;
   findUserBlogs(req: Request, res: Response, next: NextFunction): Promise<any>;
   find(req: Request, res: Response, next: NextFunction): Promise<any>;
+  addHeart(req: Request, res: Response, next: NextFunction): Promise<any>;
+  removeHeart(req: Request, res: Response, next: NextFunction): Promise<any>;
+  getHeartCount(req: Request, res: Response, next: NextFunction): Promise<any>;
+  isHeart(req: Request, res: Response, next: NextFunction): Promise<any>;
+  getHeartUsers(req: Request, res: Response, next: NextFunction): Promise<any>;
+  getMostHearted(req: Request, res: Response, next: NextFunction): Promise<any>;
 }
 
 export interface IInteractionController {
@@ -35,6 +41,9 @@ export interface IArtistController {
   updateProfile(req: Request, res: Response, next: NextFunction): Promise<any>;
   getAllArtists(req: Request, res: Response, next: NextFunction): Promise<any>;
   searchArtists(req: Request, res: Response, next: NextFunction): Promise<any>;
+  getFeaturedArtist(req: Request, res: Response, next: NextFunction): Promise<any>;
+  setFeaturedArtist(req: Request, res: Response, next: NextFunction): Promise<any>;
+  getTrendingArtists(req: Request, res: Response, next: NextFunction): Promise<any>;
 }
 
 export interface ArtistProfileUpdate {
@@ -49,15 +58,11 @@ export interface ArtistProfileUpdate {
 }
 export interface ICommentController {
   create(req: Request, res: Response, next: NextFunction): Promise<Response>;
-  getComments(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  getCommentsByTarget(req: Request, res: Response, next: NextFunction): Promise<Response>;
   update(req: Request, res: Response, next: NextFunction): Promise<Response>;
   delete(req: Request, res: Response, next: NextFunction): Promise<Response>;
-	// getUserInteractions(
-	// 	req: Request,
-	// 	res: Response,
-	// 	next: NextFunction
-	// ): Promise<any>;
 }
+
 
 export interface IArtworkController {
   add(req: Request, res: Response, next: NextFunction): Promise<any>;
@@ -68,4 +73,42 @@ export interface ICollectionController {
     add(req: Request, res: Response, next: NextFunction): Promise<any>;
     update(req: Request, res: Response, next: NextFunction): Promise<any>;
     get(req: Request, res: Response, next: NextFunction): Promise<any>;
+}
+
+export interface IAlbumController{
+    add(req: Request, res: Response, next: NextFunction): Promise<any>;
+    update(req: Request, res: Response, next: NextFunction): Promise<any>;
+    get(req: Request, res: Response, next: NextFunction): Promise<any>;
+    getByUserId(req: Request, res: Response, next: NextFunction): Promise<any>;
+    getByOtherUserId(req: Request, res: Response, next: NextFunction): Promise<any>;
+    getById(req: Request, res: Response, next: NextFunction): Promise<any>;
+    delArt(req: Request, res: Response, next: NextFunction): Promise<any>;
+    delCollection(req: Request, res: Response, next: NextFunction): Promise<any>;
+}
+
+export interface IChatController {
+  createChat(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  getChatHistory(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  getChatList(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  getLastMessageWithUsers(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  markMessageAsRead(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  markAllMessagesAsRead(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  deleteMessage(req: Request, res: Response, next: NextFunction): Promise<Response>;
+  deleteChat(req: Request, res: Response, next: NextFunction): Promise<Response>;
+}
+
+export interface ICCCDController {
+  getAll(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
+  create(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
+  getCCCDById(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
+  getCCCDByUserId(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
+  update(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
+  delete(req: Request, res: Response, next: NextFunction): Promise<Response | void>;
+}
+
+export interface IArtistRequestController {
+  createRequest(req: Request, res: Response, next: NextFunction): Promise<void>;
+  getMyRequest(req: Request, res: Response, next: NextFunction): Promise<void>;
+  getRequestById(req: Request, res: Response, next: NextFunction): Promise<void>;
+  updateRequestStatus(req: Request, res: Response, next: NextFunction): Promise<void>;
 }

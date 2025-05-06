@@ -29,21 +29,13 @@ class WalletService {
                 });
                 logger.info('Created new wallet for deposit:', { userId, walletId: wallet._id });
             }
+            
+            // Chỉ tạo payment, không tạo transaction
             const payment = await this.paymentService.payment(
                 { amount, description: description || `Deposit ${amount}` },
                 userId
             );
 
-            const transaction = await Transaction.create({
-                walletId: wallet._id,
-                userId,
-                amount: payment.amount,
-                type: 'DEPOSIT',
-                status: payment.status,
-                // description: description || `Deposit ${amount}`
-                orderCode: payment.orderCode,
-            });
-            await transaction.save()
             return payment;
         } catch (error) {
             logger.error('Error processing deposit:', error);
@@ -78,28 +70,11 @@ class WalletService {
                 );
             }
 
-            // Update wallet balance
-            const updatedWallet = await Wallet.findByIdAndUpdate(
-                wallet._id,
-                { $inc: { balance: -amount } },
-                { new: true }
-            );
-
-            // Create transaction record
-            const transaction = await Transaction.create({
-                walletId: wallet._id,
-                userId,
-                amount,
+            // Sử dụng phương thức subtractFunds mới
+            const updatedWallet = await this.subtractFunds(wallet._id as string, amount, {
                 type: 'WITHDRAWAL',
-                status: 'COMPLETED',
-                description: `Withdrawal ${amount}`
-            });
-
-            logger.info('Withdrawal completed:', {
-                userId,
-                amount,
-                newBalance: updatedWallet?.balance,
-                transactionId: transaction._id
+                description: `Withdrawal ${amount}`,
+                userId
             });
 
             return updatedWallet;
@@ -124,12 +99,14 @@ class WalletService {
             if (!amount || amount <= 0) {
                 throw new BadRequestException('Amount must be a positive number');
             }
+
             // Atomic operation: find wallet and update balance in one step if sufficient funds exist
             const wallet = await Wallet.findOneAndUpdate(
                 { userId, balance: { $gte: amount } },
                 { $inc: { balance: -amount } },
                 { new: true }
             );
+
             // Handle insufficient balance case
             if (!wallet) {
                 const originalWallet = await Wallet.findOne({ userId });
@@ -141,13 +118,16 @@ class WalletService {
                     message: `Insufficient balance. Available: ${originalWallet.balance}`
                 };
             }
+
+            // Tạo transaction
             const transaction = await Transaction.create({
                 walletId: wallet._id,
                 userId,
                 amount,
                 type: 'PAYMENT',
-                status: 'COMPLETED',
-                description: description || `Payment ${amount}`
+                status: 'PAID',
+                description: description || `Payment ${amount}`,
+                orderCode: Date.now()
             });
 
             if (callback) {
@@ -165,9 +145,10 @@ class WalletService {
                 status: 'SUCCESS',
                 message: 'Payment successful',
             };
+            
         } catch (error) {
             logger.error('Error processing payment:', error);
-
+            console.log('error', error)
             if (error instanceof BadRequestException) {
                 throw error;
             }
@@ -262,7 +243,151 @@ class WalletService {
         }
     }
 
+    /**
+     * Thêm tiền vào ví và tạo giao dịch tương ứng
+     * @param walletId ID của ví
+     * @param amount Số tiền cần thêm
+     * @param transactionDetails Chi tiết giao dịch
+     * @returns Ví đã được cập nhật
+     */
+    async addFunds(walletId: string, amount: number, transactionDetails: {
+        type: string,
+        description: string,
+        userId: string,
+        status?: 'PENDING' | 'PAID' | 'FAILED',
+        orderCode?: string
+    }) {
+        try {
+            if (!amount || amount <= 0) {
+                throw new BadRequestException('Amount must be a positive number');
+            }
 
+            // Cập nhật ví với atomic operation
+            const updatedWallet = await Wallet.findOneAndUpdate(
+                { _id: walletId },
+                { $inc: { balance: amount } },
+                { new: true }
+            );
+
+            if (!updatedWallet) {
+                throw new BadRequestException('Wallet not found');
+            }
+
+            // Tạo giao dịch
+            const transaction = await Transaction.create({
+                walletId,
+                userId: transactionDetails.userId,
+                amount,
+                type: transactionDetails.type,
+                status: transactionDetails.status || 'PAID',
+                description: transactionDetails.description,
+                // orderCode: transactionDetails.orderCode || Date.now().toString()
+            });
+
+            logger.info(`Added ${amount} to wallet:`, {
+                walletId,
+                amount,
+                newBalance: updatedWallet.balance,
+                transactionId: transaction._id
+            });
+
+            return updatedWallet;
+        } catch (error) {
+            logger.error('Error adding funds to wallet:', error);
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new InternalServerErrorException('Failed to add funds to wallet');
+        }
+    }
+
+    /**
+     * Trừ tiền từ ví và tạo giao dịch tương ứng
+     * @param walletId ID của ví
+     * @param amount Số tiền cần trừ
+     * @param transactionDetails Chi tiết giao dịch
+     * @returns Ví đã được cập nhật
+     */
+    async subtractFunds(walletId: string, amount: number, transactionDetails: {
+        type: string,
+        description: string,
+        userId: string,
+        status?: 'PENDING' | 'PAID' | 'FAILED',
+        orderCode?: string
+    }) {
+        try {
+            if (!amount || amount <= 0) {
+                throw new BadRequestException('Amount must be a positive number');
+            }
+
+            // Kiểm tra số dư trước khi trừ tiền
+            const wallet = await Wallet.findById(walletId);
+            if (!wallet) {
+                throw new BadRequestException('Wallet not found');
+            }
+
+            if (wallet.balance < amount) {
+                throw new BadRequestException(`Insufficient balance. Available: ${wallet.balance}`);
+            }
+
+            // Cập nhật ví với atomic operation
+            const updatedWallet = await Wallet.findOneAndUpdate(
+                { _id: walletId, balance: { $gte: amount } },
+                { $inc: { balance: -amount } },
+                { new: true }
+            );
+
+            if (!updatedWallet) {
+                throw new BadRequestException('Failed to update wallet balance');
+            }
+
+            // Tạo giao dịch
+            const transaction = await Transaction.create({
+                walletId,
+                userId: transactionDetails.userId,
+                amount,
+                type: transactionDetails.type,
+                status: transactionDetails.status || 'PAID',
+                description: transactionDetails.description,
+                orderCode: transactionDetails.orderCode || Date.now().toString()
+            });
+
+            logger.info(`Subtracted ${amount} from wallet:`, {
+                walletId,
+                amount,
+                newBalance: updatedWallet.balance,
+                transactionId: transaction._id
+            });
+
+            return updatedWallet;
+        } catch (error) {
+            logger.error('Error subtracting funds from wallet:', error);
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new InternalServerErrorException('Failed to subtract funds from wallet');
+        }
+    }
+
+
+    async getAllTransaction() {
+        try {
+            const transactions = await Transaction.find().sort({ createdAt: -1 });
+    
+            logger.info('Retrieved all transactions (admin):', {
+                transactionCount: transactions.length,
+            });
+    
+            return transactions;
+        } catch (error) {
+            logger.error('Error getting all transactions:', error);
+    
+            throw new InternalServerErrorException(
+                'Failed to retrieve transactions'
+            );
+        }
+    }
+    
 }
 
 export default WalletService;

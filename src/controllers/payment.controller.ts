@@ -8,7 +8,7 @@ import env from '@/utils/validateEnv.util';
 import PayOS from '@payos/node';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
-import { PremiumSubscriptionModel } from '../models/premium.model';
+import PremiumSubscription from '../models/premium.model';
 import User from '../models/user.model';
 
 @injectable()
@@ -246,7 +246,7 @@ export class PaymentController {
 
       if (status === 'success') {
         // Create premium subscription
-        const subscription = await PremiumSubscriptionModel.create({
+        const subscription = await PremiumSubscription.create({
           userId,
           startDate: new Date(),
           endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days

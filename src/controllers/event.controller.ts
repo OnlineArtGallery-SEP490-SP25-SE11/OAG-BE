@@ -1,13 +1,8 @@
 import { ForbiddenException } from '@/exceptions/http-exception';
 import { NextFunction, Request, Response } from 'express';
-import { ErrorCode } from '@/constants/error-code';
 import { BaseHttpResponse } from '@/lib/base-http-response';
 import { EventService } from '@/services/events.service';
-import {
-	UpdateEventDto,
-	CreateEventPayload,
-	UpdateEventSchema
-} from '@/dto/event.dto';
+
 export class EventController {
 	private readonly _eventService = new EventService();
 	constructor() {
@@ -18,6 +13,9 @@ export class EventController {
 		this.deleteEvent = this.deleteEvent.bind(this);
 		this.get = this.get.bind(this);
 		this.participate = this.participate.bind(this);
+		this.getUpcomingEvents = this.getUpcomingEvents.bind(this);
+		this.cancelParticipation = this.cancelParticipation.bind(this);
+		this.getEventParticipated = this.getEventParticipated.bind(this);
 	}
 
 	async get(req: Request, res: Response, next: NextFunction): Promise<any>{
@@ -94,7 +92,8 @@ export class EventController {
 				endDate,
 				status,
 				organizer,
-				image
+				image,
+				link
 			} = req.body;
 
 			const event = await this._eventService.add(
@@ -106,6 +105,7 @@ export class EventController {
 				status,
 				organizer,
 				image,
+				link,
 				userId
 			)
 			const response = BaseHttpResponse.success(event, 201, 'Add event success');
@@ -134,7 +134,8 @@ export class EventController {
 				endDate,
 				status,
 				organizer,
-				image
+				image,
+				link
 			} = req.body;
 			console.log(userId,req.body);
 			const event = await this._eventService.update(
@@ -146,7 +147,8 @@ export class EventController {
 				endDate,
 				status,
 				organizer,
-				image
+				image,
+				link,
 			);
 			const response = BaseHttpResponse.success(event, 201, 'Update event success');
 			console.log(response);
@@ -188,6 +190,54 @@ export class EventController {
 			return res.status(response.statusCode).json(response);
 		}
 		catch(error){
+			next(error);
+		}
+	}
+
+	async cancelParticipation(req: Request, res: Response, next: NextFunction): Promise<any> {
+		const userId = req.userId;
+		if (!userId) {
+			throw new ForbiddenException('Forbidden');
+		}
+		const eventId = req.params.id;
+		try{
+			const event = await this._eventService.cancelParticipation(eventId, userId);
+			const response = BaseHttpResponse.success(event, 200, 'Cancel participation in event success');
+			return res.status(response.statusCode).json(response);
+		}
+		catch(error){
+			next(error);
+		}
+	}
+
+	async getUpcomingEvents(req: Request, res: Response, next: NextFunction): Promise<any> {
+		try {
+			const events = await this._eventService.getUpcomingEvent();
+			const response = BaseHttpResponse.success(
+				events,
+				200,
+				'Get upcoming events success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async getEventParticipated(req: Request, res: Response, next: NextFunction): Promise<any> {
+		try {
+			const userId = req.userId;
+			if (!userId) {
+				throw new ForbiddenException('Forbidden');
+			}
+			const events = await this._eventService.getEventParticipated(userId);
+			const response = BaseHttpResponse.success(
+				events,
+				200,
+				'Get events participated success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
 			next(error);
 		}
 	}

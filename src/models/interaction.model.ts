@@ -1,41 +1,50 @@
+import mongoose, { Document, Schema, model, Types } from 'mongoose';
 import { InteractionType } from "@/constants/enum";
-import { getModelForClass, index, pre, prop, type Ref } from "@typegoose/typegoose";
-import { Types } from "mongoose";
-import { Blog } from "./blog.model";
-import User from "./user.model";
 
-@index({ post: 1, type: 1, createdAt: -1 })
-@pre<Interaction>('save', async function (next) {
-	if (this.type === InteractionType.HEART) {
-		await Blog.incrementHeartCount(this.blogId.toString());
-	}
-	next();
-})
-@pre<Interaction>('deleteOne', async function (next) {
-	if (this.type === InteractionType.HEART) {
-		await Blog.decrementHeartCount(this.blogId.toString());
-	}
-	next();
-})
-export class Interaction {
-	@prop({
-		required: true,
-		type: String,
-		enum: InteractionType,
-		index: true
-	})
-	type!: InteractionType;
-
-	@prop({ required: true, ref: () => User, index: true })
-	userId!: Ref<typeof User>;
-
-	@prop({ required: true, ref: () => Blog, index: true })
-	blogId!: Ref<Blog>;
+// Define interface for Interaction document
+interface IInteraction extends Document {
+  type: InteractionType;
+  userId: mongoose.Types.ObjectId;
+  blogId: mongoose.Types.ObjectId;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-export type InteractionDocument = Interaction & {
-	_id: Types.ObjectId;
-	createdAt: Date;
-	updatedAt: Date;
+// Create the schema
+const interactionSchema = new Schema<IInteraction>(
+  {
+    type: {
+      type: String,
+      required: true,
+      enum: Object.values(InteractionType),
+      index: true
+    },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true
+    },
+    blogId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Blog',
+      required: true,
+      index: true
+    }
+  },
+  { timestamps: true }
+);
+
+// Create compound index
+interactionSchema.index({ post: 1, type: 1, createdAt: -1 });
+// Create and export the model
+const Interaction = model<IInteraction>('Interaction', interactionSchema);
+
+export default Interaction;
+
+// Export the document type for type safety in other files
+export type InteractionDocument = IInteraction & {
+  _id: Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
 };
-export default getModelForClass(Interaction);

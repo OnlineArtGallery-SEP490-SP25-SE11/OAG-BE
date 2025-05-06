@@ -11,7 +11,7 @@ import Wallet from '@/models/wallet.model';
 import env from '@/utils/validateEnv.util';
 import PayOS from '@payos/node';
 import { injectable } from 'inversify';
-import mongoose from 'mongoose';
+import crypto from 'crypto';
 interface PaymentPurchase {
     amount: number;
     description?: string;
@@ -158,7 +158,7 @@ export class PaymentService {
                 );
             }
             
-            const paymentId = payment._id.toString();
+            const paymentId = payment._id as string;
             logger.debug('Found payment record:', { paymentId, status: payment.status });
             
             // First check if payment is already processed
@@ -166,7 +166,7 @@ export class PaymentService {
             
             if (existingTransaction) {
                 logger.info('Payment already processed, transaction exists:', { 
-                    transactionId: existingTransaction._id.toString(),
+                    transactionId: existingTransaction._id,
                     paymentId
                 });
                 return payment;
@@ -199,7 +199,7 @@ export class PaymentService {
             if (paymentPayOS.status === 'PAID') {
                 logger.info('Processing successful payment:', { paymentId });
                 await this.processPaymentSafely({
-                    paymentId: updatedPayment._id.toString(),
+                    paymentId: updatedPayment._id as string,
                     orderCode: updatedPayment.orderCode,
                     amount: updatedPayment.amount
                 }, userId);
@@ -230,7 +230,7 @@ export class PaymentService {
         try {
             // 1. Generate a unique transactionId based on paymentId to ensure idempotency
             const transactionIdBase = `${paymentId}-${orderCode}`;
-            const transactionIdHash = require('crypto').createHash('md5').update(transactionIdBase).digest('hex');
+            const transactionIdHash = crypto.createHash('md5').update(transactionIdBase).digest('hex');
     
             // 2. Check if transaction already exists with this unique ID
             const existingTransaction = await Transaction.findOne({
@@ -239,7 +239,7 @@ export class PaymentService {
     
             if (existingTransaction) {
                 logger.info('Transaction already exists for this payment:', {
-                    transactionId: existingTransaction._id.toString(),
+                    transactionId: existingTransaction._id,
                     paymentId
                 });
                 return;
@@ -256,7 +256,7 @@ export class PaymentService {
                     try {
                         wallet = new Wallet({ userId, balance: 0 });
                         wallet = await wallet.save();
-                        logger.info('Created new wallet for user:', { userId, walletId: wallet._id.toString() });
+                        logger.info('Created new wallet for user:', { userId, walletId: wallet._id });
                     } catch (err: any) {
                         // If error is duplicate key, retry finding the wallet
                         if (err.code === 11000) {
@@ -287,7 +287,7 @@ export class PaymentService {
     
             const savedTransaction = await transaction.save();
             logger.info('Created pending transaction:', {
-                transactionId: savedTransaction._id.toString(),
+                transactionId: savedTransaction._id,
                 paymentId
             });
     
@@ -305,7 +305,7 @@ export class PaymentService {
             }
     
             logger.info('Updated wallet balance:', {
-                walletId: updatedWallet._id.toString(),
+                walletId: updatedWallet._id,
                 amount,
                 newBalance: updatedWallet.balance
             });
@@ -313,7 +313,7 @@ export class PaymentService {
             // 6. Update transaction to PAID status
             await Transaction.findByIdAndUpdate(savedTransaction._id, { status: 'PAID' });
             logger.info('Updated transaction to PAID:', {
-                transactionId: savedTransaction._id.toString(),
+                transactionId: savedTransaction._id,
                 paymentId
             });
     
