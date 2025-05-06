@@ -12,7 +12,7 @@ class WalletService {
     constructor(
         @inject(TYPES.PaymentService) private paymentService: PaymentService
     ) { }
-
+    //nap tien
     async deposit(userId: string, amount: number, description: string) {
         try {
             if (!userId) {
@@ -29,8 +29,6 @@ class WalletService {
                 });
                 logger.info('Created new wallet for deposit:', { userId, walletId: wallet._id });
             }
-            
-            // Chỉ tạo payment, không tạo transaction
             const payment = await this.paymentService.payment(
                 { amount, description: description || `Deposit ${amount}` },
                 userId
@@ -48,7 +46,7 @@ class WalletService {
             );
         }
     }
-
+    // rut tien
     async withdraw(userId: string, amount: number) {
         try {
             if (!userId) {
@@ -90,7 +88,7 @@ class WalletService {
             );
         }
     }
-
+    // thanh toan
     async payment(userId: string, amount: number, description: string, callback?: Function) {
         try {
             if (!userId) {
@@ -158,13 +156,13 @@ class WalletService {
             );
         }
     }
-
+    //get transaction
     async getTransactionHistory(userId: string, skip?: number, take?: number) {
         try {
             if (!userId) {
                 throw new BadRequestException('User ID is required');
             }
-
+            // console.log('userId', userId)
             // Find or create wallet
             let wallet = await Wallet.findOne({ userId });
             if (!wallet) {
@@ -178,7 +176,6 @@ class WalletService {
             // Build query
             const query = Transaction.find({ walletId: wallet._id })
                 .sort({ createdAt: -1 });
-
             if (typeof skip === 'number' && skip >= 0) {
                 query.skip(skip);
             }
@@ -192,13 +189,7 @@ class WalletService {
                 query.exec(),
                 Transaction.countDocuments({ walletId: wallet._id })
             ]);
-
-            logger.debug('Retrieved transaction history:', {
-                userId,
-                transactionCount: transactions.length,
-                total
-            });
-
+            console.log(transactions);
             return { transactions, total };
         } catch (error) {
             logger.error('Error getting transaction history:', error);
@@ -212,7 +203,7 @@ class WalletService {
             );
         }
     }
-
+    //get wallet
     async get(userId: string) {
         try {
             if (!userId) {
@@ -251,11 +242,11 @@ class WalletService {
      * @returns Ví đã được cập nhật
      */
     async addFunds(walletId: string, amount: number, transactionDetails: {
-        type: string,
+        type: 'DEPOSIT'| 'WITHDRAWAL'| 'PAYMENT'| 'SALE',
         description: string,
         userId: string,
         status?: 'PENDING' | 'PAID' | 'FAILED',
-        orderCode?: string
+        // orderCode?: string
     }) {
         try {
             if (!amount || amount <= 0) {
@@ -309,7 +300,7 @@ class WalletService {
      * @returns Ví đã được cập nhật
      */
     async subtractFunds(walletId: string, amount: number, transactionDetails: {
-        type: string,
+        type: 'DEPOSIT'| 'WITHDRAWAL'| 'PAYMENT'| 'SALE',
         description: string,
         userId: string,
         status?: 'PENDING' | 'PAID' | 'FAILED',
@@ -389,5 +380,4 @@ class WalletService {
     }
     
 }
-
 export default WalletService;
