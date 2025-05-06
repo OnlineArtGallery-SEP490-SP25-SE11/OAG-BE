@@ -298,6 +298,7 @@ export class ExhibitionService implements IExhibitionService {
                 .populate('gallery')
                 .populate({
                     path: 'artworkPositions.artwork',
+                    select: 'title description category dimensions lowResUrl artType price artistId status',
                     model: 'Artwork'
                 });
 
@@ -319,44 +320,72 @@ export class ExhibitionService implements IExhibitionService {
     }
 
     async approveExhibition(id: string): Promise<ExhibitionDocument> {
-        try {
-            if (!Types.ObjectId.isValid(id)) {
-                throw new BadRequestException('Invalid exhibition ID format');
-            }
+    try {
+        if (!Types.ObjectId.isValid(id)) {
+            throw new BadRequestException('Invalid exhibition ID format');
+        }
 
-            const exhibition = await ExhibitionModel.findById(id);
-            if (!exhibition) {
-                throw new NotFoundException('Exhibition not found');
-            }
-
-            if (exhibition.status !== ExhibitionStatus.PENDING) {
-                throw new BadRequestException('Exhibition is not in pending status');
-            }
-
-            exhibition.status = ExhibitionStatus.PUBLISHED;
-            await exhibition.save();
-
-
-
-            await NotificationService.createNotification({
-                title: 'Exhibition Approved',
-                content: `Your exhibition "${exhibition._id}" has been approved.`,
-                userId: exhibition.author.toString()
+        const exhibition = await ExhibitionModel.findById(id)
+            .populate({
+                path: 'author',
+                select: 'name followers',
+                model: 'User'
             });
 
-            return exhibition;
-        } catch (error) {
-            logger.error(`Error approving exhibition ${id}:`, error);
-            if (error instanceof BadRequestException ||
-                error instanceof NotFoundException) {
-                throw error;
-            }
-            throw new InternalServerErrorException(
-                'Error approving exhibition',
-                ErrorCode.DATABASE_ERROR
-            );
+        if (!exhibition) {
+            throw new NotFoundException('Exhibition not found');
         }
+
+        if (exhibition.status !== ExhibitionStatus.PENDING) {
+            throw new BadRequestException('Exhibition is not in pending status');
+        }
+
+        exhibition.status = ExhibitionStatus.PUBLISHED;
+        await exhibition.save();
+
+        const author = exhibition.author as any;
+        const exhibitionId = exhibition._id as string;
+        const exhibitionName = exhibition.getDefaultContent()?.name || exhibitionId;
+        // Notification for exhibition author
+        await NotificationService.createNotification({
+            title: 'Exhibition Approved',
+            content: `Your exhibition "${exhibitionName}" has been approved.`,
+            userId: author._id.toString(),
+            isSystem: true,
+            refType: 'event',
+            refId: exhibitionId
+        });
+
+        // Notification for followers
+        if (author.followers && author.followers.length > 0) {
+            const notificationPromises = author.followers.map((followerId: any) =>
+                NotificationService.createNotification({
+                    title: 'New Exhibition from Artist You Follow',
+                    content: `${author.name} has published a new exhibition: "${exhibitionName}"`,
+                    userId: followerId.toString(),
+                    isSystem: true,
+                    refType: 'event',
+                    refId: exhibitionId
+                })
+            );
+
+            await Promise.all(notificationPromises);
+            logger.info(`Sent notifications to ${author.followers.length} followers for exhibition ${exhibitionId}`);
+        }
+
+        return exhibition;
+    } catch (error) {
+        logger.error(`Error approving exhibition ${id}:`, error);
+        if (error instanceof BadRequestException ||
+            error instanceof NotFoundException) {
+            throw error;
+        }
+        throw new InternalServerErrorException(
+            'Error approving exhibition',
+            ErrorCode.DATABASE_ERROR
+        );
     }
+}
 
     async rejectExhibition(id: string, reason: string): Promise<ExhibitionDocument> {
         try {
@@ -571,6 +600,7 @@ export class ExhibitionService implements IExhibitionService {
                 .populate('gallery')
                 .populate({
                     path: 'artworkPositions.artwork',
+                    select: 'title description category dimensions lowResUrl artType price artistId status',
                     model: 'Artwork'
                 });
 
