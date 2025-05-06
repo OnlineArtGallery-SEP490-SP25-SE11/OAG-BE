@@ -9,9 +9,14 @@ interface IDimensions {
 
 interface ICustomCollider {
   shape: 'box' | 'curved';
-  args: number[];
+  args?: number[];  // Optional since curved doesn't use it
   position: number[];
   rotation: number[];
+  // Add curved collider properties
+  radius?: number;
+  height?: number;
+  segments?: number;
+  arc?: number;
 }
 
 interface IArtworkPlacement {
@@ -67,10 +72,19 @@ const customColliderSchema = new Schema<ICustomCollider>({
   },
   args: {
     type: [Number],
-    required: true,
-    validate: {
-      validator: (arr: number[]) => arr.length === 3,
-      message: 'Args must have 3 values'
+    required: function(this: ICustomCollider) {
+      return this.shape === 'box';
+    },
+     validate: {
+      validator: function(arr: number[] | undefined) {
+        // Only validate if this is a box collider
+        if (this.shape === 'box') {
+          return arr?.length === 3;
+        }
+        // For curved colliders, args can be undefined or empty
+        return true;
+      },
+      message: 'Args must have 3 values for box collider'
     }
   },
   position: {
@@ -88,6 +102,27 @@ const customColliderSchema = new Schema<ICustomCollider>({
       validator: (arr: number[]) => arr.length === 3,
       message: 'Rotation must have 3 angles'
     }
+  },
+  // Add curved collider fields
+  radius: {
+    type: Number,
+    required: function(this: ICustomCollider) {
+      return this.shape === 'curved';
+    }
+  },
+  height: {
+    type: Number,
+    required: function(this: ICustomCollider) {
+      return this.shape === 'curved';
+    }
+  },
+  segments: {
+    type: Number,
+    default: 32
+  },
+  arc: {
+    type: Number,
+    default: Math.PI * 2
   }
 });
 
