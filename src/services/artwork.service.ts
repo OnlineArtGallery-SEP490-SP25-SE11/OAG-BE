@@ -3,7 +3,7 @@ import Artwork from '@/models/artwork.model';
 import User from '@/models/user.model';
 import { AiService } from '@/services/ai.service';
 import { inject, injectable } from 'inversify';
-import { FilterQuery, Types } from 'mongoose';
+import mongoose, { FilterQuery, Types } from 'mongoose';
 import NotificationService from '@/services/notification.service';
 import Wallet from '@/models/wallet.model';
 import WalletService from '@/services/wallet.service';
@@ -12,6 +12,8 @@ import ArtworkWarehouseModel from '@/models/artwork-warehouse.model';
 import Transaction from '@/models/transaction.model';
 import { BadRequestException, InternalServerErrorException, NotFoundException } from '@/exceptions/http-exception';
 import { ErrorCode } from '@/constants/error-code';
+import Exhibition from '@/models/exhibition.model';
+import CollectionModel from '@/models/collection.model';
 
 export interface ArtworkQueryOptions {
 	select?: string;
@@ -515,38 +517,70 @@ export class ArtworkService {
 	}
 
 	async delete(id: string, artistId: string): Promise<boolean> {
-		try {
-			if (!Types.ObjectId.isValid(id)) {
-				const errorMessage = 'Invalid artwork id';
-				logger.error(errorMessage);
-				return false;
-			}
-			const existingArtwork = await Artwork.findById(id);
-			if (!existingArtwork) {
-				const errorMessage = 'Artwork not found';
-				logger.error(errorMessage);
-				return false;
-			}
-			if (!existingArtwork.artistId) {
-				const errorMessage = 'Artwork does not have an artistId';
-				logger.error(errorMessage);
-				return false;
-			}
-			if (existingArtwork.artistId.toString() !== artistId) {
-				const errorMessage =
-					'You are not authorized to update this artwork';
-				logger.error(errorMessage);
-				return false;
-			}
+    try {
+        if (!Types.ObjectId.isValid(id)) {
+            throw new BadRequestException('ID artwork không hợp lệ');
+        }
 
-			// Delete artwork
-			await Artwork.findByIdAndDelete(id).exec();
-			return true;
-		} catch (error) {
-			logger.error(`Error deleting artwork: ${error}`);
-			return false;
-		}
-	}
+        const existingArtwork = await Artwork.findById(id);
+        if (!existingArtwork) {
+            throw new NotFoundException('Không tìm thấy artwork');
+        }
+
+        // Check ownership
+        if (existingArtwork.artistId?.toString() !== artistId) {
+            throw new BadRequestException('Bạn không có quyền xóa artwork này');
+        }
+
+        // Delete references in other collections
+        try {
+            // 1. Delete artwork from exhibitions
+            await Exhibition.updateMany(
+                { 'artworkPositions.artwork': id },
+                { $pull: { artworkPositions: { artwork: id } } }
+            );
+
+            // 2. Delete artwork likes from exhibitions
+            await Exhibition.updateMany(
+                { 'result.likes.artworkId': id },
+                { $pull: { 'result.likes': { artworkId: id } } }
+            );
+
+            // 3. Delete from collections
+            await CollectionModel.updateMany(
+                { artworks: id },
+                { $pull: { artworks: id } }
+            );
+
+            // 4. Delete from warehouse
+            await ArtworkWarehouseModel.deleteMany({ artworkId: id });
+
+            // 5. Finally delete the artwork itself
+            await Artwork.findByIdAndDelete(id);
+
+            logger.info(`Successfully deleted artwork ${id} and all its references`);
+            return true;
+
+        } catch (error) {
+            logger.error(`Error deleting artwork references: ${error}`);
+            throw new InternalServerErrorException(
+                'Lỗi khi xóa artwork',
+                ErrorCode.DATABASE_ERROR
+            );
+        }
+    } catch (error) {
+        logger.error(`Error deleting artwork: ${error}`);
+        if (error instanceof BadRequestException || 
+            error instanceof NotFoundException ||
+            error instanceof InternalServerErrorException) {
+            throw error;
+        }
+        throw new InternalServerErrorException(
+            'Lỗi khi xóa artwork',
+            ErrorCode.DATABASE_ERROR
+        );
+    }
+}
 	async getCategory(): Promise<string[]> {
 		try {
 			const categories = await Artwork.distinct('category').exec();
@@ -910,17 +944,17 @@ export class ArtworkService {
 				status: { $in: ['published', 'selling'] },
 				moderationStatus: 'approved' // Add moderation status check
 			})
-			.select({
-                title: 1,
-                url: 1,
-                price: 1,
-                artType: 1,
-                isSelling: 1,
-				description : 1,
-                artistId: 1,
-                createdAt: 1,
-				dimensions: 1
-            })
+				.select({
+					title: 1,
+					url: 1,
+					price: 1,
+					artType: 1,
+					isSelling: 1,
+					description: 1,
+					artistId: 1,
+					createdAt: 1,
+					dimensions: 1
+				})
 				.sort({ createdAt: -1 })
 				.limit(limit)
 				.populate('artistId', 'name image') // Changed from 'artist' to 'artistId' and added 'image'

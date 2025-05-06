@@ -368,6 +368,26 @@ class WalletService {
             throw new InternalServerErrorException('Failed to subtract funds from wallet');
         }
     }
+
+
+    async getAllTransaction() {
+        try {
+            const transactions = await Transaction.find().sort({ createdAt: -1 });
+    
+            logger.info('Retrieved all transactions (admin):', {
+                transactionCount: transactions.length,
+            });
+    
+            return transactions;
+        } catch (error) {
+            logger.error('Error getting all transactions:', error);
+    
+            throw new InternalServerErrorException(
+                'Failed to retrieve transactions'
+            );
+        }
+    }
+    
 }
 
 export default WalletService;

@@ -56,4 +56,6 @@ export enum ErrorCode {
 	//baned
 	USER_BANNED = 'user_banned',
 
+	CCCD_USED = 'cccd_used',
+
 }

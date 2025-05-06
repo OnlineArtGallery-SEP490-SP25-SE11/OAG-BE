@@ -5,6 +5,7 @@ import { ICCCDService } from "@/interfaces/service.interface";
 import logger from "@/configs/logger.config";
 import { InternalServerErrorException } from "@/exceptions/http-exception";
 import { ErrorCode } from "@/constants/error-code";
+import { CreateCccdDto } from "@/dto/cccd.dto";
 
 @injectable()
 export class CCCDService implements ICCCDService {
@@ -88,10 +89,32 @@ export class CCCDService implements ICCCDService {
       );
     }
   }
-  async createCCCD(data: any): Promise<CCCDDocument> {
-    const cccd = new CCCDModel(data);
+  // async createCCCD(data: any): Promise<CCCDDocument> { ?
+  //   const cccd = new CCCDModel(data);
+  //   return await cccd.save();
+  // }
+
+  async createCCCD(userId: string, data: CreateCccdDto): Promise<CCCDDocument> {
+  try {
+    const cccd = new CCCDModel({ ...data, user: new Types.ObjectId(userId) });
     return await cccd.save();
+  } catch (error: any) {
+    logger.error('Error creating CCCD:', error);
+    
+    if (error.code === 11000) {
+      // Handle duplicate key error specifically
+      throw new InternalServerErrorException(
+        'CCCD with this ID already exists',
+        ErrorCode.CCCD_USED,
+      );
+    }
+    
+    throw new InternalServerErrorException(
+      'Error creating CCCD record',
+      ErrorCode.DATABASE_ERROR
+    );
   }
+}
 
   async getCCCDById(cccdId: string): Promise<CCCDDocument | null> {
     return await CCCDModel.findById(new Types.ObjectId(cccdId));
