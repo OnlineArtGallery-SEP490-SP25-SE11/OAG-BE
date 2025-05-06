@@ -281,7 +281,7 @@ class WalletService {
                 type: transactionDetails.type,
                 status: transactionDetails.status || 'PAID',
                 description: transactionDetails.description,
-                orderCode: transactionDetails.orderCode || Date.now().toString()
+                // orderCode: transactionDetails.orderCode || Date.now().toString()
             });
 
             logger.info(`Added ${amount} to wallet:`, {

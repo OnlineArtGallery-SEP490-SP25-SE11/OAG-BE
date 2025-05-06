@@ -744,20 +744,20 @@ export class ArtworkService {
 				type: 'SALE',
 				status: 'PAID',
 				description: `Sold artwork: ${artwork.title} (after 3% commission)`,
-				orderCode: Date.now().toString()
+				// orderCode: Date.now().toString()
 			});
 
 			// Tạo transaction ghi nhận phí hoa hồng
-			await Transaction.create({
-				walletId: artistWallet._id,
-				userId: artwork.artistId,
-				amount: commissionAmount,
-				type: 'COMMISSION',
-				status: 'PAID',
-				description: `Commission fee (3%) for artwork: ${artwork.title}`,
-				commissionRate: commissionRate,
-				orderCode: Date.now()
-			});
+			// await Transaction.create({
+			// 	walletId: artistWallet._id,
+			// 	userId: artwork.artistId,
+			// 	amount: commissionAmount,
+			// 	type: 'COMMISSION',
+			// 	status: 'PAID',
+			// 	description: `Commission fee (3%) for artwork: ${artwork.title}`,
+			// 	commissionRate: commissionRate,
+			// 	// orderCode: Date.now()
+			// });
 
 			// Cập nhật danh sách người mua mà KHÔNG thay đổi trạng thái
 			await Artwork.findByIdAndUpdate(
