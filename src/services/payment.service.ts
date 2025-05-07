@@ -91,7 +91,7 @@ export class PaymentService {
             const transaction = new Transaction({
                 walletId: wallet._id,
                 amount: data.amount,
-                type: 'PAYMENT',
+                type: 'DEPOSIT',
                 status: 'PENDING',
                 orderCode: paymentUrl.orderCode,
                 paymentId: _payment._id,
@@ -201,7 +201,7 @@ export class PaymentService {
                 transaction = await Transaction.create({
                     walletId: wallet._id,
                     amount: payment.amount,
-                    type: 'PAYMENT',
+                    type: 'DEPOSIT',
                     status: 'PENDING', // Start with PENDING
                     orderCode: data.orderCode,
                     paymentId,
