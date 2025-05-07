@@ -108,7 +108,7 @@ class FileService {
 						fit: 'inside', // Changed back to 'inside' to preserve aspect ratio
 						withoutEnlargement: false
 					})
-					.jpeg({ quality: 70 })
+					.jpeg({ quality: 85 })
 					.toBuffer();
 				const lowResPublicId = `${basePublicId}_lowres`;
 				const lowResResult = await this._uploadToCloudinary(

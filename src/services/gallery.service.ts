@@ -50,7 +50,7 @@ export class GalleryService implements IGalleryService {
             return gallery;
 
         } catch (error) {
-            logger.error('Error creating gallery:', error);
+            console.error('Error creating gallery:', error);
 
             if (error instanceof BadRequestException) {
                 throw error;

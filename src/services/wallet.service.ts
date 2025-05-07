@@ -29,20 +29,13 @@ class WalletService {
                 });
                 logger.info('Created new wallet for deposit:', { userId, walletId: wallet._id });
             }
+            
+            // Chỉ tạo payment, không tạo transaction
             const payment = await this.paymentService.payment(
                 { amount, description: description || `Deposit ${amount}` },
                 userId
             );
 
-            const transaction = await Transaction.create({
-                walletId: wallet._id,
-                userId,
-                amount: payment.amount,
-                type: 'DEPOSIT',
-                status: payment.status,
-                orderCode: payment.orderCode,
-            });
-            await transaction.save()
             return payment;
         } catch (error) {
             logger.error('Error processing deposit:', error);
@@ -288,7 +281,7 @@ class WalletService {
                 type: transactionDetails.type,
                 status: transactionDetails.status || 'PAID',
                 description: transactionDetails.description,
-                orderCode: transactionDetails.orderCode || Date.now().toString()
+                // orderCode: transactionDetails.orderCode || Date.now().toString()
             });
 
             logger.info(`Added ${amount} to wallet:`, {
