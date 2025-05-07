@@ -7,6 +7,8 @@ export class UserController {
 	constructor() {
 		this.getAllUser = this.getAllUser.bind(this);
 		this.getUserById = this.getUserById.bind(this);
+		this.updateToAdmin = this.updateToAdmin.bind(this);
+		this.removeAdminRole = this.removeAdminRole.bind(this);
 	}
 	async getAllUser(
 		req: Request,
@@ -62,6 +64,53 @@ export class UserController {
 				null,
 				200,
 				'Update role success'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async updateToAdmin(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> {
+		try {
+			const targetUserId = req.params.userId;
+			if (!targetUserId) {
+				throw new ForbiddenException('User ID is required');
+			}
+
+			const result = await this._userService.updateToAdmin(targetUserId);
+			const response = BaseHttpResponse.success(
+				result,
+				200,
+				'User updated to admin successfully'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+
+	async removeAdminRole(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<any> {
+		try {
+			const targetUserId = req.params.userId;
+			if (!targetUserId) {
+				throw new ForbiddenException('User ID is required');
+			}
+
+			const result = await this._userService.removeAdminRole(targetUserId);
+			const response = BaseHttpResponse.success(
+				result,
+				200,
+				'Admin role removed successfully'
 			);
 			return res.status(response.statusCode).json(response);
 		} catch (error) {
