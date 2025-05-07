@@ -50,7 +50,7 @@ class UserService {
 			logger.error(`Update profile failed!, ${err.message}`);
 			throw new Error(`Update profile failed!, ${err.message}`);
 		}
-	} 
+	}
 
 	//admin function user
 	async getAllUser(): Promise<InstanceType<typeof User>[]> {
@@ -58,7 +58,7 @@ class UserService {
 			const users = await User.find();
 			return users;
 		}
-		catch{
+		catch {
 			logger.error(`Get all user failed!`);
 			throw new Error(`Get all user failed!`);
 		}
@@ -69,7 +69,7 @@ class UserService {
 		imageFile: Express.Multer.File
 	): Promise<InstanceType<typeof User> | null> {
 		try {
-	
+
 
 			if (!imageFile) {
 				throw new Error('No image file provided');
@@ -84,7 +84,7 @@ class UserService {
 				]
 			});
 
-		
+
 
 			// Update user's avatar URL in database using findOneAndUpdate
 			const user = await User.findOneAndUpdate(
@@ -106,11 +106,11 @@ class UserService {
 				throw new Error('User not found');
 			}
 
-		
+
 			return user;
 
 		} catch (err: any) {
-			
+
 			logger.error(`Update avatar failed!, ${err.message}`);
 			throw new Error(`Update avatar failed!, ${err.message}`);
 		}
@@ -203,7 +203,7 @@ class UserService {
 				},
 				{ new: true }
 			);
-	
+
 			if (!user) {
 				throw new Error('User not found');
 			}
@@ -213,7 +213,7 @@ class UserService {
 			throw new Error(`Approve become artist failed! ${error.message}`);
 		}
 	}
-	
+
 
 	async getPendingArtistRequests() {
 		try {
@@ -231,7 +231,7 @@ class UserService {
 				.select('-password')
 				.populate('following', 'name email image')
 				.populate('followers', 'name email image');
-				
+
 			if (!user) {
 				logger.error(`User not found!`);
 				throw new Error('User not found');
@@ -240,6 +240,56 @@ class UserService {
 		} catch (err: any) {
 			logger.error(`Get user profile failed!, ${err.message}`);
 			throw new Error(`Get user profile failed!, ${err.message}`);
+		}
+	}
+
+	async updateToAdmin(userId: string) {
+		try {
+			if (!Types.ObjectId.isValid(userId)) {
+				throw new Error('Invalid user ID');
+			}
+
+			const user = await User.findByIdAndUpdate(
+				userId,
+				{
+					$addToSet: { role: 'admin' }
+				},
+				{ new: true }
+			);
+
+			if (!user) {
+				throw new Error('User not found');
+			}
+
+			return { success: true, message: 'User has been granted admin role', user };
+		} catch (error: any) {
+			logger.error(`Update to admin failed! ${error.message}`);
+			throw new Error(`Update to admin failed! ${error.message}`);
+		}
+	}
+
+	async removeAdminRole(userId: string) {
+		try {
+			if (!Types.ObjectId.isValid(userId)) {
+				throw new Error('Invalid user ID');
+			}
+
+			const user = await User.findByIdAndUpdate(
+				userId,
+				{
+					$pull: { role: 'admin' }
+				},
+				{ new: true }
+			);
+
+			if (!user) {
+				throw new Error('User not found');
+			}
+
+			return { success: true, message: 'Admin role has been removed from user', user };
+		} catch (error: any) {
+			logger.error(`Remove admin role failed! ${error.message}`);
+			throw new Error(`Remove admin role failed! ${error.message}`);
 		}
 	}
 }

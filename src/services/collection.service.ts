@@ -66,8 +66,14 @@ export class CollectionService {
 			const collections = await Collection.find({ userId, isArtist: false })
 			.populate({
 				path: 'artworks',
-				select: 'title url',
-				model: 'Artwork' // Explicitly specify the model name
+				select: 'title lowResUrl -_id',
+				model: 'Artwork', // Explicitly specify the model name
+				transform: (doc) => {
+					return {
+						title: doc.title,
+						url: doc.lowResUrl // Return lowResUrl as url
+					};
+				}
 			})
 			.exec();
 			if(!collections){
@@ -89,8 +95,14 @@ export class CollectionService {
 			const collections = await Collection.find({ userId: artistId, isArtist: true })
 			.populate({
 				path: 'artworks',
-				select: 'title url',
-				model: 'Artwork' // Explicitly specify the model name
+				select: 'title lowResUrl -_id',
+				model: 'Artwork', // Explicitly specify the model name
+				transform: (doc) => {
+					return {
+						title: doc.title,
+						url: doc.lowResUrl // Return lowResUrl as url
+					};
+				}
 			})
 			.exec();
 			if(!collections){
@@ -179,9 +191,6 @@ export class CollectionService {
 			// Handle both single string and array input
 			const artIds = Array.isArray(artIdInput) ? artIdInput : [artIdInput];
 			
-			// Log for debugging
-			console.log("Collection before:", collection.artworks);
-			console.log("Attempting to remove artwork IDs:", artIds);
 			
 			// Filter out the artworks to be removed - using string comparison
 			collection.artworks = collection.artworks.filter(existingArt => {
@@ -189,8 +198,7 @@ export class CollectionService {
 				return !artIds.includes(existingArtString);
 			});
 			
-			// Log after filtering
-			console.log("Collection after filtering:", collection.artworks);
+			
 			
 			// Save the updated collection
 			await collection.save();
@@ -209,6 +217,37 @@ export class CollectionService {
 				throw new Error('Collection not found');
 			}
 			return collection;
+		} catch (error) {
+			logger.error(error);
+			throw error;
+		}
+	}
+
+	// Get all collections with isArtist = true
+	async getArtistCollections(artistId: string): Promise<InstanceType<typeof Collection>[]> {
+		try {
+			if(!artistId){
+				throw new Error('Artist ID is required');
+			}
+			
+			const collections = await Collection.find({ userId: artistId, isArtist: true })
+			.populate({
+				path: 'artworks',
+				select: 'title lowResUrl -_id',
+				model: 'Artwork', // Explicitly specify the model name
+				transform: (doc) => {
+					return {
+						title: doc.title,
+						url: doc.lowResUrl // Return lowResUrl as url
+					};
+				}
+			})
+			.exec();
+			
+			if (!collections || collections.length === 0) {
+				throw new Error(`No artist collections found for artist ID: ${artistId}`);
+			}
+			return collections;
 		} catch (error) {
 			logger.error(error);
 			throw error;

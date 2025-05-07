@@ -19,6 +19,7 @@ export class CollectionController {
 		this.delArt = this.delArt.bind(this);
 		this.delCollection = this.delCollection.bind(this);
 		this.getByOtherUserId = this.getByOtherUserId.bind(this);
+		this.getArtistCollections = this.getArtistCollections.bind(this);
 	}
 
 	async addInUser(req: Request, res: Response, next: NextFunction): Promise<any> {
@@ -206,6 +207,26 @@ export class CollectionController {
 		}
 		catch (error) {
 			next(error)
+		}
+	}
+
+	async getArtistCollections(req: Request, res: Response, next: NextFunction): Promise<any> {
+		try {
+			const artistId = req.query.artistId as string;
+			
+			if (!artistId) {
+				throw new Error('Artist ID is required');
+			}
+			
+			const collections = await this._collectionService.getArtistCollections(artistId);
+			const response = BaseHttpResponse.success(
+				collections,
+				200,
+				'Artist collections retrieved successfully'
+			);
+			return res.status(response.statusCode).json(response);
+		} catch (error) {
+			next(error);
 		}
 	}
 }
