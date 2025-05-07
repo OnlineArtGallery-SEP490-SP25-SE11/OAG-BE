@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema, model } from 'mongoose';
 
 // Define status type for type safety
-export type SubscriptionStatus = 'active' | 'cancelled' | 'expired';
+export type SubscriptionStatus = 'active' | 'cancelled' | 'expired' |'none';
 
 // Define interface for PremiumSubscription document
 export interface IPremiumSubscription extends Document {
@@ -36,7 +36,7 @@ const premiumSubscriptionSchema = new Schema<IPremiumSubscription>(
     },
     status: {
       type: String,
-      enum: ['active', 'cancelled', 'expired'],
+      enum: ['active', 'cancelled', 'expired', 'none'],
       required: true,
     },
     autoRenew: {
