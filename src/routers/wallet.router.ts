@@ -2,7 +2,7 @@ import container from '@/configs/container.config';
 import roleRequire from '@/configs/middleware.config';
 import WalletController from '@/controllers/wallet.controller';
 import { validate } from '@/middlewares/validate.middleware';
-import { depositSchema, TransactionHistoryQuerySchema, WithdrawSchema } from '@/schemas/wallet.schema';
+import { depositSchema, TransactionHistoryQuerySchema, WithdrawSchema, WalletStatisticsQuerySchema } from '@/schemas/wallet.schema';
 import { Router } from 'express';
 
 const router = Router();
@@ -12,4 +12,9 @@ router.post('/withdraw', roleRequire(), validate(WithdrawSchema), walletControll
 router.get('/transactions', roleRequire(), validate(TransactionHistoryQuerySchema, 'query'), walletController.getTransactionHistory);
 router.get('/', roleRequire(), walletController.getWallet);
 router.get('/admin/transactions', roleRequire('admin'), walletController.getAllTransaction);
+router.get('/statistics', 
+    roleRequire(),
+    validate(WalletStatisticsQuerySchema, 'query'),
+    walletController.getWalletStatistics
+);
 export default router;

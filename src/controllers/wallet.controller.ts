@@ -1,9 +1,9 @@
-import { BadRequestException } from '@/exceptions/http-exception';
+import { BadRequestException, InternalServerErrorException } from '@/exceptions/http-exception';
 import { BaseHttpResponse } from '@/lib/base-http-response';
 import WalletService from '@/services/wallet.service';
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
-
+import logger from '@/configs/logger.config';
 @injectable()
 class WalletController {
     constructor(
@@ -14,6 +14,7 @@ class WalletController {
         this.getTransactionHistory = this.getTransactionHistory.bind(this);
         this.getWallet = this.getWallet.bind(this);
         this.getAllTransaction = this.getAllTransaction.bind(this);
+        this.getWalletStatistics = this.getWalletStatistics.bind(this);
     }
 
     async deposit(req: Request, res: Response, next: NextFunction): Promise<any> {
@@ -107,7 +108,76 @@ class WalletController {
             next(error);
         }
     }
+    async getWalletStatistics(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const userId = req.userId;
+            if (!userId) {
+                throw new BadRequestException('User not authenticated');
+            }
 
+            const { startDate, endDate, transactionType, status, groupBy } = req.query;
+
+            // Parse and sanitize dates
+            let parsedStartDate: Date | undefined;
+            let parsedEndDate: Date | undefined;
+
+            try {
+                if (startDate) {
+                    parsedStartDate = new Date(decodeURIComponent(startDate as string));
+                    if (isNaN(parsedStartDate.getTime())) {
+                        throw new BadRequestException('Invalid startDate format');
+                    }
+                }
+
+                if (endDate) {
+                    parsedEndDate = new Date(decodeURIComponent(endDate as string));
+                    if (isNaN(parsedEndDate.getTime())) {
+                        throw new BadRequestException('Invalid endDate format');
+                    }
+                }
+
+                // Set default date range if not provided
+                if (!parsedStartDate) {
+                    parsedStartDate = new Date();
+                    parsedStartDate.setDate(parsedStartDate.getDate() - 30);
+                }
+                if (!parsedEndDate) {
+                    parsedEndDate = new Date();
+                }
+
+                // Ensure startDate is before endDate
+                if (parsedStartDate > parsedEndDate) {
+                    throw new BadRequestException('startDate must be before endDate');
+                }
+
+            } catch (error) {
+                if (error instanceof BadRequestException) throw error;
+                throw new BadRequestException('Invalid date format');
+            }
+
+            const statistics = await this.walletService.getWalletStatistics({
+                userId,
+                startDate: parsedStartDate,
+                endDate: parsedEndDate,
+                transactionType: transactionType as any,
+                status: status as any,
+                groupBy: (groupBy as 'day' | 'week' | 'month') || 'day'
+            });
+
+            res.status(200).json(
+                BaseHttpResponse.success(
+                    statistics,
+                    200,
+                    'Get wallet statistics success'
+                )
+            );
+        } catch (error: any) {
+            logger.error('Error in getWalletStatistics:', error);
+            next(error instanceof Error ? error : new InternalServerErrorException(
+                'An unexpected error occurred while retrieving wallet statistics'
+            ));
+        }
+    }
 }
 
 export default WalletController;
