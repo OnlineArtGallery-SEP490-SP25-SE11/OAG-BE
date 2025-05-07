@@ -152,12 +152,27 @@ export class ExhibitionController implements IExhibitionController {
 
   findUserExhibitions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const exhibitions = await this._exhibitionService.findAll({
+      const {
+        page,
+        limit,
+        sort,
+        search,
+        filter
+      } = req.query;
+
+      const options = {
+        page: page ? parseInt(page as string) : undefined,
+        limit: limit ? parseInt(limit as string) : undefined,
+        sort: sort ? JSON.parse(sort as string) : undefined,
+        search: search as string || undefined,
+        filter: filter ? JSON.parse(filter as string) : {},
         userId: req.userId
-      });
+      };
+
+      const result = await this._exhibitionService.findAll(options);
 
       const response = BaseHttpResponse.success(
-        exhibitions,
+        result,
         200,
         'User exhibitions retrieved successfully'
       );
@@ -219,34 +234,34 @@ export class ExhibitionController implements IExhibitionController {
   }
 
   public findPublishedExhibitions = async (
-        req: Request,
-        res: Response, 
-        next: NextFunction
-    ): Promise<void> => {
-        try {
-            const queryOptions = ParseQueryOptions.parse<ExhibitionQueryDto>(req.query, {
-                defaultSort: { createdAt: -1 },
-                defaultLimit: 10,
-                defaultPage: 1,
-                forceFilters: {
-                    discovery: true,
-                    status: ExhibitionStatus.PUBLISHED
-                }
-            });
-                    
-            const result = await this._exhibitionService.findAll(queryOptions);
-
-            const response = BaseHttpResponse.success(
-                result,
-                200,
-                'Published exhibitions retrieved successfully'
-            );
-            
-            res.status(response.statusCode).json(response);
-        } catch (error) {
-            next(error);
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const queryOptions = ParseQueryOptions.parse<ExhibitionQueryDto>(req.query, {
+        defaultSort: { createdAt: -1 },
+        defaultLimit: 10,
+        defaultPage: 1,
+        forceFilters: {
+          discovery: true,
+          status: ExhibitionStatus.PUBLISHED
         }
-    };
+      });
+
+      const result = await this._exhibitionService.findAll(queryOptions);
+
+      const response = BaseHttpResponse.success(
+        result,
+        200,
+        'Published exhibitions retrieved successfully'
+      );
+
+      res.status(response.statusCode).json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
 
   public findPublishedExhibitionById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -295,14 +310,14 @@ export class ExhibitionController implements IExhibitionController {
         200,
         result.liked ? 'Artwork liked successfully' : 'Artwork unliked successfully'
       );
-      
+
       res.status(response.statusCode).json(response);
     } catch (error) {
       next(error);
     }
   };
 
-    updateAnalytics = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  updateAnalytics = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       console.log('Update Analytics:', req.validatedData);
       const exhibition = await this._exhibitionService.updateAnalytics(
