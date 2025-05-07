@@ -41,7 +41,7 @@ export class PremiumService {
 
       if (subscription) {
         // Cập nhật subscription hiện tại
-        subscription = await PremiumSubscriptionModel.findOneAndUpdate(
+        subscription = (await PremiumSubscriptionModel.findOneAndUpdate(
           { userId },
           {
             status: 'active',
@@ -53,10 +53,10 @@ export class PremiumService {
             orderId: Date.now().toString()
           },
           { new: true }
-        ) as IPremiumSubscription;
+        )) as any;
       } else {
         // Tạo subscription mới nếu chưa từng đăng ký
-        subscription = await PremiumSubscriptionModel.create({
+        subscription = (await PremiumSubscriptionModel.create({
           userId,
           startDate,
           endDate,
@@ -65,15 +65,17 @@ export class PremiumService {
           nextPaymentDate: endDate,
           autoRenew: true,
           orderId: Date.now().toString()
-        }) as IPremiumSubscription;
+        })) as any;
       }
 
       // Cập nhật user
       await User.findByIdAndUpdate(userId, {
-        premiumStatus: subscription._id
+        premiumStatus: subscription?._id
       });
 
-      this.scheduleAutoRenewal(userId, (subscription._id as mongoose.Types.ObjectId).toString(), endDate);
+      if (subscription) {
+        this.scheduleAutoRenewal(userId, (subscription._id as mongoose.Types.ObjectId).toString(), endDate);
+      }
 
       return subscription;
     } catch (error) {
