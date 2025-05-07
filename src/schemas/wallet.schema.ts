@@ -17,3 +17,33 @@ export const TransactionHistoryQuerySchema = z.object({
         message: 'Take must be a number'
     })
 });
+export const WalletStatisticsSchema = z.object({
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
+  transactionType: z.enum(['DEPOSIT', 'WITHDRAWAL', 'PAYMENT', 'SALE']).optional(),
+  status: z.enum(['PENDING', 'PAID', 'FAILED']).optional(),
+  groupBy: z.enum(['day', 'week', 'month']).optional().default('day')
+});
+export const WalletStatisticsQuerySchema = z.object({
+    startDate: z.string()
+        .transform((date) => {
+            const parsed = new Date(decodeURIComponent(date));
+            if (isNaN(parsed.getTime())) {
+                throw new Error('Invalid date format');
+            }
+            return parsed;
+        })
+        .optional(),
+    endDate: z.string()
+        .transform((date) => {
+            const parsed = new Date(decodeURIComponent(date));
+            if (isNaN(parsed.getTime())) {
+                throw new Error('Invalid date format');
+            }
+            return parsed;
+        })
+        .optional(),
+    transactionType: z.enum(['DEPOSIT', 'WITHDRAWAL', 'PAYMENT', 'SALE']).optional(),
+    status: z.enum(['PENDING', 'PAID', 'FAILED']).optional(),
+    groupBy: z.enum(['day', 'week', 'month']).default('day')
+}).strict();
