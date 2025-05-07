@@ -502,7 +502,7 @@ export class ExhibitionService implements IExhibitionService {
 
                     await this._walletService.addFunds(artistWallet._id as string, artistAmount, {
                         userId: exhibition.author.toString(),
-                        type: 'DEPOSIT',
+                        type: 'SALE',
                         description: `Ticket sale for exhibition: ${exhibition.contents[0]?.name || exhibitionId}`,
                         status: 'PAID'
                     });
