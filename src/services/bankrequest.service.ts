@@ -23,7 +23,8 @@ class BankRequestService {
             walletId: wallet._id,
             amount,
             type: 'WITHDRAWAL',
-            status: 'PENDING'
+            status: 'PENDING',
+            description: `Withdrawal request to ${bankName} (${bankAccountName}) for ${amount}`,
         });
 
         // Create bank request record with PENDING status

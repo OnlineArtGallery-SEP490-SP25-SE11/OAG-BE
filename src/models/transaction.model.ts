@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema, model } from 'mongoose';
 
 // Define transaction types and status as type literals for type safety
-type TransactionType = 'DEPOSIT' | 'WITHDRAWAL' | 'PAYMENT' | 'SALE' | 'COMMISSION' | 'PREMIUM_SUBSCRIPTION' | 'TICKET_SALE';
+type TransactionType = 'DEPOSIT'| 'WITHDRAWAL'| 'PAYMENT'| 'SALE';
 type TransactionStatus = 'PENDING' | 'PAID' | 'FAILED';
 
 // Define interface for Transaction document
@@ -13,6 +13,7 @@ interface ITransaction extends Document {
   orderCode: string;
   createdAt?: Date;
   updatedAt?: Date;
+  description?: string;
 }
 
 // Create the schema
@@ -29,7 +30,7 @@ const transactionSchema = new Schema<ITransaction>(
     },
     type: {
       type: String,
-      enum: ['DEPOSIT', 'WITHDRAWAL', 'PAYMENT', 'SALE', 'COMMISSION', 'PREMIUM_SUBSCRIPTION', 'TICKET_SALE'],
+      enum: ['DEPOSIT', 'WITHDRAWAL', 'PAYMENT', 'SALE'],
       required: true
     },
     status: {
@@ -41,6 +42,10 @@ const transactionSchema = new Schema<ITransaction>(
     orderCode: {
       type: String,
       required: false
+    },
+    description: {
+        type: String,
+        required: false
     }
   },
   { timestamps: true }

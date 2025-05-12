@@ -155,4 +155,7 @@ router.get('/profile/:userId', roleRequire(), async (req: Request, res: Response
     }
 });
 
+router.patch('/update-to-admin/:userId', roleRequire(['admin']), userController.updateToAdmin);
+router.patch('/remove-admin/:userId', roleRequire(['admin']), userController.removeAdminRole);
+
 export default router;

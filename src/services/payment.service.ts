@@ -1,17 +1,15 @@
 import logger from '@/configs/logger.config';
-import { ErrorCode } from '@/constants/error-code';
-import { CreatePaymentDto, UpdatePaymentDto } from '@/dto/payment.dto';
-import {
-    BadRequestException,
-    InternalServerErrorException,
-} from '@/exceptions/http-exception';
+import {ErrorCode} from '@/constants/error-code';
+import {CreatePaymentDto, UpdatePaymentDto} from '@/dto/payment.dto';
+import {BadRequestException, InternalServerErrorException,} from '@/exceptions/http-exception';
 import Payment from '@/models/payment.model';
 import Transaction from '@/models/transaction.model';
 import Wallet from '@/models/wallet.model';
 import env from '@/utils/validateEnv.util';
 import PayOS from '@payos/node';
-import { injectable } from 'inversify';
+import {injectable} from 'inversify';
 import crypto from 'crypto';
+
 interface PaymentPurchase {
     amount: number;
     description?: string;
@@ -78,6 +76,29 @@ export class PaymentService {
                 paymentUrl: paymentUrl.checkoutUrl,
                 orderCode: paymentUrl.orderCode
             })
+
+            // kiem tra thong tin vi
+            let wallet = await Wallet.findOne({ userId });
+            if (!wallet) {
+                wallet = await Wallet.create({
+                    userId,
+                    balance: 0
+                });
+                logger.info('Created new wallet for transaction history:', { userId });
+            }
+
+            // tao transaction voi pending
+            const transaction = new Transaction({
+                walletId: wallet._id,
+                amount: data.amount,
+                type: 'DEPOSIT',
+                status: 'PENDING',
+                orderCode: paymentUrl.orderCode,
+                paymentId: _payment._id,
+                description: data.description
+            })
+            await transaction.save()
+
             const payment = await _payment.save()
             return payment;
         } catch (error) {
@@ -143,7 +164,7 @@ export class PaymentService {
                 ErrorCode.PAYMENT_VERIFICATION_FAILED
             );
         }
-        
+        // sau khi xu ly payos thi cap nhat he thong
         try {
             // Find the payment record
             const payment = await Payment.findOne({
@@ -160,20 +181,37 @@ export class PaymentService {
             
             const paymentId = payment._id as string;
             logger.debug('Found payment record:', { paymentId, status: payment.status });
-            
-            // First check if payment is already processed
-            const existingTransaction = await Transaction.findOne({ paymentId });
-            
-            if (existingTransaction) {
-                logger.info('Payment already processed, transaction exists:', { 
-                    transactionId: existingTransaction._id,
-                    paymentId
+
+            let transaction = null;
+            transaction = await Transaction.findOne({
+                orderCode: data.orderCode,
+            });
+            // console.log('tim Transaction:', transaction);
+            // kiem tra thong tin vi:
+            let wallet = await Wallet.findOne({ userId });
+            if (!wallet) {
+                wallet = await Wallet.create({
+                    userId,
+                    balance: 0
                 });
-                return payment;
+                logger.info('Created new wallet for transaction history:', { userId });
             }
-            
+            // neu chua co transaction thi tao moi
+            if (!transaction) {
+                transaction = await Transaction.create({
+                    walletId: wallet._id,
+                    amount: payment.amount,
+                    type: 'DEPOSIT',
+                    status: 'PENDING', // Start with PENDING
+                    orderCode: data.orderCode,
+                    paymentId,
+                    description: payment.description,
+                });
+            }
+
             // Update payment status if required
             let updatedPayment = payment;
+            // khi status cua payment khong khop voi status cua payos -> update status cua payment
             if (payment.status !== paymentPayOS.status) {
                 logger.info('Payment status changed:', {
                     oldStatus: payment.status,
@@ -196,13 +234,18 @@ export class PaymentService {
             }
             
             // Process successful payments - only if status is PAID AND no transaction exists
-            if (paymentPayOS.status === 'PAID') {
+            // neu transaction da ton tai voi status la paid thi khong lam gi ca
+            // console.log(`check status ${paymentPayOS.status} - ${transaction.status}`);
+            // console.log(paymentPayOS.status === 'PAID' && transaction.status !== 'PAID')
+            if (paymentPayOS.status === 'PAID' && transaction.status !== 'PAID') {
+                // voi transaction dang la pending va payment da thanh toan thi update
                 logger.info('Processing successful payment:', { paymentId });
                 await this.processPaymentSafely({
                     paymentId: updatedPayment._id as string,
                     orderCode: updatedPayment.orderCode,
-                    amount: updatedPayment.amount
-                }, userId);
+                    amount: updatedPayment.amount,
+                    description: updatedPayment.description || '',
+                }, userId, transaction._id as string);
             }
     
             return updatedPayment;
@@ -223,28 +266,53 @@ export class PaymentService {
             );
         }
     }
+
+    /**
+     * chi xu ly voi transaction co status la pending de cap nhat pending thanh paid
+     * nhan thong tin tu payment => check transaction da ton tai chua, sau do check wallet => cap nhat wallet sau do cap nhat transaction
+     * @param paymentId
+     * @param orderCode
+     * @param amount
+     * @param description
+     * @param userId
+     * @param transactionId
+     * @private
+     */
     private async processPaymentSafely(
-        { paymentId, orderCode, amount }: { paymentId: string, orderCode: string, amount: number },
-        userId: string
+        { paymentId, orderCode, amount, description }: { paymentId: string, orderCode: string, amount: number, description: string },
+        userId: string, transactionId: string
     ): Promise<void> {
         try {
             // 1. Generate a unique transactionId based on paymentId to ensure idempotency
             const transactionIdBase = `${paymentId}-${orderCode}`;
             const transactionIdHash = crypto.createHash('md5').update(transactionIdBase).digest('hex');
     
-            // 2. Check if transaction already exists with this unique ID
-            const existingTransaction = await Transaction.findOne({
-                paymentId,
+            // 2. Tìm transaction để cập nhật:
+            let transaction = null;
+            transaction = await Transaction.findOne({
+                orderCode,
             });
-    
-            if (existingTransaction) {
-                logger.info('Transaction already exists for this payment:', {
-                    transactionId: existingTransaction._id,
-                    paymentId
-                });
+            // neu chua co transaction thi bao loi
+            if (!transaction) {
+                // transaction = await Transaction.create({
+                //
+                //     amount,
+                //     type: 'PAYMENT',
+                //     status: 'PENDING', // Start with PENDING
+                //     orderCode,
+                //     paymentId,
+                //     description,
+                //     idempotencyKey: transactionIdHash // Store idempotency key
+                // })
+                throw new BadRequestException(
+                    'Transaction not found in database',
+                    ErrorCode.DATABASE_ERROR
+                );
+            }
+            // neu status cua transaction khong phai la paid -> da thanh toan roi, bo qua cac buoc con lai
+            if (transaction.status === 'PAID' ) {
                 return;
             }
-    
             // 3. Find or create wallet with retry logic
             let wallet = null;
             let retries = 3;
@@ -273,24 +341,6 @@ export class PaymentService {
             if (!wallet) {
                 throw new Error(`Failed to find or create wallet for userId: ${userId}`);
             }
-            
-            // 4. Create transaction first with status PENDING
-            const transaction = new Transaction({
-                walletId: wallet._id,
-                amount,
-                type: 'DEPOSIT',
-                status: 'PENDING', // Start with PENDING
-                orderCode,
-                paymentId,
-                idempotencyKey: transactionIdHash // Store idempotency key
-            });
-    
-            const savedTransaction = await transaction.save();
-            logger.info('Created pending transaction:', {
-                transactionId: savedTransaction._id,
-                paymentId
-            });
-    
             // 5. Update wallet balance with specific conditions to prevent race conditions
             const updatedWallet = await Wallet.findOneAndUpdate(
                 { _id: wallet._id },
@@ -300,7 +350,7 @@ export class PaymentService {
     
             if (!updatedWallet) {
                 // If wallet update fails, mark transaction as FAILED
-                await Transaction.findByIdAndUpdate(savedTransaction._id, { status: 'FAILED' });
+                await Transaction.findByIdAndUpdate(transaction._id, { status: 'FAILED' });
                 throw new Error(`Failed to update wallet balance for walletId: ${wallet._id}`);
             }
     
@@ -309,11 +359,10 @@ export class PaymentService {
                 amount,
                 newBalance: updatedWallet.balance
             });
-    
             // 6. Update transaction to PAID status
-            await Transaction.findByIdAndUpdate(savedTransaction._id, { status: 'PAID' });
+            await Transaction.findByIdAndUpdate(transaction._id, { status: 'PAID' });
             logger.info('Updated transaction to PAID:', {
-                transactionId: savedTransaction._id,
+                transactionId: transaction._id,
                 paymentId
             });
     

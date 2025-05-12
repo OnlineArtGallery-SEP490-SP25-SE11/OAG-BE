@@ -13,6 +13,7 @@ router.post('/in-artist', roleRequire(), colleciontController.addInArtist);
 router.get('/in-user', roleRequire(), colleciontController.getByUserId);
 router.get('/in-artist', roleRequire(), colleciontController.getByArtistId);
 router.get('/other', roleRequire(), colleciontController.getByOtherUserId);
+router.get('/artist-collection', roleRequire(), colleciontController.getArtistCollections);
 router.get('/:id', roleRequire(), colleciontController.getById);
 router.put('/:id', roleRequire(),permanentBan(), colleciontController.update);
 router.delete('/delete-art/:id', roleRequire(), colleciontController.delArt);
